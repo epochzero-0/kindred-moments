@@ -69,6 +69,8 @@ export default {
           light: "hsl(var(--pandan-light))",
         },
         pearl: "hsl(var(--pearl))",
+        honey: "hsl(var(--honey))",
+        lavender: "hsl(var(--lavender))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -1,11 +1,11 @@
-import { Home, Users, Compass, Radio, Settings, Bell, Heart, BookHeart, Target, MessageCircle, User } from "lucide-react";
+import { Home, Users, Compass, Radio, Heart, BookHeart, Target, MessageCircle, User } from "lucide-react";
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCurrentUser } from "@/hooks/use-data";
 
 const mainTabs = [
   { to: "/", icon: Home, label: "Home" },
-  { to: "/trio", icon: Users, label: "Trio Match" },
+  { to: "/trio", icon: Users, label: "Trio" },
   { to: "/clan", icon: Compass, label: "Clans" },
   { to: "/pulse", icon: Radio, label: "Pulse" },
 ];
@@ -21,162 +21,92 @@ const socialTabs = [
   { to: "/profile", icon: User, label: "Profile" },
 ];
 
+const NavItem = ({ to, icon: Icon, label, isActive }: { to: string; icon: typeof Home; label: string; isActive: boolean }) => (
+  <NavLink
+    to={to}
+    className="relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group"
+  >
+    {isActive && (
+      <motion.div
+        layoutId="nav-active"
+        className="absolute inset-0 rounded-xl bg-primary/8"
+        transition={{ type: "spring", stiffness: 500, damping: 35 }}
+      />
+    )}
+    <div className={`relative z-10 flex items-center justify-center transition-colors duration-200 ${
+      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+    }`}>
+      <Icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.5 : 2} />
+    </div>
+    <span className={`relative z-10 text-[13px] font-medium transition-colors duration-200 ${
+      isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+    }`}>
+      {label}
+    </span>
+  </NavLink>
+);
+
 const BottomNav = () => {
   const location = useLocation();
   const currentUser = useCurrentUser();
   
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').slice(0, 2);
 
   return (
-    <nav className="fixed left-0 top-0 bottom-0 z-50 w-72 glass-strong border-r border-white/20">
-      <div className="flex flex-col h-full">
-        {/* Logo / Brand */}
-        <div className="px-8 py-8">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-sakura via-purple-500 to-primary flex items-center justify-center">
-              <span className="text-white text-lg font-bold">K</span>
+    <nav className="fixed left-0 top-0 bottom-0 z-50 w-56 bg-white/80 backdrop-blur-xl border-r border-border/40">
+      <div className="flex flex-col h-full py-6">
+        {/* Logo */}
+        <div className="px-5 mb-8">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary via-sakura to-lavender flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-semibold">K</span>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-foreground">Kindred</h1>
-              <p className="text-xs text-muted-foreground">Community wellness</p>
+            <span className="text-base font-semibold text-foreground tracking-tight">Kindred</span>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex-1 px-3 space-y-6 overflow-y-auto">
+          <div className="space-y-0.5">
+            {mainTabs.map((tab) => (
+              <NavItem key={tab.to} {...tab} isActive={location.pathname === tab.to} />
+            ))}
+          </div>
+
+          <div>
+            <p className="px-3 mb-2 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Wellness</p>
+            <div className="space-y-0.5">
+              {wellnessTabs.map((tab) => (
+                <NavItem key={tab.to} {...tab} isActive={location.pathname === tab.to} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="px-3 mb-2 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Connect</p>
+            <div className="space-y-0.5">
+              {socialTabs.map((tab) => (
+                <NavItem key={tab.to} {...tab} isActive={location.pathname === tab.to} />
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Navigation Links */}
-        <div className="flex-1 px-4 space-y-1 overflow-y-auto">
-          <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Discover</p>
-          {mainTabs.map((tab) => {
-            const isActive = location.pathname === tab.to;
-            return (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className="relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/10"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <div className={`relative z-10 h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                  isActive 
-                    ? "bg-primary text-white shadow-lg shadow-primary/25" 
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  <tab.icon className="h-4 w-4" strokeWidth={2} />
-                </div>
-                <span
-                  className={`relative z-10 text-sm font-medium transition-colors duration-200 ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </NavLink>
-            );
-          })}
-
-          <p className="px-4 py-2 pt-4 text-xs font-medium text-muted-foreground">Wellness</p>
-          {wellnessTabs.map((tab) => {
-            const isActive = location.pathname === tab.to;
-            return (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className="relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/10"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <div className={`relative z-10 h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                  isActive 
-                    ? "bg-primary text-white shadow-lg shadow-primary/25" 
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  <tab.icon className="h-4 w-4" strokeWidth={2} />
-                </div>
-                <span
-                  className={`relative z-10 text-sm font-medium transition-colors duration-200 ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </NavLink>
-            );
-          })}
-
-          <p className="px-4 py-2 pt-4 text-xs font-medium text-muted-foreground">Connect</p>
-          {socialTabs.map((tab) => {
-            const isActive = location.pathname === tab.to;
-            return (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className="relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/10"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <div className={`relative z-10 h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                  isActive 
-                    ? "bg-primary text-white shadow-lg shadow-primary/25" 
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  <tab.icon className="h-4 w-4" strokeWidth={2} />
-                </div>
-                <span
-                  className={`relative z-10 text-sm font-medium transition-colors duration-200 ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </NavLink>
-            );
-          })}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="px-4 py-4 border-t border-border/50">
-          <div className="flex items-center gap-2">
-            <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-muted hover:bg-muted/70 transition-colors">
-              <Bell className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Alerts</span>
-            </button>
-            <button className="flex items-center justify-center px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/70 transition-colors">
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </div>
-        </div>
-
-        {/* User section */}
-        <Link to="/profile" className="block p-4 m-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50 hover:border-primary/20 transition-all">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-full bg-gradient-to-br from-sakura to-primary flex items-center justify-center text-sm font-semibold text-white shadow-lg">
-              {currentUser ? getInitials(currentUser.name) : 'U'}
+        {/* User */}
+        <div className="px-3 pt-4 border-t border-border/40">
+          <Link 
+            to="/profile" 
+            className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors"
+          >
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/80 to-sakura flex items-center justify-center text-xs font-semibold text-white">
+              {currentUser ? getInitials(currentUser.name) : '?'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">{currentUser?.name || 'User'}</p>
-              <p className="text-xs text-muted-foreground">{currentUser?.neighborhood || 'Singapore'} · Active</p>
+              <p className="text-sm font-medium text-foreground truncate">{currentUser?.name || 'Loading...'}</p>
+              <p className="text-[11px] text-muted-foreground">{currentUser?.neighbourhood || ''}</p>
             </div>
-            <div className="h-2.5 w-2.5 rounded-full bg-pandan animate-pulse" />
-          </div>
-        </Link>
+          </Link>
+        </div>
       </div>
     </nav>
   );

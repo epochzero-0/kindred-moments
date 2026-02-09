@@ -25,7 +25,7 @@ const App = () => (
       <BrowserRouter>
         <div className="flex min-h-screen">
           <BottomNav />
-          <main className="flex-1 ml-72">
+          <main className="flex-1 ml-56">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/trio" element={<TrioMatch />} />
