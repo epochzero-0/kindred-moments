@@ -3,17 +3,19 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import TrioMatch from "./pages/TrioMatch";
+import HomePage from "./pages/HomePage";
+import ExplorePage from "./pages/ExplorePage";
+import EventsPage from "./pages/EventsPage";
 import ClanPage from "./pages/ClanPage";
 import PulsePage from "./pages/PulsePage";
-import ProfilePage from "./pages/ProfilePage";
-import WellnessPage from "./pages/WellnessPage";
+import ProfilePage from "./pages/ProfilePageNew";
+import WellnessPage from "./pages/WellnessPageNew";
 import JournalPage from "./pages/JournalPage";
 import GoalsPage from "./pages/GoalsPage";
 import ChatPage from "./pages/ChatPage";
 import NotFound from "./pages/NotFound";
-import BottomNav from "./components/BottomNav";
+import BottomNav from "./components/BottomNavNew";
+import FloatingAIChat from "./components/FloatingAIChat";
 
 const queryClient = new QueryClient();
 
@@ -23,13 +25,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="flex min-h-screen">
-          <BottomNav />
-          <main className="flex-1 ml-56">
+        <div className="min-h-screen bg-background">
+          <main className="pb-16">
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/trio" element={<TrioMatch />} />
-              <Route path="/clan" element={<ClanPage />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/groups" element={<ClanPage />} />
               <Route path="/pulse" element={<PulsePage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/wellness" element={<WellnessPage />} />
@@ -40,6 +42,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
+          <BottomNav />
+          <FloatingAIChat />
         </div>
       </BrowserRouter>
     </TooltipProvider>
