@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, MapPin, Users } from "lucide-react";
+import { Clock, MapPin, Users, ArrowRight } from "lucide-react";
 
 interface ActivityCardProps {
   name: string;
@@ -12,51 +12,57 @@ interface ActivityCardProps {
 }
 
 const ActivityCard = ({ name, duration, distance, peopleGoing, variant, emoji, delay = 0 }: ActivityCardProps) => {
-  const gradientClass = variant === "sakura"
-    ? "from-sakura-light to-sakura/20"
-    : "from-pandan-light to-pandan/20";
-
-  const buttonClass = variant === "sakura"
-    ? "bg-sakura text-primary-foreground hover:bg-sakura/90"
-    : "bg-pandan text-secondary-foreground hover:bg-pandan/90";
+  const gradientClass = variant === "sakura" 
+    ? "from-rose-500 via-pink-500 to-purple-500" 
+    : "from-emerald-500 via-teal-500 to-cyan-500";
+  
+  const lightBg = variant === "sakura" ? "bg-sakura-light" : "bg-pandan-light";
+  const accentColor = variant === "sakura" ? "text-sakura" : "text-pandan";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: 0.5, delay, ease: [0.25, 0.1, 0.25, 1] }}
+      className="group"
     >
-      <div
-        className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${gradientClass} p-6 backdrop-blur-sm border border-border/50 transition-all duration-500 hover:shadow-lg hover:shadow-foreground/5`}
-      >
-        <div className="absolute -right-4 -top-4 text-6xl opacity-20 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12">
-          {emoji}
-        </div>
+      <div className="relative bg-white rounded-2xl shadow-elevated overflow-hidden transition-all duration-300 hover:shadow-elevated-lg hover:-translate-y-1">
+        {/* Gradient accent bar */}
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradientClass}`} />
+        
+        <div className="p-6">
+          {/* Header with emoji */}
+          <div className="flex items-start justify-between mb-4">
+            <div className={`h-14 w-14 rounded-2xl ${lightBg} flex items-center justify-center text-2xl`}>
+              {emoji}
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span className={`text-sm font-semibold ${accentColor}`}>{peopleGoing}</span>
+            </div>
+          </div>
 
-        <div className="relative z-10 space-y-4">
-          <h3 className="text-xl font-semibold tracking-tight text-foreground">
+          {/* Title */}
+          <h3 className="text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
             {name}
           </h3>
 
-          <div className="flex flex-wrap gap-3">
-            <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" />
+          {/* Meta info */}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-5">
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
               {duration}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4" />
               {distance}
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Users className="h-3.5 w-3.5" />
-              {peopleGoing} going
             </span>
           </div>
 
-          <button
-            className={`${buttonClass} mt-2 rounded-2xl px-5 py-2.5 text-sm font-medium transition-all duration-300 active:scale-[0.97]`}
-          >
-            join for a bit
+          {/* CTA Button */}
+          <button className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r ${gradientClass} text-white px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/10`}>
+            Join activity
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>

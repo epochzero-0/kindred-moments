@@ -1,110 +1,178 @@
 import { motion } from "framer-motion";
-import { MapPin, Clock, Coffee, Train, Shield } from "lucide-react";
-import AvatarBubble from "@/components/AvatarBubble";
+import { MapPin, Clock, Coffee, Train, Shield, Sparkles, Heart, Check } from "lucide-react";
 
 const TrioMatch = () => {
+  const members = [
+    { initials: "JW", gradient: "from-rose-400 to-pink-500", name: "Jan" },
+    { initials: "SL", gradient: "from-emerald-400 to-teal-500", name: "Sara" },
+    { initials: "MR", gradient: "from-amber-400 to-orange-500", name: "Maya" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-lg px-5 pb-28 pt-14">
-        {/* Floating Trio Avatars */}
-        <div className="relative flex items-center justify-center h-48 mb-6">
-          <AvatarBubble initials="JW" color="sakura" size="lg" delay={0} className="absolute left-1/2 -translate-x-[5.5rem]" />
-          <AvatarBubble initials="SL" color="pandan" size="lg" delay={0.15} className="absolute left-1/2 -translate-x-1/2 -translate-y-3" />
-          <AvatarBubble initials="MR" color="muted" size="lg" delay={0.3} className="absolute left-1/2 translate-x-[1.5rem]" />
-
-          {/* Soft connection lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.08]" viewBox="0 0 320 192">
-            <line x1="110" y1="96" x2="160" y2="84" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
-            <line x1="160" y1="84" x2="210" y2="96" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
-            <line x1="110" y1="96" x2="210" y2="96" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
-          </svg>
+    <div className="min-h-screen">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+        
+        <div className="relative px-8 lg:px-12 pt-12 pb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-semibold text-rose-600">Trio Match</span>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-2">
+              We found a small moment near you
+            </h1>
+            <p className="text-muted-foreground">Three kindred spirits, one perfect afternoon</p>
+          </motion.div>
         </div>
+      </div>
 
-        {/* Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-snug">
-            We found a small moment
-            <br />
-            near you.
-          </h1>
-        </motion.div>
-
-        {/* AI Activity Proposal Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <div className="relative overflow-hidden rounded-3xl bg-card/80 backdrop-blur-xl border border-border/40 shadow-[0_8px_40px_-12px_hsl(var(--foreground)/0.06)] p-6">
-            {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-sakura-light/30 via-transparent to-pandan-light/20 pointer-events-none" />
-
-            <div className="relative z-10 space-y-5">
-              {/* Activity title */}
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1.5">
-                  Suggested for your trio
+      <div className="px-8 lg:px-12 pb-12">
+        {/* Two column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left column - Avatars and info */}
+          <div className="space-y-6">
+            {/* Trio Avatars Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-white rounded-2xl shadow-elevated p-6"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-4">Your trio</h3>
+              <div className="flex items-center gap-4 mb-4">
+                {members.map((m, i) => (
+                  <motion.div
+                    key={m.initials}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: 0.15 + i * 0.1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${m.gradient} flex items-center justify-center text-lg font-bold text-white shadow-lg`}>
+                      {m.initials}
+                    </div>
+                    <span className="text-sm font-medium text-foreground mt-2">{m.name}</span>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Heart className="h-4 w-4 text-rose-500" />
+                <p className="text-sm">
+                  You all enjoy: slow mornings, film photography, local food
                 </p>
-                <h2 className="text-xl font-semibold text-foreground tracking-tight">
-                  Afternoon kopi & a slow chat ☕
+              </div>
+            </motion.div>
+
+            {/* Safety info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-white rounded-2xl shadow-elevated p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Safe & comfortable</h3>
+                  <p className="text-sm text-muted-foreground">Built with trust in mind</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {["Public place", "Small group of 3", "Easy exit options"].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-emerald-500" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right column - Activity Proposal Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <div className="bg-white rounded-2xl shadow-elevated overflow-hidden">
+              {/* Gradient header */}
+              <div className="h-2 w-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500" />
+              
+              <div className="p-8">
+                {/* Label */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold mb-4">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Suggested for your trio
+                </div>
+                
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-foreground mb-6">
+                  Afternoon kopi & a slow chat <span className="text-3xl">☕</span>
                 </h2>
-              </div>
 
-              {/* Details */}
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 shrink-0 text-sakura" />
-                  <span>Blk 78 kopitiam, Toa Payoh · tables near the garden</span>
+                {/* Details */}
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-center gap-4 text-foreground">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg">
+                      <MapPin className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Blk 78 kopitiam, Toa Payoh</p>
+                      <p className="text-xs text-muted-foreground">Tables near the garden</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-foreground">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 shadow-lg">
+                      <Train className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">3 min from Toa Payoh MRT</p>
+                      <p className="text-xs text-muted-foreground">Easy to reach</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-foreground">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shrink-0 shadow-lg">
+                      <Clock className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Today, between 3–4:30 pm</p>
+                      <p className="text-xs text-muted-foreground">About 45 minutes</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                  <Train className="h-4 w-4 shrink-0 text-pandan" />
-                  <span>3 min from Toa Payoh MRT</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4 shrink-0 text-sakura" />
-                  <span>Today, between 3–4:30 pm · about 45 min</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                  <Coffee className="h-4 w-4 shrink-0 text-pandan" />
-                  <span>You all enjoy: slow mornings, film photography, local food</span>
-                </div>
-              </div>
 
-              {/* Conversational note */}
-              <p className="text-sm text-foreground/60 italic leading-relaxed">
-                "Just a quiet kopi in the afternoon — no pressure, no agenda. Come as you are."
-              </p>
+                {/* Conversational note */}
+                <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-xl p-4 mb-8">
+                  <p className="text-sm text-foreground/80 italic leading-relaxed">
+                    "Just a quiet kopi in the afternoon — no pressure, no agenda. Come as you are."
+                  </p>
+                </div>
 
-              {/* Action buttons */}
-              <div className="flex gap-3 pt-1">
-                <button className="flex-1 rounded-2xl bg-gradient-to-r from-sakura to-sakura/80 px-6 py-3.5 text-sm font-medium text-primary-foreground transition-all duration-300 active:scale-[0.97] hover:shadow-md hover:shadow-sakura/20">
-                  sounds nice
-                </button>
-                <button className="flex-1 rounded-2xl bg-muted px-6 py-3.5 text-sm font-medium text-muted-foreground transition-all duration-300 active:scale-[0.97] hover:bg-muted/70">
-                  maybe later
-                </button>
+                {/* Action buttons */}
+                <div className="flex gap-4">
+                  <button className="flex-1 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl px-6 py-4 text-sm font-bold shadow-lg shadow-primary/25 transition-all duration-200 hover:opacity-90 active:scale-[0.98]">
+                    Sounds nice
+                  </button>
+                  <button className="flex-1 bg-muted text-foreground rounded-xl px-6 py-4 text-sm font-semibold transition-all duration-200 hover:bg-muted/70 active:scale-[0.98]">
+                    Maybe later
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-
-        {/* Safety line */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="flex items-center justify-center gap-1.5 mt-6"
-        >
-          <Shield className="h-3 w-3 text-muted-foreground/50" />
-          <p className="text-xs text-muted-foreground/50 tracking-wide">
-            public place · small group · easy going
-          </p>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

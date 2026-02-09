@@ -1,0 +1,130 @@
+[
+  {
+    "id": "c01",
+    "name": "Bedok Buddies",
+    "neighbourhood": "Tampines",
+    "theme": "tech",
+    "members": [
+      "u034",
+      "u023",
+      "u027",
+      "u047",
+      "u011",
+      "u018"
+    ],
+    "weekly_goal": "Two focus sessions",
+    "events_planned": 4
+  },
+  {
+    "id": "c02",
+    "name": "Bishan Clan",
+    "neighbourhood": "Sengkang",
+    "theme": "study",
+    "members": [
+      "u022",
+      "u017",
+      "u032",
+      "u043",
+      "u024",
+      "u002"
+    ],
+    "weekly_goal": "One meet together",
+    "events_planned": 3
+  },
+  {
+    "id": "c03",
+    "name": "Bedok Kakis",
+    "neighbourhood": "Sengkang",
+    "theme": "study",
+    "members": [
+      "u039",
+      "u032",
+      "u042",
+      "u001",
+      "u011",
+      "u050"
+    ],
+    "weekly_goal": "Two focus sessions",
+    "events_planned": 1
+  },
+  {
+    "id": "c04",
+    "name": "Tampines Clan",
+    "neighbourhood": "Clementi",
+    "theme": "food",
+    "members": [
+      "u044",
+      "u009",
+      "u003",
+      "u027",
+      "u028",
+      "u012"
+    ],
+    "weekly_goal": "One meet together",
+    "events_planned": 2
+  },
+  {
+    "id": "c05",
+    "name": "Bedok Buddies",
+    "neighbourhood": "Clementi",
+    "theme": "art",
+    "members": [
+      "u050",
+      "u038",
+      "u044",
+      "u048",
+      "u020",
+      "u024"
+    ],
+    "weekly_goal": "Try a new hawker",
+    "events_planned": 4
+  },
+  {
+    "id": "c06",
+    "name": "Bishan Kakis",
+    "neighbourhood": "Yishun",
+    "theme": "tech",
+    "members": [
+      "u028",
+      "u024",
+      "u002",
+      "u009",
+      "u044",
+      "u048"
+    ],
+    "weekly_goal": "Two focus sessions",
+    "events_planned": 4
+  },
+  {
+    "id": "c07",
+    "name": "Yishun Clan",
+    "neighbourhood": "Jurong East",
+    "theme": "art",
+    "members": [
+      "u021",
+      "u046",
+      "u042",
+      "u038",
+      "u002",
+      "u014"
+    ],
+    "weekly_goal": "Two focus sessions",
+    "events_planned": 2
+  },
+  {
+    "id": "c08",
+    "name": "Bedok Buddies",
+    "neighbourhood": "Yishun",
+    "theme": "food",
+    "members": [
+      "u048",
+      "u018",
+      "u003",
+      "u028",
+      "u041",
+      "u020"
+    ],
+    "weekly_goal": "Two focus sessions",
+    "events_planned": 3
+  }
+]

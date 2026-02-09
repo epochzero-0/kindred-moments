@@ -1,0 +1,81 @@
+[
+  {
+    "id": "a01",
+    "title": "Kopi & Small Talk",
+    "duration": 20,
+    "location": "Punggol Central",
+    "tags": [
+      "kopi",
+      "chat"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  },
+  {
+    "id": "a02",
+    "title": "Void Deck Walk",
+    "duration": 25,
+    "location": "Bedok Central",
+    "tags": [
+      "walk",
+      "chat"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  },
+  {
+    "id": "a03",
+    "title": "Badminton Chill",
+    "duration": 45,
+    "location": "Sengkang Central",
+    "tags": [
+      "badminton"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  },
+  {
+    "id": "a04",
+    "title": "Study Together",
+    "duration": 60,
+    "location": "Bedok Central",
+    "tags": [
+      "study"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  },
+  {
+    "id": "a05",
+    "title": "Food Hunt Mini",
+    "duration": 40,
+    "location": "Bishan Central",
+    "tags": [
+      "food"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  },
+  {
+    "id": "a06",
+    "title": "Board Game Hour",
+    "duration": 60,
+    "location": "Bedok Central",
+    "tags": [
+      "board games"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  },
+  {
+    "id": "a07",
+    "title": "Sunset Photo Walk",
+    "duration": 35,
+    "location": "Clementi Central",
+    "tags": [
+      "photography"
+    ],
+    "ideal_group": 3,
+    "language": "mixed"
+  }
+]

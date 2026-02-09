@@ -7,6 +7,11 @@ import Index from "./pages/Index";
 import TrioMatch from "./pages/TrioMatch";
 import ClanPage from "./pages/ClanPage";
 import PulsePage from "./pages/PulsePage";
+import ProfilePage from "./pages/ProfilePage";
+import WellnessPage from "./pages/WellnessPage";
+import JournalPage from "./pages/JournalPage";
+import GoalsPage from "./pages/GoalsPage";
+import ChatPage from "./pages/ChatPage";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
@@ -18,15 +23,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/trio" element={<TrioMatch />} />
-          <Route path="/clan" element={<ClanPage />} />
-          <Route path="/pulse" element={<PulsePage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <BottomNav />
+        <div className="flex min-h-screen">
+          <BottomNav />
+          <main className="flex-1 ml-72">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/trio" element={<TrioMatch />} />
+              <Route path="/clan" element={<ClanPage />} />
+              <Route path="/pulse" element={<PulsePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/wellness" element={<WellnessPage />} />
+              <Route path="/journal" element={<JournalPage />} />
+              <Route path="/goals" element={<GoalsPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

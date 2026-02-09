@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,50 +6,57 @@
 
 @layer base {
   :root {
-    --background: 30 20% 98%;
-    --foreground: 220 20% 20%;
+    /* Refined neutral palette with warmth */
+    --background: 220 14% 96%;
+    --foreground: 220 20% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 20%;
+    --card-foreground: 220 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 20%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 8 70% 72%;
+    /* Vibrant primary - Apple-style blue */
+    --primary: 211 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 145 35% 78%;
-    --secondary-foreground: 150 30% 20%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 10%;
 
-    --muted: 30 15% 94%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 145 35% 78%;
-    --accent-foreground: 150 30% 20%;
+    --accent: 220 14% 92%;
+    --accent-foreground: 220 20% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 92%;
-    --input: 30 15% 90%;
-    --ring: 8 70% 72%;
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 211 100% 50%;
 
     --radius: 1rem;
 
-    --sakura: 8 70% 72%;
-    --sakura-light: 8 80% 92%;
-    --pandan: 145 35% 78%;
-    --pandan-light: 145 45% 93%;
-    --pearl: 30 20% 98%;
+    /* Custom accent palette */
+    --sakura: 340 82% 62%;
+    --sakura-light: 340 70% 95%;
+    --pandan: 160 84% 39%;
+    --pandan-light: 160 60% 94%;
+    --pearl: 220 14% 96%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    /* Glass effect */
+    --glass: 0 0% 100%;
+    --glass-border: 0 0% 100%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 10% 40%;
+    --sidebar-primary: 220 20% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 14% 92%;
+    --sidebar-ring: 211 100% 50%;
   }
 }
 
@@ -58,10 +65,66 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    @apply text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: normal;
+    letter-spacing: normal;
+    /* Subtle gradient background */
+    background: linear-gradient(180deg, hsl(220 20% 97%) 0%, hsl(220 14% 94%) 100%);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+  
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(340 82% 62%) 0%, hsl(280 70% 55%) 50%, hsl(211 100% 50%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shadow-elevated {
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 2px 4px rgba(0, 0, 0, 0.02),
+      0 12px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-elevated-lg {
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 4px 8px rgba(0, 0, 0, 0.03),
+      0 24px 48px rgba(0, 0, 0, 0.08);
   }
 }

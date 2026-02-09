@@ -1,0 +1,1448 @@
+[
+  {
+    "id": "u001",
+    "name": "Sarah Tan",
+    "age": 35,
+    "neighbourhood": "Punggol",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "study",
+      "tech",
+      "food hunt",
+      "dogs"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "17:15-18:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      5,
+      5,
+      4,
+      5
+    ],
+    "avatar": "avatar1.png"
+  },
+  {
+    "id": "u002",
+    "name": "Ravi Kumar",
+    "age": 28,
+    "neighbourhood": "Sengkang",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "evening walks",
+      "cooking",
+      "movies",
+      "board games"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "20:30-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      3,
+      5,
+      3,
+      2
+    ],
+    "avatar": "avatar2.png"
+  },
+  {
+    "id": "u003",
+    "name": "Aiman Rahman",
+    "age": 21,
+    "neighbourhood": "Punggol",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "photography",
+      "badminton",
+      "tech",
+      "study"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "20:45-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      4,
+      3,
+      5,
+      3
+    ],
+    "avatar": "avatar3.png"
+  },
+  {
+    "id": "u004",
+    "name": "Chloe Lim",
+    "age": 32,
+    "neighbourhood": "Tampines",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "photography",
+      "cooking",
+      "board games",
+      "cats"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "21:30-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      5,
+      4,
+      3,
+      2
+    ],
+    "avatar": "avatar4.png"
+  },
+  {
+    "id": "u005",
+    "name": "Daniel Goh",
+    "age": 30,
+    "neighbourhood": "Sengkang",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "evening walks",
+      "cats",
+      "volunteering",
+      "dogs"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "19:30-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      2,
+      3,
+      3,
+      5
+    ],
+    "avatar": "avatar5.png"
+  },
+  {
+    "id": "u006",
+    "name": "Farah Aziz",
+    "age": 30,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "cooking",
+      "food hunt",
+      "badminton",
+      "gardening"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "20:45-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      4,
+      2,
+      3,
+      5
+    ],
+    "avatar": "avatar6.png"
+  },
+  {
+    "id": "u007",
+    "name": "Marcus Lee",
+    "age": 29,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "volunteering",
+      "cooking",
+      "movies",
+      "dogs"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "21:45-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      2,
+      3,
+      3,
+      4
+    ],
+    "avatar": "avatar7.png"
+  },
+  {
+    "id": "u008",
+    "name": "Nisha Devi",
+    "age": 37,
+    "neighbourhood": "Tampines",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "jogging",
+      "food hunt",
+      "cats",
+      "gardening"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "19:30-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      2,
+      4,
+      4,
+      5
+    ],
+    "avatar": "avatar8.png"
+  },
+  {
+    "id": "u009",
+    "name": "Ethan Ong",
+    "age": 33,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "photography",
+      "dogs",
+      "cooking",
+      "movies"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "17:15-18:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      2,
+      5,
+      3,
+      4
+    ],
+    "avatar": "avatar9.png"
+  },
+  {
+    "id": "u010",
+    "name": "Hui Min",
+    "age": 23,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "cycling",
+      "movies",
+      "photography",
+      "art"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "20:30-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      4,
+      2,
+      3,
+      5
+    ],
+    "avatar": "avatar10.png"
+  },
+  {
+    "id": "u011",
+    "name": "Amirah Noor",
+    "age": 20,
+    "neighbourhood": "Punggol",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "movies",
+      "cooking",
+      "bubble tea",
+      "volunteering"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "17:00-18:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      5,
+      2,
+      4,
+      4
+    ],
+    "avatar": "avatar11.png"
+  },
+  {
+    "id": "u012",
+    "name": "Suresh Mani",
+    "age": 38,
+    "neighbourhood": "Ang Mo Kio",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "dogs",
+      "cooking",
+      "evening walks",
+      "movies"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "19:00-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      5,
+      3,
+      2,
+      5
+    ],
+    "avatar": "avatar12.png"
+  },
+  {
+    "id": "u013",
+    "name": "Jason Chua",
+    "age": 34,
+    "neighbourhood": "Woodlands",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "art",
+      "cooking",
+      "cycling",
+      "badminton"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "21:15-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      2,
+      3,
+      2,
+      3
+    ],
+    "avatar": "avatar13.png"
+  },
+  {
+    "id": "u014",
+    "name": "Priya Nair",
+    "age": 29,
+    "neighbourhood": "Tampines",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "gym light",
+      "cycling",
+      "gardening",
+      "dogs"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "19:30-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      3,
+      5,
+      2,
+      2
+    ],
+    "avatar": "avatar14.png"
+  },
+  {
+    "id": "u015",
+    "name": "Ben Tan",
+    "age": 29,
+    "neighbourhood": "Woodlands",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "board games",
+      "study",
+      "movies",
+      "photography"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "19:30-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      2,
+      3,
+      3
+    ],
+    "avatar": "avatar15.png"
+  },
+  {
+    "id": "u016",
+    "name": "Nurul Aini",
+    "age": 23,
+    "neighbourhood": "Woodlands",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "photography",
+      "art",
+      "study",
+      "evening walks"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "20:45-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      4,
+      2,
+      4,
+      4
+    ],
+    "avatar": "avatar16.png"
+  },
+  {
+    "id": "u017",
+    "name": "Kelvin Soh",
+    "age": 19,
+    "neighbourhood": "Bishan",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "gym light",
+      "evening walks",
+      "cycling",
+      "badminton"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "21:30-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      3,
+      5,
+      5,
+      3
+    ],
+    "avatar": "avatar17.png"
+  },
+  {
+    "id": "u018",
+    "name": "Arjun Rao",
+    "age": 25,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "cats",
+      "board games",
+      "cooking",
+      "bubble tea"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "17:45-18:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      5,
+      2,
+      4,
+      4
+    ],
+    "avatar": "avatar18.png"
+  },
+  {
+    "id": "u019",
+    "name": "Mei Ling",
+    "age": 32,
+    "neighbourhood": "Clementi",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "volunteering",
+      "badminton",
+      "cycling",
+      "tech"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "21:00-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      5,
+      2,
+      5
+    ],
+    "avatar": "avatar19.png"
+  },
+  {
+    "id": "u020",
+    "name": "Iskandar Zain",
+    "age": 20,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "kopi",
+      "food hunt",
+      "tech",
+      "photography"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "18:30-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      4,
+      5,
+      3,
+      4
+    ],
+    "avatar": "avatar20.png"
+  },
+  {
+    "id": "u021",
+    "name": "Jia Hao",
+    "age": 36,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "study",
+      "cycling",
+      "kopi",
+      "photography"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "20:45-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      4,
+      2,
+      5,
+      5
+    ],
+    "avatar": "avatar21.png"
+  },
+  {
+    "id": "u022",
+    "name": "Zara Malik",
+    "age": 36,
+    "neighbourhood": "Sengkang",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "cooking",
+      "music",
+      "cats",
+      "movies"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "18:30-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      3,
+      5,
+      4,
+      2
+    ],
+    "avatar": "avatar22.png"
+  },
+  {
+    "id": "u023",
+    "name": "Harith Firdaus",
+    "age": 28,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "jogging",
+      "bubble tea",
+      "gym light",
+      "cycling"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "18:15-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      3,
+      5,
+      3,
+      4
+    ],
+    "avatar": "avatar23.png"
+  },
+  {
+    "id": "u024",
+    "name": "Alicia Ng",
+    "age": 24,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "jogging",
+      "volunteering",
+      "photography",
+      "board games"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "21:30-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      2,
+      2,
+      2,
+      3
+    ],
+    "avatar": "avatar24.png"
+  },
+  {
+    "id": "u025",
+    "name": "Karthik Raj",
+    "age": 27,
+    "neighbourhood": "Bishan",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "volunteering",
+      "art",
+      "food hunt",
+      "cycling"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "20:15-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      3,
+      2,
+      4,
+      5
+    ],
+    "avatar": "avatar25.png"
+  },
+  {
+    "id": "u026",
+    "name": "Syafiq Hamid",
+    "age": 23,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "jogging",
+      "evening walks",
+      "cats",
+      "board games"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "21:15-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      4,
+      3,
+      2
+    ],
+    "avatar": "avatar26.png"
+  },
+  {
+    "id": "u027",
+    "name": "Brandon Teo",
+    "age": 37,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "cycling",
+      "gardening",
+      "food hunt",
+      "tech"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "19:30-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      4,
+      4,
+      4
+    ],
+    "avatar": "avatar27.png"
+  },
+  {
+    "id": "u028",
+    "name": "Lakshmi Iyer",
+    "age": 34,
+    "neighbourhood": "Jurong East",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "tech",
+      "cats",
+      "food hunt",
+      "kopi"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "19:30-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      3,
+      2,
+      2,
+      5
+    ],
+    "avatar": "avatar28.png"
+  },
+  {
+    "id": "u029",
+    "name": "Wei Jie",
+    "age": 35,
+    "neighbourhood": "Woodlands",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "cats",
+      "dogs",
+      "photography",
+      "jogging"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "19:45-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      5,
+      3,
+      5,
+      3
+    ],
+    "avatar": "avatar29.png"
+  },
+  {
+    "id": "u030",
+    "name": "Fatimah Begum",
+    "age": 19,
+    "neighbourhood": "Clementi",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "cats",
+      "gardening",
+      "photography",
+      "jogging"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "18:00-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      3,
+      5,
+      5,
+      4
+    ],
+    "avatar": "avatar30.png"
+  },
+  {
+    "id": "u031",
+    "name": "Adrian Koh",
+    "age": 22,
+    "neighbourhood": "Punggol",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "art",
+      "food hunt",
+      "kopi",
+      "jogging"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "18:00-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      2,
+      3,
+      5,
+      5
+    ],
+    "avatar": "avatar31.png"
+  },
+  {
+    "id": "u032",
+    "name": "Shanti Bala",
+    "age": 24,
+    "neighbourhood": "Woodlands",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "cats",
+      "board games",
+      "evening walks",
+      "movies"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "17:15-18:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      2,
+      2,
+      4,
+      2
+    ],
+    "avatar": "avatar32.png"
+  },
+  {
+    "id": "u033",
+    "name": "Yong Quan",
+    "age": 24,
+    "neighbourhood": "Bishan",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "photography",
+      "gym light",
+      "board games",
+      "cycling"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "18:15-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      2,
+      4,
+      5,
+      4
+    ],
+    "avatar": "avatar33.png"
+  },
+  {
+    "id": "u034",
+    "name": "Irfan Saeed",
+    "age": 32,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "dogs",
+      "kopi",
+      "board games",
+      "gardening"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "18:30-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      5,
+      4,
+      2,
+      2
+    ],
+    "avatar": "avatar34.png"
+  },
+  {
+    "id": "u035",
+    "name": "Rachel Wong",
+    "age": 19,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "kopi",
+      "cooking",
+      "bubble tea",
+      "photography"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "21:00-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      3,
+      5,
+      5,
+      2
+    ],
+    "avatar": "avatar35.png"
+  },
+  {
+    "id": "u036",
+    "name": "Dev Patel",
+    "age": 22,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "photography",
+      "kopi",
+      "evening walks",
+      "dogs"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "18:45-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      5,
+      5,
+      5,
+      2
+    ],
+    "avatar": "avatar36.png"
+  },
+  {
+    "id": "u037",
+    "name": "Nabil Hadi",
+    "age": 35,
+    "neighbourhood": "Sengkang",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "cooking",
+      "dogs",
+      "board games",
+      "evening walks"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "17:15-18:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      3,
+      4,
+      3,
+      4
+    ],
+    "avatar": "avatar37.png"
+  },
+  {
+    "id": "u038",
+    "name": "Samantha Yeo",
+    "age": 29,
+    "neighbourhood": "Clementi",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "study",
+      "bubble tea",
+      "gym light",
+      "badminton"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "20:00-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      4,
+      5,
+      2,
+      2
+    ],
+    "avatar": "avatar38.png"
+  },
+  {
+    "id": "u039",
+    "name": "Logan Tan",
+    "age": 22,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "evening walks",
+      "volunteering",
+      "cats",
+      "study"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "20:15-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      4,
+      5,
+      2,
+      2
+    ],
+    "avatar": "avatar39.png"
+  },
+  {
+    "id": "u040",
+    "name": "Maya Krishnan",
+    "age": 31,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "zh",
+      "ms"
+    ],
+    "interests": [
+      "bubble tea",
+      "gym light",
+      "dogs",
+      "board games"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "20:00-21:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      4,
+      4,
+      3
+    ],
+    "avatar": "avatar40.png"
+  },
+  {
+    "id": "u041",
+    "name": "Firman Ali",
+    "age": 28,
+    "neighbourhood": "Tampines",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "bubble tea",
+      "gardening",
+      "dogs",
+      "jogging"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "21:30-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      3,
+      3,
+      3,
+      3
+    ],
+    "avatar": "avatar41.png"
+  },
+  {
+    "id": "u042",
+    "name": "Olivia Tay",
+    "age": 20,
+    "neighbourhood": "Yishun",
+    "languages": [
+      "en",
+      "ms"
+    ],
+    "interests": [
+      "evening walks",
+      "kopi",
+      "cooking",
+      "badminton"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "19:15-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      5,
+      5,
+      3,
+      2,
+      4
+    ],
+    "avatar": "avatar42.png"
+  },
+  {
+    "id": "u043",
+    "name": "Rahul Sen",
+    "age": 18,
+    "neighbourhood": "Ang Mo Kio",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "movies",
+      "kopi",
+      "gardening",
+      "food hunt"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "21:00-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      4,
+      3,
+      4
+    ],
+    "avatar": "avatar43.png"
+  },
+  {
+    "id": "u044",
+    "name": "Hannah Choo",
+    "age": 24,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "study",
+      "dogs",
+      "photography",
+      "cooking"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "18:45-19:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      3,
+      3,
+      4,
+      2
+    ],
+    "avatar": "avatar44.png"
+  },
+  {
+    "id": "u045",
+    "name": "Imran Khan",
+    "age": 24,
+    "neighbourhood": "Punggol",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "art",
+      "cats",
+      "tech",
+      "dogs"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "21:15-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      2,
+      2,
+      4,
+      2
+    ],
+    "avatar": "avatar45.png"
+  },
+  {
+    "id": "u046",
+    "name": "Jasmine Low",
+    "age": 34,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "cooking",
+      "cats",
+      "gardening",
+      "dogs"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "19:00-20:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      4,
+      2,
+      2,
+      4
+    ],
+    "avatar": "avatar46.png"
+  },
+  {
+    "id": "u047",
+    "name": "Vikram Singh",
+    "age": 38,
+    "neighbourhood": "Bishan",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "kopi",
+      "movies",
+      "tech",
+      "badminton"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "21:15-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      3,
+      5,
+      3,
+      5
+    ],
+    "avatar": "avatar47.png"
+  },
+  {
+    "id": "u048",
+    "name": "Nadiah Rosli",
+    "age": 26,
+    "neighbourhood": "Bedok",
+    "languages": [
+      "en",
+      "ta"
+    ],
+    "interests": [
+      "tech",
+      "study",
+      "board games",
+      "badminton"
+    ],
+    "comfort_level": "extrovert",
+    "free_slots": [
+      "21:00-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      2,
+      4,
+      4,
+      2,
+      2
+    ],
+    "avatar": "avatar48.png"
+  },
+  {
+    "id": "u049",
+    "name": "Caleb Sim",
+    "age": 30,
+    "neighbourhood": "Bishan",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "interests": [
+      "tech",
+      "food hunt",
+      "study",
+      "art"
+    ],
+    "comfort_level": "introvert",
+    "free_slots": [
+      "21:15-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      4,
+      3,
+      5,
+      4,
+      2
+    ],
+    "avatar": "avatar49.png"
+  },
+  {
+    "id": "u050",
+    "name": "Tharun Kumar",
+    "age": 31,
+    "neighbourhood": "Woodlands",
+    "languages": [
+      "en"
+    ],
+    "interests": [
+      "dogs",
+      "jogging",
+      "music",
+      "art"
+    ],
+    "comfort_level": "ambivert",
+    "free_slots": [
+      "21:45-22:00"
+    ],
+    "joined_clans": [],
+    "mood_last_week": [
+      3,
+      3,
+      2,
+      2,
+      3
+    ],
+    "avatar": "avatar50.png"
+  }
+]

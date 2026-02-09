@@ -1,0 +1,102 @@
+[
+  {
+    "neighbourhood": "Jurong East",
+    "active_today": 23,
+    "avg_mood": 4.27,
+    "top_interests": [
+      "food hunt",
+      "music",
+      "badminton"
+    ]
+  },
+  {
+    "neighbourhood": "Tampines",
+    "active_today": 23,
+    "avg_mood": 3.43,
+    "top_interests": [
+      "art",
+      "bubble tea",
+      "photography"
+    ]
+  },
+  {
+    "neighbourhood": "Punggol",
+    "active_today": 9,
+    "avg_mood": 4.09,
+    "top_interests": [
+      "dogs",
+      "kopi",
+      "bubble tea"
+    ]
+  },
+  {
+    "neighbourhood": "Yishun",
+    "active_today": 21,
+    "avg_mood": 3.29,
+    "top_interests": [
+      "dogs",
+      "gardening",
+      "photography"
+    ]
+  },
+  {
+    "neighbourhood": "Woodlands",
+    "active_today": 17,
+    "avg_mood": 4.15,
+    "top_interests": [
+      "photography",
+      "evening walks",
+      "music"
+    ]
+  },
+  {
+    "neighbourhood": "Bedok",
+    "active_today": 21,
+    "avg_mood": 3.57,
+    "top_interests": [
+      "kopi",
+      "photography",
+      "cats"
+    ]
+  },
+  {
+    "neighbourhood": "Clementi",
+    "active_today": 30,
+    "avg_mood": 3.83,
+    "top_interests": [
+      "tech",
+      "food hunt",
+      "jogging"
+    ]
+  },
+  {
+    "neighbourhood": "Ang Mo Kio",
+    "active_today": 23,
+    "avg_mood": 4.33,
+    "top_interests": [
+      "board games",
+      "photography",
+      "gym light"
+    ]
+  },
+  {
+    "neighbourhood": "Sengkang",
+    "active_today": 8,
+    "avg_mood": 3.78,
+    "top_interests": [
+      "tech",
+      "gardening",
+      "music"
+    ]
+  },
+  {
+    "neighbourhood": "Bishan",
+    "active_today": 24,
+    "avg_mood": 3.4,
+    "top_interests": [
+      "dogs",
+      "cycling",
+      "bubble tea"
+    ]
+  }
+]
