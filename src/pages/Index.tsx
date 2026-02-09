@@ -13,7 +13,7 @@ const activities = [
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-lg px-5 pb-12 pt-16">
+      <div className="mx-auto max-w-lg px-5 pb-28 pt-16">
         {/* Greeting */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
