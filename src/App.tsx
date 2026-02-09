@@ -5,7 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TrioMatch from "./pages/TrioMatch";
+import ClanPage from "./pages/ClanPage";
+import PulsePage from "./pages/PulsePage";
 import NotFound from "./pages/NotFound";
+import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
@@ -18,9 +21,12 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/trio" element={<TrioMatch />} />
+          <Route path="/clan" element={<ClanPage />} />
+          <Route path="/pulse" element={<PulsePage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <BottomNav />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

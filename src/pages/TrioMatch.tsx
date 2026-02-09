@@ -5,7 +5,7 @@ import AvatarBubble from "@/components/AvatarBubble";
 const TrioMatch = () => {
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-lg px-5 pb-12 pt-14">
+      <div className="mx-auto max-w-lg px-5 pb-28 pt-14">
         {/* Floating Trio Avatars */}
         <div className="relative flex items-center justify-center h-48 mb-6">
           <AvatarBubble initials="JW" color="sakura" size="lg" delay={0} className="absolute left-1/2 -translate-x-[5.5rem]" />
