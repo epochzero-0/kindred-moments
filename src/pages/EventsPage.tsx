@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar as CalendarIcon,
@@ -19,6 +19,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useCurrentUser, useClans, usePulseData } from "@/hooks/use-data";
+import { useLocation } from "react-router-dom";
 
 type CalendarView = "month" | "week" | "day";
 type EventType = "neighbourhood" | "clan" | "competition" | "wellness";
@@ -229,12 +230,22 @@ const eventTypeColors: Record<EventType, { bg: string; text: string; dot: string
 
 const EventsPage = () => {
   const currentUser = useCurrentUser();
+  const location = useLocation();
   const [view, setView] = useState<CalendarView>("month");
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterType, setFilterType] = useState<EventType | "all">("all");
+
+  // Open create modal if navigated with openCreate state
+  useEffect(() => {
+    if ((location.state as { openCreate?: boolean })?.openCreate) {
+      setShowCreateModal(true);
+      // Clear the state so it doesn't reopen on navigation
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const filteredEvents = filterType === "all" 
     ? mockEvents 
