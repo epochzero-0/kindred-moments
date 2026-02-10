@@ -4,7 +4,8 @@ import {
   User, Settings, Award, Trophy, Users, MapPin, Languages, Heart,
   ChevronRight, Bell, Lock, Globe, LogOut, Shield, BarChart3,
   Calendar, MessageCircle, Star, Zap, Building, Waves, Dumbbell,
-  Gift, Crown, Flag, Eye, EyeOff, Check, X, Edit2, Camera, Train
+  Gift, Crown, Flag, Eye, EyeOff, Check, X, Edit2, Camera, Train,
+  Download, Trash2
 } from "lucide-react";
 import { useCurrentUser, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -1213,29 +1214,26 @@ const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, o
 // Settings Tab
 const SettingsTab = () => {
   const [notifications, setNotifications] = useState(true);
+  const [emailDigest, setEmailDigest] = useState(true);
   const [locationSharing, setLocationSharing] = useState(true);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  const [showDataModal, setShowDataModal] = useState(false);
+  const [profileVisibility, setProfileVisibility] = useState<'everyone' | 'connections' | 'hidden'>('everyone');
 
   const settingsGroups = [
     {
       title: "Notifications",
       items: [
         { id: "push", label: "Push Notifications", description: "Event reminders, messages", toggle: true, value: notifications, onChange: setNotifications },
-        { id: "email", label: "Email Digest", description: "Weekly community updates", toggle: true, value: true },
+        { id: "email", label: "Email Digest", description: "Weekly community updates", toggle: true, value: emailDigest, onChange: setEmailDigest },
       ],
     },
     {
       title: "Privacy",
       items: [
         { id: "location", label: "Location Sharing", description: "Show neighbourhood to others", toggle: true, value: locationSharing, onChange: setLocationSharing },
-        { id: "profile", label: "Profile Visibility", description: "Who can see your profile", link: true },
-        { id: "data", label: "Your Data", description: "Download or delete your data", link: true },
-      ],
-    },
-    {
-      title: "Preferences",
-      items: [
-        { id: "language", label: "Language", description: "English", link: true },
-        { id: "neighbourhoods", label: "Manage Neighbourhoods", description: "Add or remove MRT stations", link: true },
+        { id: "profile", label: "Profile Visibility", description: profileVisibility === 'everyone' ? 'Everyone' : profileVisibility === 'connections' ? 'Connections only' : 'Hidden', link: true, onClick: () => setShowVisibilityModal(true) },
+        { id: "data", label: "Your Data", description: "Download or delete your data", link: true, onClick: () => setShowDataModal(true) },
       ],
     },
   ];
@@ -1249,9 +1247,10 @@ const SettingsTab = () => {
             {group.items.map((item, i) => (
               <div
                 key={item.id}
+                onClick={item.link ? item.onClick : undefined}
                 className={`flex items-center justify-between p-4 ${
                   i < group.items.length - 1 ? "border-b border-border/40" : ""
-                }`}
+                } ${item.link ? "cursor-pointer hover:bg-muted/30 transition-colors" : ""}`}
               >
                 <div>
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
@@ -1289,6 +1288,107 @@ const SettingsTab = () => {
         <p>Kindred v1.0.0</p>
         <p className="mt-1">Made with ❤️ in Singapore</p>
       </div>
+
+      {/* Profile Visibility Modal */}
+      <AnimatePresence>
+        {showVisibilityModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowVisibilityModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4">Profile Visibility</h3>
+              <p className="text-sm text-muted-foreground mb-4">Choose who can see your profile</p>
+              <div className="space-y-2">
+                {[
+                  { value: 'everyone' as const, label: 'Everyone', desc: 'Anyone in the community can see your profile' },
+                  { value: 'connections' as const, label: 'Connections Only', desc: 'Only people you\'ve connected with' },
+                  { value: 'hidden' as const, label: 'Hidden', desc: 'Your profile is not visible to others' },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setProfileVisibility(option.value);
+                      setShowVisibilityModal(false);
+                    }}
+                    className={`w-full p-3 rounded-xl text-left transition-colors ${
+                      profileVisibility === option.value
+                        ? 'bg-primary/10 border-2 border-primary'
+                        : 'bg-muted/30 border-2 border-transparent hover:bg-muted/50'
+                    }`}
+                  >
+                    <p className="font-medium text-sm">{option.label}</p>
+                    <p className="text-xs text-muted-foreground">{option.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Your Data Modal */}
+      <AnimatePresence>
+        {showDataModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDataModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4">Your Data</h3>
+              <p className="text-sm text-muted-foreground mb-4">Manage your personal data</p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    alert('Your data download has been initiated. You will receive an email with a download link within 24 hours.');
+                    setShowDataModal(false);
+                  }}
+                  className="w-full p-3 rounded-xl bg-primary/10 text-primary font-medium text-sm hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download My Data
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete all your data? This action cannot be undone.')) {
+                      alert('Your data deletion request has been submitted. Your account will be deleted within 30 days.');
+                      setShowDataModal(false);
+                    }
+                  }}
+                  className="w-full p-3 rounded-xl bg-rose-50 text-rose-500 font-medium text-sm hover:bg-rose-100 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete My Data
+                </button>
+                <button
+                  onClick={() => setShowDataModal(false)}
+                  className="w-full p-3 rounded-xl bg-muted text-muted-foreground font-medium text-sm hover:bg-muted/80 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
