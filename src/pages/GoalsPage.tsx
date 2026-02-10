@@ -42,7 +42,7 @@ const GoalsPage = () => {
   const totalActive = pulseData.reduce((a, p) => a + p.active_today, 0);
 
   return (
-    <div className="min-h-screen px-8 py-10 max-w-5xl">
+    <div className="min-h-screen px-8 py-10 max-w-7xl mx-auto">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -87,9 +87,9 @@ const GoalsPage = () => {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Goals */}
-        <div className="lg:col-span-3 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left - Goals */}
+        <div className="space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -193,33 +193,10 @@ const GoalsPage = () => {
               </div>
             </motion.div>
           )}
-
-          {/* Your contribution */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="bg-pandan/10 rounded-2xl p-5"
-          >
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-pandan/20 flex items-center justify-center">
-                <Footprints className="h-6 w-6 text-pandan" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-foreground text-sm mb-0.5">Your contribution</h3>
-                <p className="text-xs text-muted-foreground">You've walked 12.5km this week!</p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-medium text-foreground">12.5</p>
-                <p className="text-xs text-muted-foreground">km walked</p>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
-        {/* Sidebar */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Leaderboard */}
+        {/* Middle - Leaderboard */}
+        <div className="space-y-5">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -259,6 +236,50 @@ const GoalsPage = () => {
             </div>
           </motion.div>
 
+          {/* Event */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="bg-lavender/10 rounded-2xl p-5"
+          >
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Upcoming event</p>
+            <h3 className="font-medium text-foreground text-sm mb-1">Inter-Clan Sports Day</h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Badminton, table tennis and more!
+            </p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Feb 15, 2026</span>
+              <button className="px-3 py-1.5 rounded-lg bg-lavender/20 text-lavender text-xs font-medium hover:bg-lavender/30 transition-colors">
+                Register
+              </button>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right - Your Stats */}
+        <div className="space-y-5">
+          {/* Your contribution */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+            className="bg-pandan/10 rounded-2xl p-5"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-pandan/20 flex items-center justify-center">
+                  <Footprints className="h-5 w-5 text-pandan" />
+                </div>
+                <h3 className="font-medium text-foreground text-sm">Your contribution</h3>
+              </div>
+              <div>
+                <p className="text-2xl font-medium text-foreground">12.5 <span className="text-sm font-normal text-muted-foreground">km</span></p>
+                <p className="text-xs text-muted-foreground">walked this week</p>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Rewards */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -294,26 +315,6 @@ const GoalsPage = () => {
                   )}
                 </div>
               ))}
-            </div>
-          </motion.div>
-
-          {/* Event */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="bg-lavender/10 rounded-2xl p-5"
-          >
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Upcoming event</p>
-            <h3 className="font-medium text-foreground text-sm mb-1">Inter-Clan Sports Day</h3>
-            <p className="text-xs text-muted-foreground mb-3">
-              Badminton, table tennis and more!
-            </p>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Feb 15, 2026</span>
-              <button className="px-3 py-1.5 rounded-lg bg-lavender/20 text-lavender text-xs font-medium hover:bg-lavender/30 transition-colors">
-                Register
-              </button>
             </div>
           </motion.div>
         </div>
