@@ -8,9 +8,11 @@ import {
 } from "lucide-react";
 import { useCurrentUser, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
+import { useCommunityGoals, CommunityGoal } from "@/hooks/use-community-goals";
+import { useFlaggedContent } from "@/hooks/use-flagged-content";
 import { Link, useNavigate } from "react-router-dom";
 
-type ProfileTab = "profile" | "groups" | "achievements" | "leaderboard" | "admin" | "settings";
+type ProfileTab = "profile" | "groups" | "achievements" | "admin" | "settings";
 
 // Labels for display
 const neighbourhoodLabels: Record<string, string> = {
@@ -48,42 +50,17 @@ const priorityPerks = [
   { id: "partner", name: "Partner Perks", icon: Gift, unlocked: true, description: "Discounts at local businesses" },
 ];
 
-const neighbourhoodLeaderboard = [
-  { rank: 1, name: "Punggol", points: 12450, change: 0 },
-  { rank: 2, name: "Sengkang", points: 11200, change: 1 },
-  { rank: 3, name: "Bedok", points: 10800, change: -1 },
-  { rank: 4, name: "Tampines", points: 9500, change: 2 },
-  { rank: 5, name: "Jurong East", points: 8900, change: 0 },
-  { rank: 6, name: "Woodlands", points: 8400, change: -2 },
-  { rank: 7, name: "Ang Mo Kio", points: 7800, change: 1 },
-  { rank: 8, name: "Clementi", points: 7200, change: -1 },
-  { rank: 9, name: "Bishan", points: 6900, change: 0 },
-  { rank: 10, name: "Toa Payoh", points: 6500, change: 2 },
-  { rank: 11, name: "Yishun", points: 6100, change: -1 },
-  { rank: 12, name: "Pasir Ris", points: 5800, change: 0 },
-  { rank: 13, name: "Bukit Batok", points: 5400, change: 1 },
-  { rank: 14, name: "Kallang", points: 5000, change: -1 },
-  { rank: 15, name: "Sembawang", points: 4600, change: 0 },
-];
 
-const communityGoals = [
-  { id: "g1", title: "Volunteer Hours", current: 127, target: 200, unit: "hours", active: true },
-  { id: "g2", title: "Community Clean-up", current: 45, target: 50, unit: "participants", active: true },
-  { id: "g3", title: "Wellness Challenge", current: 2400000, target: 5000000, unit: "steps", active: true },
-];
-
-const flaggedContent = [
-  { id: "f1", type: "message", preview: "Inappropriate language in...", reporter: "AI Auto-flag", time: "2h ago", severity: "medium" },
-  { id: "f2", type: "event", preview: "Suspicious event details...", reporter: "User Report", time: "5h ago", severity: "low" },
-];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
-  const { profile: storedProfile } = useUserProfile();
+  const { profile: storedProfile, update: updateProfile } = useUserProfile();
   const clans = useClans();
   const pulseData = usePulseData();
   const allUsers = useUsers();
+  const { goals: communityGoals, addGoal, updateGoal, endGoal } = useCommunityGoals();
+  const { pendingItems: flaggedContent, approveItem, rejectItem } = useFlaggedContent();
   const [activeTab, setActiveTab] = useState<ProfileTab>("profile");
   const [isAdmin] = useState(true); // Mock admin status
 
@@ -108,14 +85,14 @@ const ProfilePage = () => {
     ? neighbourhoodLabels[displayNeighbourhoods[0]] || displayNeighbourhoods[0] 
     : currentUser?.neighbourhood;
   
-  // Find user's neighbourhood rank from leaderboard
-  const userNeighbourhoodRank = neighbourhoodLeaderboard.find(n => n.name === userNeighbourhoodName)?.rank || null;
+  // Calculate neighbourhood rank from pulseData (same as Explore > Areas)
+  const sortedNeighbourhoods = [...pulseData].sort((a, b) => b.active_today - a.active_today);
+  const userNeighbourhoodRank = sortedNeighbourhoods.findIndex(n => n.neighbourhood === userNeighbourhoodName) + 1 || null;
 
   const tabs = [
     { id: "profile" as const, label: "Profile", icon: User },
     { id: "groups" as const, label: "Groups", icon: Users },
     { id: "achievements" as const, label: "Rewards", icon: Award },
-    { id: "leaderboard" as const, label: "Ranks", icon: Trophy },
     ...(isAdmin ? [{ id: "admin" as const, label: "Admin", icon: Shield }] : []),
     { id: "settings" as const, label: "Settings", icon: Settings },
   ];
@@ -154,7 +131,10 @@ const ProfilePage = () => {
               <h1 className="text-xl font-semibold text-foreground truncate">
                 {displayName}
               </h1>
-              <button className="h-6 w-6 rounded-full hover:bg-white/50 flex items-center justify-center">
+              <button 
+                onClick={() => setActiveTab("profile")}
+                className="h-6 w-6 rounded-full hover:bg-white/50 flex items-center justify-center"
+              >
                 <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </div>
@@ -238,6 +218,7 @@ const ProfilePage = () => {
               displayInterests={displayInterests}
               displayNeighbourhoods={displayNeighbourhoods}
               displayUserId={displayUserId}
+              onUpdate={updateProfile}
             />
           )}
           {activeTab === "groups" && (
@@ -246,15 +227,18 @@ const ProfilePage = () => {
           {activeTab === "achievements" && (
             <AchievementsTab key="achievements" achievements={userAchievements} perks={priorityPerks} />
           )}
-          {activeTab === "leaderboard" && (
-            <LeaderboardTab 
-              key="leaderboard" 
-              neighbourhoods={neighbourhoodLeaderboard} 
-              userNeighbourhood={displayNeighbourhoods[0] ? neighbourhoodLabels[displayNeighbourhoods[0]] || displayNeighbourhoods[0] : currentUser?.neighbourhood}
-            />
-          )}
           {activeTab === "admin" && isAdmin && (
-            <AdminTab key="admin" goals={communityGoals} flaggedContent={flaggedContent} />
+            <AdminTab 
+              key="admin" 
+              goals={communityGoals} 
+              flaggedContent={flaggedContent}
+              onAddGoal={addGoal}
+              onUpdateGoal={updateGoal}
+              onEndGoal={endGoal}
+              onApproveFlag={approveItem}
+              onRejectFlag={rejectItem}
+              onNavigate={navigate}
+            />
           )}
           {activeTab === "settings" && (
             <SettingsTab key="settings" />
@@ -274,91 +258,357 @@ interface ProfileTabProps {
   displayInterests: string[];
   displayNeighbourhoods: string[];
   displayUserId: string;
+  onUpdate: (updates: Partial<{ bio: string; languages: string[]; interests: string[] }>) => void;
 }
 
-const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterests, displayNeighbourhoods, displayUserId }: ProfileTabProps) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
-    {/* Bio */}
-    <div className="bg-white rounded-2xl shadow-soft p-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-foreground text-sm">About</h3>
-        <button className="text-xs text-primary">Edit</button>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        {displayBio || "No bio yet"}
-      </p>
-    </div>
+// Available options for selection
+const availableLanguages = [
+  { id: "en", label: "English" },
+  { id: "zh", label: "中文 (Chinese)" },
+  { id: "ms", label: "Bahasa Melayu" },
+  { id: "ta", label: "தமிழ் (Tamil)" },
+];
 
-    {/* Languages */}
-    <div className="bg-white rounded-2xl shadow-soft p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Languages className="h-4 w-4 text-muted-foreground" />
-        <h3 className="font-semibold text-foreground text-sm">Languages</h3>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {displayLanguages.map((lang) => (
-          <span key={lang} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-            {languageLabels[lang] || lang}
-          </span>
-        ))}
-      </div>
-    </div>
+const availableInterests = [
+  { id: "running", label: "Running", emoji: "🏃" },
+  { id: "board-games", label: "Board Games", emoji: "🎲" },
+  { id: "cooking", label: "Cooking", emoji: "🍳" },
+  { id: "gardening", label: "Gardening", emoji: "🌱" },
+  { id: "photography", label: "Photography", emoji: "📷" },
+  { id: "reading", label: "Reading", emoji: "📚" },
+  { id: "gaming", label: "Gaming", emoji: "🎮" },
+  { id: "music", label: "Music", emoji: "🎵" },
+  { id: "art", label: "Art & Crafts", emoji: "🎨" },
+  { id: "fitness", label: "Fitness", emoji: "💪" },
+  { id: "dog-walking", label: "Dog Walking", emoji: "🐕" },
+  { id: "meditation", label: "Meditation", emoji: "🧘" },
+  { id: "coffee", label: "Coffee & Tea", emoji: "☕" },
+  { id: "cycling", label: "Cycling", emoji: "🚴" },
+  { id: "hiking", label: "Hiking", emoji: "🥾" },
+  { id: "movies", label: "Movies", emoji: "🎬" },
+  { id: "karaoke", label: "Karaoke", emoji: "🎤" },
+  { id: "drawing", label: "Drawing", emoji: "✏️" },
+  { id: "volunteering", label: "Volunteering", emoji: "🤝" },
+  { id: "parenting", label: "Parenting", emoji: "👶" },
+  { id: "nature", label: "Nature", emoji: "🌿" },
+];
 
-    {/* Interests */}
-    <div className="bg-white rounded-2xl shadow-soft p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Heart className="h-4 w-4 text-muted-foreground" />
-        <h3 className="font-semibold text-foreground text-sm">Interests</h3>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {displayInterests.length > 0 ? displayInterests.map((interest) => (
-          <span key={interest} className="px-3 py-1.5 rounded-full bg-sakura/10 text-sakura text-xs font-medium">
-            {interestLabels[interest] || interest}
-          </span>
-        )) : (
-          <span className="text-sm text-muted-foreground">No interests selected</span>
-        )}
-      </div>
-    </div>
+const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterests, displayNeighbourhoods, displayUserId, onUpdate }: ProfileTabProps) => {
+  const [editingBio, setEditingBio] = useState(false);
+  const [editingLanguages, setEditingLanguages] = useState(false);
+  const [editingInterests, setEditingInterests] = useState(false);
+  
+  const [bioText, setBioText] = useState(displayBio);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(displayLanguages);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(displayInterests);
 
-    {/* Neighbourhoods */}
-    <Link to="/profile/neighbourhoods" className="block bg-white rounded-2xl shadow-soft p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Train className="h-4 w-4 text-muted-foreground" />
-          <h3 className="font-semibold text-foreground text-sm">My Neighbourhoods</h3>
+  const handleSaveBio = () => {
+    onUpdate({ bio: bioText });
+    setEditingBio(false);
+  };
+
+  const handleSaveLanguages = () => {
+    onUpdate({ languages: selectedLanguages });
+    setEditingLanguages(false);
+  };
+
+  const handleSaveInterests = () => {
+    onUpdate({ interests: selectedInterests });
+    setEditingInterests(false);
+  };
+
+  const toggleLanguage = (id: string) => {
+    setSelectedLanguages(prev => 
+      prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]
+    );
+  };
+
+  const toggleInterest = (id: string) => {
+    setSelectedInterests(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
+      {/* Bio */}
+      <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-foreground text-sm">About</h3>
+          <button 
+            onClick={() => {
+              setBioText(displayBio);
+              setEditingBio(true);
+            }}
+            className="text-xs text-primary hover:underline"
+          >
+            Edit
+          </button>
         </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {displayNeighbourhoods.length > 0 ? displayNeighbourhoods.map((hood, i) => (
-          <div key={hood} className="px-3 py-1.5 rounded-xl bg-pandan/10 text-pandan text-sm font-medium flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-pandan" />
-            {neighbourhoodLabels[hood] || hood}
-            {i === 0 && <span className="text-[10px] text-pandan/70">(Primary)</span>}
-          </div>
-        )) : (
-          <span className="text-sm text-muted-foreground">No neighbourhoods selected</span>
-        )}
-      </div>
-      <span className="mt-3 text-xs text-primary inline-block">+ Add or edit MRT stations</span>
-    </Link>
-
-    {/* SingPass Verified */}
-    <div className="bg-gradient-to-r from-red-50 to-red-100/50 rounded-2xl p-4 flex items-center gap-3">
-      <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center">
-        <Shield className="h-5 w-5 text-red-600" />
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-foreground">SingPass Verified</p>
-        <p className="text-xs text-muted-foreground">
-          {displayUserId ? `ID: ${displayUserId}` : "Your identity is verified. No fake accounts here."}
+        <p className="text-sm text-muted-foreground">
+          {displayBio || "No bio yet"}
         </p>
       </div>
-      <Check className="h-5 w-5 text-pandan" />
-    </div>
-  </motion.div>
-);
+
+      {/* Languages */}
+      <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Languages className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground text-sm">Languages</h3>
+          </div>
+          <button 
+            onClick={() => {
+              setSelectedLanguages(displayLanguages);
+              setEditingLanguages(true);
+            }}
+            className="text-xs text-primary hover:underline"
+          >
+            Edit
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {displayLanguages.length > 0 ? displayLanguages.map((lang) => (
+            <span key={lang} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              {languageLabels[lang] || lang}
+            </span>
+          )) : (
+            <span className="text-sm text-muted-foreground">No languages selected</span>
+          )}
+        </div>
+      </div>
+
+      {/* Interests */}
+      <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Heart className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground text-sm">Interests</h3>
+          </div>
+          <button 
+            onClick={() => {
+              setSelectedInterests(displayInterests);
+              setEditingInterests(true);
+            }}
+            className="text-xs text-primary hover:underline"
+          >
+            Edit
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {displayInterests.length > 0 ? displayInterests.map((interest) => (
+            <span key={interest} className="px-3 py-1.5 rounded-full bg-sakura/10 text-sakura text-xs font-medium">
+              {interestLabels[interest] || interest}
+            </span>
+          )) : (
+            <span className="text-sm text-muted-foreground">No interests selected</span>
+          )}
+        </div>
+      </div>
+
+      {/* Neighbourhoods */}
+      <Link to="/profile/neighbourhoods" className="block bg-white rounded-2xl shadow-soft p-4 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Train className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground text-sm">My Neighbourhoods</h3>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {displayNeighbourhoods.length > 0 ? displayNeighbourhoods.map((hood, i) => (
+            <div key={hood} className="px-3 py-1.5 rounded-xl bg-pandan/10 text-pandan text-sm font-medium flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-pandan" />
+              {neighbourhoodLabels[hood] || hood}
+              {i === 0 && <span className="text-[10px] text-pandan/70">(Primary)</span>}
+            </div>
+          )) : (
+            <span className="text-sm text-muted-foreground">No neighbourhoods selected</span>
+          )}
+        </div>
+        <span className="mt-3 text-xs text-primary inline-block">+ Add or edit MRT stations</span>
+      </Link>
+
+      {/* SingPass Verified */}
+      <div className="bg-gradient-to-r from-red-50 to-red-100/50 rounded-2xl p-4 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center">
+          <Shield className="h-5 w-5 text-red-600" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-foreground">SingPass Verified</p>
+          <p className="text-xs text-muted-foreground">
+            {displayUserId ? `ID: ${displayUserId}` : "Your identity is verified. No fake accounts here."}
+          </p>
+        </div>
+        <Check className="h-5 w-5 text-pandan" />
+      </div>
+
+      {/* Edit Bio Modal */}
+      <AnimatePresence>
+        {editingBio && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingBio(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated"
+            >
+              <h3 className="font-semibold text-foreground mb-4">Edit About</h3>
+              <textarea
+                value={bioText}
+                onChange={(e) => setBioText(e.target.value)}
+                placeholder="Tell us about yourself..."
+                rows={4}
+                className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setEditingBio(false)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveBio}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Languages Modal */}
+      <AnimatePresence>
+        {editingLanguages && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingLanguages(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated"
+            >
+              <h3 className="font-semibold text-foreground mb-4">Select Languages</h3>
+              <div className="space-y-2">
+                {availableLanguages.map((lang) => {
+                  const isSelected = selectedLanguages.includes(lang.id);
+                  return (
+                    <button
+                      key={lang.id}
+                      onClick={() => toggleLanguage(lang.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                        isSelected 
+                          ? "bg-primary/10 ring-2 ring-primary" 
+                          : "bg-muted hover:bg-muted/80"
+                      }`}
+                    >
+                      <span className={`font-medium text-sm ${isSelected ? "text-primary" : "text-foreground"}`}>
+                        {lang.label}
+                      </span>
+                      {isSelected && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setEditingLanguages(false)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveLanguages}
+                  disabled={selectedLanguages.length === 0}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Interests Modal */}
+      <AnimatePresence>
+        {editingInterests && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingInterests(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-md shadow-elevated max-h-[80vh] overflow-y-auto"
+            >
+              <h3 className="font-semibold text-foreground mb-2">Select Your Interests</h3>
+              <p className="text-xs text-muted-foreground mb-4">Choose at least 3 interests to help us find your tribe</p>
+              <div className="flex flex-wrap gap-2">
+                {availableInterests.map((interest) => {
+                  const isSelected = selectedInterests.includes(interest.id);
+                  return (
+                    <button
+                      key={interest.id}
+                      onClick={() => toggleInterest(interest.id)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                        isSelected
+                          ? "bg-sakura text-white"
+                          : "bg-muted text-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      <span>{interest.emoji}</span>
+                      <span>{interest.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                {selectedInterests.length} selected
+              </p>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setEditingInterests(false)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveInterests}
+                  disabled={selectedInterests.length < 3}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 // Groups Tab
 interface GroupsTabProps {
@@ -543,75 +793,54 @@ const AchievementsTab = ({ achievements, perks }: AchievementsTabProps) => (
   </motion.div>
 );
 
-// Leaderboard Tab
-interface LeaderboardTabProps {
-  neighbourhoods: typeof neighbourhoodLeaderboard;
-  userNeighbourhood?: string;
-}
-
-const LeaderboardTab = ({ neighbourhoods, userNeighbourhood }: LeaderboardTabProps) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
-    {/* Neighbourhood Rankings */}
-    <div>
-      <h3 className="font-semibold text-foreground text-sm mb-3">Neighbourhood Leaderboard</h3>
-      <div className="space-y-2">
-        {neighbourhoods.map((n, i) => {
-          const isUser = n.name === userNeighbourhood;
-          return (
-            <motion.div
-              key={n.name}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className={`flex items-center gap-3 p-3 rounded-xl ${
-                isUser ? "bg-primary/10 ring-2 ring-primary" : "bg-white shadow-soft"
-              }`}
-            >
-              {/* Rank */}
-              <div
-                className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm ${
-                  n.rank === 1
-                    ? "bg-yellow-100 text-yellow-600"
-                    : n.rank === 2
-                    ? "bg-gray-100 text-gray-500"
-                    : n.rank === 3
-                    ? "bg-orange-100 text-orange-600"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {n.rank}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className={`font-medium text-sm ${isUser ? "text-primary" : "text-foreground"}`}>
-                  {n.name}
-                </p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-sm font-semibold text-foreground">{n.points.toLocaleString()}</p>
-                <p className={`text-[10px] ${
-                  n.change > 0 ? "text-pandan" : n.change < 0 ? "text-rose-500" : "text-muted-foreground"
-                }`}>
-                  {n.change > 0 ? `↑${n.change}` : n.change < 0 ? `↓${Math.abs(n.change)}` : "—"}
-                </p>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
-  </motion.div>
-);
-
 // Admin Tab
 interface AdminTabProps {
-  goals: typeof communityGoals;
-  flaggedContent: typeof flaggedContent;
+  goals: CommunityGoal[];
+  flaggedContent: { id: string; type: string; preview: string; reporter: string; time: string; severity: string; }[];
+  onAddGoal: (goal: Omit<CommunityGoal, "id">) => void;
+  onUpdateGoal: (id: string, updates: Partial<CommunityGoal>) => void;
+  onEndGoal: (id: string) => void;
+  onApproveFlag: (id: string) => void;
+  onRejectFlag: (id: string) => void;
+  onNavigate: (path: string) => void;
 }
 
-const AdminTab = ({ goals, flaggedContent }: AdminTabProps) => {
+const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, onApproveFlag, onRejectFlag, onNavigate }: AdminTabProps) => {
   const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<CommunityGoal | null>(null);
+  const [reviewingItem, setReviewingItem] = useState<{ id: string; preview: string } | null>(null);
+  
+  // Form state for new/edit goal
+  const [goalForm, setGoalForm] = useState({ title: "", target: "", unit: "" });
+
+  const handleCreateGoal = () => {
+    if (!goalForm.title || !goalForm.target || !goalForm.unit) return;
+    onAddGoal({
+      title: goalForm.title,
+      current: 0,
+      target: parseInt(goalForm.target),
+      unit: goalForm.unit,
+      active: true,
+    });
+    setGoalForm({ title: "", target: "", unit: "" });
+    setShowCreateGoal(false);
+  };
+
+  const handleEditGoal = () => {
+    if (!editingGoal || !goalForm.title || !goalForm.target || !goalForm.unit) return;
+    onUpdateGoal(editingGoal.id, {
+      title: goalForm.title,
+      target: parseInt(goalForm.target),
+      unit: goalForm.unit,
+    });
+    setGoalForm({ title: "", target: "", unit: "" });
+    setEditingGoal(null);
+  };
+
+  const openEditModal = (goal: CommunityGoal) => {
+    setGoalForm({ title: goal.title, target: goal.target.toString(), unit: goal.unit });
+    setEditingGoal(goal);
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
@@ -624,50 +853,90 @@ const AdminTab = ({ goals, flaggedContent }: AdminTabProps) => {
         </div>
       </div>
 
-      {/* Community Goals */}
+      {/* Active Goals */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-foreground text-sm">Community Goals</h3>
+          <h3 className="font-semibold text-foreground text-sm">Active Goals</h3>
           <button
-            onClick={() => setShowCreateGoal(true)}
-            className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium"
+            onClick={() => {
+              setGoalForm({ title: "", target: "", unit: "" });
+              setShowCreateGoal(true);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors"
           >
             + New Goal
           </button>
         </div>
-        <div className="space-y-3">
-          {goals.map((goal) => (
-            <div key={goal.id} className="bg-white rounded-xl p-4 shadow-soft">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-foreground text-sm">{goal.title}</h4>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                  goal.active ? "bg-pandan/10 text-pandan" : "bg-muted text-muted-foreground"
-                }`}>
-                  {goal.active ? "Active" : "Ended"}
-                </span>
+        {goals.filter(g => g.active).length === 0 ? (
+          <div className="bg-white rounded-xl p-4 shadow-soft text-center">
+            <p className="text-sm text-muted-foreground">No active goals. Create one to get started!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {goals.filter(g => g.active).map((goal) => (
+              <div key={goal.id} className="bg-white rounded-xl p-4 shadow-soft">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-foreground text-sm">{goal.title}</h4>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-pandan/10 text-pandan">
+                    Active
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                  <span>Progress</span>
+                  <span>{goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}</span>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-pandan rounded-full transition-all"
+                    style={{ width: `${Math.min((goal.current / goal.target) * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <button 
+                    onClick={() => openEditModal(goal)}
+                    className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => onEndGoal(goal.id)}
+                    className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                  >
+                    End
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                <span>Progress</span>
-                <span>{goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}</span>
-              </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full bg-pandan rounded-full transition-all"
-                  style={{ width: `${Math.min((goal.current / goal.target) * 100, 100)}%` }}
-                />
-              </div>
-              <div className="flex gap-2 mt-3">
-                <button className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground">
-                  Edit
-                </button>
-                <button className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground">
-                  End
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Ended Goals */}
+      {goals.filter(g => !g.active).length > 0 && (
+        <div>
+          <h3 className="font-semibold text-foreground text-sm mb-3">Ended Goals</h3>
+          <div className="space-y-3">
+            {goals.filter(g => !g.active).map((goal) => (
+              <div key={goal.id} className="bg-white rounded-xl p-4 shadow-soft">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-pandan/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="h-4 w-4 text-pandan" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-foreground text-sm">{goal.title}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Completed: {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
+                    </p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
+                    Ended
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Wellness Dashboard */}
       <div>
@@ -687,7 +956,10 @@ const AdminTab = ({ goals, flaggedContent }: AdminTabProps) => {
               <p className="text-[10px] text-muted-foreground">Engagement</p>
             </div>
           </div>
-          <button className="w-full py-2 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground flex items-center justify-center gap-2">
+          <button 
+            onClick={() => onNavigate("/goals")}
+            className="w-full py-2 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center justify-center gap-2 transition-colors"
+          >
             <BarChart3 className="h-4 w-4" />
             View Full Dashboard
           </button>
@@ -702,41 +974,238 @@ const AdminTab = ({ goals, flaggedContent }: AdminTabProps) => {
             {flaggedContent.length} pending
           </span>
         </div>
-        <div className="space-y-2">
-          {flaggedContent.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl p-3 shadow-soft">
-              <div className="flex items-start gap-3">
-                <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
-                  item.severity === "high" ? "bg-rose-100" : item.severity === "medium" ? "bg-amber-100" : "bg-muted"
-                }`}>
-                  <Flag className={`h-4 w-4 ${
-                    item.severity === "high" ? "text-rose-500" : item.severity === "medium" ? "text-amber-500" : "text-muted-foreground"
-                  }`} />
+        {flaggedContent.length === 0 ? (
+          <div className="bg-white rounded-xl p-4 shadow-soft text-center">
+            <Check className="h-8 w-8 text-pandan mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">All clear! No pending reports.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {flaggedContent.map((item) => (
+              <div key={item.id} className="bg-white rounded-xl p-3 shadow-soft">
+                <div className="flex items-start gap-3">
+                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
+                    item.severity === "high" ? "bg-rose-100" : item.severity === "medium" ? "bg-amber-100" : "bg-muted"
+                  }`}>
+                    <Flag className={`h-4 w-4 ${
+                      item.severity === "high" ? "text-rose-500" : item.severity === "medium" ? "text-amber-500" : "text-muted-foreground"
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground truncate">{item.preview}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.reporter} • {item.time}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{item.preview}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.reporter} • {item.time}</p>
+                <div className="flex gap-2 mt-2">
+                  <button 
+                    onClick={() => setReviewingItem({ id: item.id, preview: item.preview })}
+                    className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground flex items-center justify-center gap-1 hover:text-foreground hover:bg-muted/80 transition-colors"
+                  >
+                    <Eye className="h-3 w-3" /> Review
+                  </button>
+                  <button 
+                    onClick={() => onApproveFlag(item.id)}
+                    className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs font-medium hover:bg-pandan/20 transition-colors"
+                    title="Approve (no action needed)"
+                  >
+                    <Check className="h-3 w-3" />
+                  </button>
+                  <button 
+                    onClick={() => onRejectFlag(item.id)}
+                    className="py-1.5 px-3 rounded-lg bg-rose-100 text-rose-500 text-xs font-medium hover:bg-rose-200 transition-colors"
+                    title="Remove content"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </div>
               </div>
-              <div className="flex gap-2 mt-2">
-                <button className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground flex items-center justify-center gap-1">
-                  <Eye className="h-3 w-3" /> Review
-                </button>
-                <button className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs font-medium">
-                  <Check className="h-3 w-3" />
-                </button>
-                <button className="py-1.5 px-3 rounded-lg bg-rose-100 text-rose-500 text-xs font-medium">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         <div className="mt-3 p-3 bg-muted/50 rounded-xl flex items-center gap-2">
           <Shield className="h-4 w-4 text-violet-500" />
           <p className="text-xs text-muted-foreground">AI moderation is running in background</p>
         </div>
       </div>
+
+      {/* Create Goal Modal */}
+      <AnimatePresence>
+        {showCreateGoal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowCreateGoal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated"
+            >
+              <h3 className="font-semibold text-foreground mb-4">Create New Goal</h3>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Goal title (e.g., Volunteer Hours)"
+                  value={goalForm.title}
+                  onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <input
+                  type="number"
+                  placeholder="Target (e.g., 200)"
+                  value={goalForm.target}
+                  onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <input
+                  type="text"
+                  placeholder="Unit (e.g., hours, participants)"
+                  value={goalForm.unit}
+                  onChange={(e) => setGoalForm({ ...goalForm, unit: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setShowCreateGoal(false)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateGoal}
+                  disabled={!goalForm.title || !goalForm.target || !goalForm.unit}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
+                >
+                  Create
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Goal Modal */}
+      <AnimatePresence>
+        {editingGoal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingGoal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated"
+            >
+              <h3 className="font-semibold text-foreground mb-4">Edit Goal</h3>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Goal title"
+                  value={goalForm.title}
+                  onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <input
+                  type="number"
+                  placeholder="Target"
+                  value={goalForm.target}
+                  onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <input
+                  type="text"
+                  placeholder="Unit"
+                  value={goalForm.unit}
+                  onChange={(e) => setGoalForm({ ...goalForm, unit: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setEditingGoal(null)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditGoal}
+                  disabled={!goalForm.title || !goalForm.target || !goalForm.unit}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {reviewingItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setReviewingItem(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated"
+            >
+              <h3 className="font-semibold text-foreground mb-2">Review Flagged Content</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {reviewingItem.preview}
+              </p>
+              <div className="p-3 bg-muted/50 rounded-lg mb-4">
+                <p className="text-xs text-muted-foreground italic">
+                  Full content would be displayed here in a real implementation. Review the content and decide whether to approve (dismiss the flag) or reject (remove the content).
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    onApproveFlag(reviewingItem.id);
+                    setReviewingItem(null);
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-pandan/10 text-pandan text-sm font-medium hover:bg-pandan/20"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => {
+                    onRejectFlag(reviewingItem.id);
+                    setReviewingItem(null);
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-rose-100 text-rose-500 text-sm font-medium hover:bg-rose-200"
+                >
+                  Remove
+                </button>
+              </div>
+              <button
+                onClick={() => setReviewingItem(null)}
+                className="w-full mt-2 py-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

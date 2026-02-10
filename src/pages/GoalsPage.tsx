@@ -1,23 +1,18 @@
 import { motion } from "framer-motion";
-import { TrendingUp, ChevronRight, Footprints, Brain, Handshake, Medal, Dumbbell, Waves, Coffee, Flame, Target, Users, Award, type LucideIcon } from "lucide-react";
+import { TrendingUp, ChevronRight, Footprints, Brain, Handshake, Medal, Dumbbell, Waves, Coffee, Flame, Target, Users, Award, Check, type LucideIcon } from "lucide-react";
 import { usePulseData } from "@/hooks/use-data";
+import { useCommunityGoals } from "@/hooks/use-community-goals";
 
-interface Goal {
-  id: string;
-  title: string;
-  description: string;
-  target: number;
-  current: number;
-  unit: string;
-  deadline: string;
-  icon: LucideIcon;
-}
-
-const neighborhoodGoals: Goal[] = [
-  { id: "g1", title: "Community Walk Challenge", description: "Let's walk 500km together!", target: 500, current: 342, unit: "km", deadline: "Feb 28", icon: Footprints },
-  { id: "g2", title: "Wellness Minutes", description: "1000 minutes of meditation", target: 1000, current: 756, unit: "min", deadline: "Feb 28", icon: Brain },
-  { id: "g3", title: "Social Connections", description: "100 new friendships made", target: 100, current: 67, unit: "connections", deadline: "Feb 28", icon: Handshake },
-];
+// Icon mapping for goal types
+const getGoalIcon = (title: string): LucideIcon => {
+  const lowerTitle = title.toLowerCase();
+  if (lowerTitle.includes("walk") || lowerTitle.includes("step")) return Footprints;
+  if (lowerTitle.includes("wellness") || lowerTitle.includes("meditation") || lowerTitle.includes("mental")) return Brain;
+  if (lowerTitle.includes("connection") || lowerTitle.includes("friend") || lowerTitle.includes("social")) return Handshake;
+  if (lowerTitle.includes("volunteer")) return Users;
+  if (lowerTitle.includes("fitness") || lowerTitle.includes("gym") || lowerTitle.includes("exercise")) return Dumbbell;
+  return Target;
+};
 
 const leaderboard = [
   { rank: 1, name: "Jurong Foodies", points: 2450, trend: "up" },
@@ -42,6 +37,8 @@ const rewards: Reward[] = [
 
 const GoalsPage = () => {
   const pulseData = usePulseData();
+  const { activeGoals, goals } = useCommunityGoals();
+  const endedGoals = goals.filter(g => !g.active);
   const totalActive = pulseData.reduce((a, p) => a + p.active_today, 0);
 
   return (
@@ -74,7 +71,7 @@ const GoalsPage = () => {
           <div className="h-7 w-7 rounded-lg bg-pandan/10 flex items-center justify-center">
             <Target className="h-4 w-4 text-pandan" />
           </div>
-          <span className="text-muted-foreground">3 active goals</span>
+          <span className="text-muted-foreground">{activeGoals.length} active goal{activeGoals.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-lavender/10 flex items-center justify-center">
@@ -99,55 +96,103 @@ const GoalsPage = () => {
             transition={{ duration: 0.4, delay: 0.15 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-xl text-foreground">Neighbourhood goals</h2>
+              <h2 className="font-serif text-xl text-foreground">Active Goals</h2>
               <span className="text-xs text-muted-foreground">February 2026</span>
             </div>
-            <div className="space-y-4">
-              {neighborhoodGoals.map((goal, i) => {
-                const progress = (goal.current / goal.target) * 100;
-                return (
-                  <motion.div
-                    key={goal.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.2 + i * 0.05 }}
-                    className="bg-white rounded-2xl shadow-soft p-5"
-                  >
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <goal.icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <h3 className="font-medium text-foreground text-sm">{goal.title}</h3>
-                          <span className="text-[10px] text-muted-foreground">Ends {goal.deadline}</span>
+            {activeGoals.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-soft p-5 text-center">
+                <p className="text-sm text-muted-foreground">No active goals right now.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {activeGoals.map((goal, i) => {
+                  const progress = (goal.current / goal.target) * 100;
+                  const GoalIcon = getGoalIcon(goal.title);
+                  return (
+                    <motion.div
+                      key={goal.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.2 + i * 0.05 }}
+                      className="bg-white rounded-2xl shadow-soft p-5"
+                    >
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <GoalIcon className="h-5 w-5 text-primary" />
                         </div>
-                        <p className="text-xs text-muted-foreground">{goal.description}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <h3 className="font-medium text-foreground text-sm">{goal.title}</h3>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-pandan/10 text-pandan">Active</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Target: {goal.target.toLocaleString()} {goal.unit}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground">
-                          {goal.current} / {goal.target} {goal.unit}
-                        </span>
-                        <span className={`font-medium ${progress >= 100 ? "text-pandan" : "text-primary"}`}>
-                          {Math.round(progress)}%
-                        </span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-foreground">
+                            {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
+                          </span>
+                          <span className={`font-medium ${progress >= 100 ? "text-pandan" : "text-primary"}`}>
+                            {Math.round(progress)}%
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(progress, 100)}%` }}
+                            transition={{ duration: 0.8, delay: 0.3 + i * 0.1 }}
+                            className="h-full rounded-full bg-primary"
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(progress, 100)}%` }}
-                          transition={{ duration: 0.8, delay: 0.3 + i * 0.1 }}
-                          className="h-full rounded-full bg-primary"
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
+
+          {/* Ended Goals */}
+          {endedGoals.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.25 }}
+            >
+              <h2 className="font-serif text-xl text-foreground mb-4">Completed Goals</h2>
+              <div className="space-y-3">
+                {endedGoals.map((goal, i) => {
+                  const GoalIcon = getGoalIcon(goal.title);
+                  return (
+                    <motion.div
+                      key={goal.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.3 + i * 0.05 }}
+                      className="bg-white rounded-2xl shadow-soft p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-pandan/10 flex items-center justify-center flex-shrink-0">
+                          <Check className="h-4 w-4 text-pandan" />
+                        </div>
+                        <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                          <GoalIcon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-foreground text-sm">{goal.title}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            Completed: {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
+                          </p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">Ended</span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
 
           {/* Your contribution */}
           <motion.div

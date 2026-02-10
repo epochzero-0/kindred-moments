@@ -6,15 +6,9 @@ import {
 } from "lucide-react";
 import { useCurrentUser, useActivities, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
+import { useCommunityGoals } from "@/hooks/use-community-goals";
 import { Link, useNavigate } from "react-router-dom";
 import StatusFeed from "@/components/StatusFeed";
-
-// Mock data for neighbourhood goals
-const neighbourhoodGoals = [
-  { id: "g1", title: "Community Volunteer Hours", current: 127, target: 200, unit: "hours" },
-  { id: "g2", title: "Neighbourhood Clean-up", current: 45, target: 50, unit: "participants" },
-  { id: "g3", title: "Community Garden Project", current: 8, target: 15, unit: "plots" },
-];
 
 // Mock data for upcoming events
 const upcomingEvents = [
@@ -39,6 +33,7 @@ const HomePage = () => {
   const pulseData = usePulseData();
   const users = useUsers();
   const navigate = useNavigate();
+  const { activeGoals: neighbourhoodGoals } = useCommunityGoals();
 
   const [liveStatuses, setLiveStatuses] = useState(initialLiveStatuses);
   const [quickStatus, setQuickStatus] = useState("");
