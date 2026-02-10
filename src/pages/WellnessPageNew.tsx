@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "@/hooks/use-toast";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { 
   Wind, Heart, Moon, Sun, Play, Pause, X, Timer, Flame, Clock, Sparkles, 
   Sunrise, Target, Footprints, BookHeart, Phone, AlertCircle, ChevronRight,
@@ -108,6 +109,157 @@ const WellnessPage = () => {
   const [activeTab, setActiveTab] = useState<WellnessTab>("breathe");
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [exerciseSeconds, setExerciseSeconds] = useState<number | null>(null);
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [phaseSeconds, setPhaseSeconds] = useState<number | null>(null);
+
+  // Animation controls for smoother per-phase animations
+  const outerControls = useAnimation();
+  const middleControls = useAnimation();
+  const innerControls = useAnimation();
+
+  // Parse exercise pattern into phases (hoisted function to avoid TDZ)
+  function parsePattern(pattern: string): number[] {
+    if (!pattern) return [];
+    if (pattern.includes("-")) {
+      return pattern.split("-").map(p => Number(p.trim())).filter(n => !isNaN(n));
+    }
+    // For non-numeric patterns like "Quick cycles", return empty to signal fallback
+    return [];
+  }
+
+  // Determine phase type from step text (hoisted)
+  function getPhaseType(stepText: string): "expand" | "hold" | "contract" {
+    const lower = (stepText || "").toLowerCase();
+    if (lower.includes("breathe in") || lower.includes("inhale")) return "expand";
+    if (lower.includes("hold") || lower.includes("retain")) return "hold";
+    if (lower.includes("breathe out") || lower.includes("exhale")) return "contract";
+    return "expand"; // fallback
+  }
+
+  // Derived phase info for current exercise
+  const currentPhases = activeExercise ? parsePattern(activeExercise.pattern) : [];
+  const phaseDuration = currentPhases.length > 0 ? (currentPhases[phaseIndex] || 1) : (activeExercise?.duration || 1);
+  const stepText = activeExercise ? (activeExercise.steps[phaseIndex] || "") : "";
+  const phaseType = getPhaseType(stepText);
+  const stepsLen = activeExercise ? Math.max(activeExercise.steps.length, 1) : 1;
+  const prevIndex = (phaseIndex - 1 + stepsLen) % stepsLen;
+  const prevType = activeExercise ? getPhaseType(activeExercise.steps[prevIndex] || "") : "expand";
+  const holdScales = {
+    outer: prevType === "expand" ? 1.3 : 1,
+    middle: prevType === "expand" ? 1.15 : 0.8,
+    inner: prevType === "expand" ? 1 : 0.6,
+  };
+
+  // Trigger animations when phase changes
+  useEffect(() => {
+    if (!activeExercise) return;
+    if (!isPlaying) return;
+    // phaseDuration may be large (minutes) for fallback; cap to reasonable seconds for animation
+    const duration = Math.min(12, Math.max(0.2, Number(phaseDuration) || 1));
+
+    const contracted = { outer: 1, middle: 0.8, inner: 0.6 };
+    const expanded = { outer: 1.3, middle: 1.15, inner: 1 };
+
+    // For hold, snap to the end size of the previous phase (expanded or contracted)
+    if (phaseType === "hold") {
+      const snap = prevType === "expand" ? expanded : contracted;
+      outerControls.set({ scale: snap.outer });
+      middleControls.set({ scale: snap.middle });
+      innerControls.set({ scale: snap.inner });
+      return;
+    }
+
+    if (phaseType === "expand") {
+      // start from contracted, animate to expanded
+      outerControls.set({ scale: contracted.outer });
+      middleControls.set({ scale: contracted.middle });
+      innerControls.set({ scale: contracted.inner });
+
+      outerControls.start({ scale: expanded.outer, transition: { duration, ease: "easeInOut" } });
+      middleControls.start({ scale: expanded.middle, transition: { duration, ease: "easeInOut" } });
+      innerControls.start({ scale: expanded.inner, transition: { duration, ease: "easeInOut" } });
+      return;
+    }
+
+    // contract: start from expanded, animate to contracted
+    outerControls.set({ scale: expanded.outer });
+    middleControls.set({ scale: expanded.middle });
+    innerControls.set({ scale: expanded.inner });
+
+    outerControls.start({ scale: contracted.outer, transition: { duration, ease: "easeInOut" } });
+    middleControls.start({ scale: contracted.middle, transition: { duration, ease: "easeInOut" } });
+    innerControls.start({ scale: contracted.inner, transition: { duration, ease: "easeInOut" } });
+  }, [phaseIndex, phaseType, phaseDuration, isPlaying, activeExercise]);
+
+
+  // Keep exercise timer in sync with phases
+  useEffect(() => {
+    let t: ReturnType<typeof setInterval> | null = null;
+    if (activeExercise && isPlaying && exerciseSeconds !== null) {
+      const phases = parsePattern(activeExercise.pattern);
+      const hasParsedPhases = phases.length > 0;
+      
+      t = setInterval(() => {
+        setExerciseSeconds((s) => {
+          if (!s || s <= 1) {
+            setIsPlaying(false);
+            setPhaseIndex(0);
+            setPhaseSeconds(null);
+            toast({ title: "Well done!", description: `${activeExercise.name} complete.` });
+            return null;
+          }
+          
+          // Decrement phase timer for all exercises
+          setPhaseSeconds((ps) => {
+            if (ps === null) return null;
+            const nextPs = ps - 1;
+            if (nextPs <= 0) {
+              // Move to next phase
+              setPhaseIndex((pi) => {
+                const nextPhaseIdx = hasParsedPhases ? (pi + 1) % phases.length : (pi + 1) % Math.max(activeExercise.steps.length, 1);
+                setPhaseSeconds(hasParsedPhases ? (phases[nextPhaseIdx] || 1) : 1);
+                return nextPhaseIdx;
+              });
+              return null;
+            }
+            return nextPs;
+          });
+          
+          return s - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (t) clearInterval(t);
+    };
+  }, [activeExercise, isPlaying, exerciseSeconds]);
+
+  const startExercise = (exercise: Exercise) => {
+    const phases = parsePattern(exercise.pattern);
+    let totalSeconds = 0;
+    
+    if (phases.length > 0) {
+      totalSeconds = phases.reduce((a, b) => a + b, 0) * 4; // 4 rounds
+    } else {
+      // For non-numeric patterns, use duration field as fallback (in minutes)
+      totalSeconds = exercise.duration * 60;
+    }
+    
+    setActiveExercise(exercise);
+    setIsPlaying(true);
+    setExerciseSeconds(totalSeconds);
+    setPhaseIndex(0);
+    setPhaseSeconds(phases[0] || 1); // Use 1 second as fallback for non-numeric patterns
+  };
+
+  const closeExercise = () => {
+    setActiveExercise(null);
+    setIsPlaying(false);
+    setExerciseSeconds(null);
+    setPhaseIndex(0);
+    setPhaseSeconds(null);
+  };
 
   const tabs = [
     { id: "breathe" as const, label: "Breathe", icon: Wind },
@@ -116,15 +268,6 @@ const WellnessPage = () => {
     { id: "resources" as const, label: "Help", icon: Heart },
   ];
 
-  const startExercise = (exercise: Exercise) => {
-    setActiveExercise(exercise);
-    setIsPlaying(true);
-  };
-
-  const closeExercise = () => {
-    setActiveExercise(null);
-    setIsPlaying(false);
-  };
 
   return (
     <div className="min-h-screen pb-24">
@@ -264,27 +407,54 @@ const WellnessPage = () => {
                 <h2 className="text-xl font-medium text-foreground mb-1">{activeExercise.name}</h2>
                 <p className="text-sm text-muted-foreground mb-6">{activeExercise.description}</p>
 
-                {/* Breathing animation */}
+                {/* Phase Label */}
+                {isPlaying && (
+                  <p className="text-xs uppercase tracking-wider text-primary font-semibold mb-2">
+                    {activeExercise.steps[phaseIndex]?.replace(/for \d+ seconds/i, "").trim() || "Breathing"}
+                  </p>
+                )}
+
+                {/* Breathing animation with phase-matched durations */}
                 <div className="relative h-36 w-36 mx-auto mb-6">
-                  <motion.div
-                    animate={isPlaying ? { scale: [1, 1.25, 1] } : {}}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute inset-0 rounded-full bg-primary/10"
-                  />
-                  <motion.div
-                    animate={isPlaying ? { scale: [0.8, 1.1, 0.8] } : {}}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute inset-4 rounded-full bg-primary/20"
-                  />
-                  <motion.div
-                    animate={isPlaying ? { scale: [0.6, 0.9, 0.6] } : {}}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute inset-8 rounded-full bg-primary/40 flex items-center justify-center"
-                  >
-                    <span className="text-white text-sm font-medium">
-                      {isPlaying ? "Breathe" : "Ready"}
-                    </span>
-                  </motion.div>
+                  {(() => {
+                    const phases = parsePattern(activeExercise.pattern);
+                    const phaseDuration = phases.length > 0 ? phases[phaseIndex] || 1 : (activeExercise.duration);
+                    const stepText = activeExercise.steps[phaseIndex] || "";
+                    const phaseType = getPhaseType(stepText);
+                    const stepsLen = Math.max(activeExercise.steps.length, 1);
+                    const prevIndex = (phaseIndex - 1 + stepsLen) % stepsLen;
+                    const prevType = getPhaseType(activeExercise.steps[prevIndex] || "");
+                    // hold scales should match the end size of the previous phase
+                    const holdScales = {
+                      outer: prevType === "expand" ? 1.3 : 1,
+                      middle: prevType === "expand" ? 1.15 : 0.8,
+                      inner: prevType === "expand" ? 1 : 0.6,
+                    };
+                    
+                    return (
+                      <>
+                        <motion.div
+                          animate={outerControls}
+                          className="absolute inset-0 rounded-full bg-primary/10"
+                        />
+                        <motion.div
+                          animate={middleControls}
+                          className="absolute inset-4 rounded-full bg-primary/20"
+                        />
+                        <motion.div
+                          animate={innerControls}
+                          className="absolute inset-8 rounded-full bg-primary/40 flex items-center justify-center flex-col"
+                        >
+                          <div className="text-white text-xs font-semibold mb-1">
+                            {phaseSeconds !== null ? phaseSeconds : phaseDuration}s
+                          </div>
+                          <div className="text-white/70 text-[10px] font-medium">
+                            {exerciseSeconds !== null ? `${Math.floor(exerciseSeconds / 60)}:${String(exerciseSeconds % 60).padStart(2, "0")}` : ""}
+                          </div>
+                        </motion.div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Steps */}
@@ -292,8 +462,8 @@ const WellnessPage = () => {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Pattern</p>
                   <ol className="space-y-1">
                     {activeExercise.steps.map((step, i) => (
-                      <li key={i} className="text-xs text-foreground flex items-center gap-2">
-                        <span className="h-4 w-4 rounded-full bg-primary/10 text-primary text-[10px] flex items-center justify-center font-medium">
+                      <li key={i} className={`text-xs flex items-center gap-2 ${i === phaseIndex && isPlaying ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
+                        <span className={`h-4 w-4 rounded-full text-[10px] flex items-center justify-center font-medium ${i === phaseIndex && isPlaying ? "bg-primary text-white" : "bg-primary/10 text-primary"}`}>
                           {i + 1}
                         </span>
                         {step}
@@ -329,10 +499,40 @@ interface BreatheTabProps {
   onStartExercise: (exercise: Exercise) => void;
 }
 
-const BreatheTab = ({ exercises, meditations, onStartExercise }: BreatheTabProps) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-    {/* Breathing Exercises */}
-    <div className="mb-6">
+const BreatheTab = ({ exercises, meditations, onStartExercise }: BreatheTabProps) => {
+  const [activeMeditation, setActiveMeditation] = useState<Meditation | null>(null);
+  const [isMedPlaying, setIsMedPlaying] = useState(false);
+  const [medSeconds, setMedSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    let t: ReturnType<typeof setInterval> | null = null;
+    if (activeMeditation && isMedPlaying && medSeconds !== null) {
+      t = setInterval(() => {
+        setMedSeconds((s) => {
+          if (!s || s <= 1) {
+            setIsMedPlaying(false);
+            toast({ title: "Meditation complete", description: `${activeMeditation.name} finished.` });
+            return null;
+          }
+          return s - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (t) clearInterval(t);
+    };
+  }, [activeMeditation, isMedPlaying, medSeconds]);
+
+  const startMeditation = (m: Meditation) => {
+    setActiveMeditation(m);
+    setMedSeconds(m.duration * 60);
+    setIsMedPlaying(true);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      {/* Breathing Exercises */}
+      <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-semibold text-foreground">Breathing exercises</h2>
         <span className="text-xs text-muted-foreground">Tap to start</span>
@@ -366,26 +566,74 @@ const BreatheTab = ({ exercises, meditations, onStartExercise }: BreatheTabProps
       <h2 className="font-semibold text-foreground mb-3">Guided meditations</h2>
       <div className="grid grid-cols-2 gap-3">
         {meditations.map((meditation, i) => (
-          <motion.div
+          <motion.button
             key={meditation.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + i * 0.05 }}
-            className="group bg-white rounded-2xl shadow-soft p-4 hover:shadow-elevated transition-shadow cursor-pointer"
+            onClick={() => startMeditation(meditation)}
+            className="group bg-white rounded-2xl shadow-soft p-4 hover:shadow-elevated transition-shadow"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="h-10 w-10 rounded-xl bg-lavender/10 flex items-center justify-center">
                 <meditation.icon className="h-5 w-5 text-lavender" />
               </div>
-              <button className="h-8 w-8 rounded-full bg-lavender/10 text-lavender flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="h-8 w-8 rounded-full bg-lavender/10 text-lavender flex items-center justify-center opacity-100 transition-opacity">
                 <Play className="h-3.5 w-3.5 ml-0.5" />
-              </button>
+              </div>
             </div>
             <h3 className="font-medium text-foreground text-sm mb-1">{meditation.name}</h3>
             <p className="text-xs text-muted-foreground mb-1">{meditation.desc}</p>
             <p className="text-[10px] text-muted-foreground">{meditation.duration} min</p>
-          </motion.div>
+          </motion.button>
         ))}
+
+        {/* Meditation Modal */}
+        <AnimatePresence>
+          {activeMeditation && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-8"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white rounded-2xl shadow-elevated max-w-sm w-full p-6 relative"
+              >
+                <button
+                  onClick={() => { setActiveMeditation(null); setIsMedPlaying(false); setMedSeconds(null); }}
+                  className="absolute top-4 right-4 h-8 w-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+
+                <div className="text-center">
+                  <div className="h-14 w-14 rounded-2xl bg-lavender/10 flex items-center justify-center mx-auto mb-4">
+                    <activeMeditation.icon className="h-7 w-7 text-lavender" />
+                  </div>
+                  <h2 className="text-xl font-medium text-foreground mb-1">{activeMeditation.name}</h2>
+                  <p className="text-sm text-muted-foreground mb-6">{activeMeditation.desc}</p>
+
+                  <div className="relative h-24 w-24 mx-auto mb-6 flex items-center justify-center">
+                    <div className="text-foreground font-medium text-lg">
+                      {isMedPlaying && medSeconds !== null ? `${Math.floor(medSeconds / 60)}:${String(medSeconds % 60).padStart(2, "0")}` : (isMedPlaying ? "..." : `${activeMeditation.duration}:00`)}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsMedPlaying(!isMedPlaying)}
+                    className="h-12 w-12 rounded-full bg-lavender flex items-center justify-center mx-auto shadow-soft transition-transform hover:scale-105"
+                  >
+                    {isMedPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white ml-0.5" />}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
 
@@ -405,15 +653,44 @@ const BreatheTab = ({ exercises, meditations, onStartExercise }: BreatheTabProps
       </div>
     </div>
   </motion.div>
-);
-
+);};
 // Steps Tab
 const StepsTab = () => {
-  const dailySteps = 6847;
   const dailyGoal = 8000;
-  const weeklySteps = [4200, 7500, 6100, 8200, 5400, 7800, 6847];
   const weeklyGoal = 56000;
+
+  const [dailySteps, setDailySteps] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem("km_daily_steps");
+      if (raw) return Number(raw);
+    } catch (e) {}
+    return 6847;
+  });
+
+  const [weeklySteps, setWeeklySteps] = useState<number[]>(() => {
+    try {
+      const raw = localStorage.getItem("km_weekly_steps");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [4200, 7500, 6100, 8200, 5400, 7800, 6847];
+  });
+
   const totalWeeklySteps = weeklySteps.reduce((a, b) => a + b, 0);
+
+  const logSteps = (amount: number) => {
+    setDailySteps((d) => {
+      const nextDaily = d + amount;
+      try { localStorage.setItem("km_daily_steps", String(nextDaily)); } catch (e) {}
+      return nextDaily;
+    });
+    setWeeklySteps((w) => {
+      const next = [...w];
+      next[next.length - 1] = (next[next.length - 1] || 0) + amount;
+      try { localStorage.setItem("km_weekly_steps", JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+    toast({ title: "Great!", description: `Added ${amount.toLocaleString()} steps.` });
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -460,6 +737,13 @@ const StepsTab = () => {
             <TrendingUp className="h-3.5 w-3.5 text-pandan" />
             <span>12% more than yesterday</span>
           </div>
+        </div>
+
+        {/* Quick logging controls */}
+        <div className="flex items-center gap-2 mt-4">
+          <button onClick={() => logSteps(500)} className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs">Log +500</button>
+          <button onClick={() => logSteps(1000)} className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs">Log +1000</button>
+          <button onClick={() => { localStorage.removeItem('km_daily_steps'); localStorage.removeItem('km_weekly_steps'); setDailySteps(0); setWeeklySteps([0,0,0,0,0,0,0]); toast({ title: 'Reset', description: 'Steps cleared.' }); }} className="py-1.5 px-3 rounded-lg bg-muted text-xs">Reset</button>
         </div>
       </div>
 
@@ -542,6 +826,47 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
   const [journalText, setJournalText] = useState("");
   const [currentPrompt] = useState(prompts[Math.floor(Math.random() * prompts.length)]);
 
+  // Persisted entries local to this tab
+  const [localEntries, setLocalEntries] = useState<JournalEntry[]>(() => {
+    try {
+      const raw = localStorage.getItem("km_journal_entries");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed.map((e: any) => ({ ...e, date: new Date(e.date) }));
+      }
+    } catch (e) {
+      // ignore
+    }
+    return entries;
+  });
+
+  const saveEntry = () => {
+    if (!journalText.trim()) {
+      toast({ title: "Write something", description: "Please add some text to your entry." });
+      return;
+    }
+    if (!selectedMood) {
+      toast({ title: "Select mood", description: "Please choose how you're feeling." });
+      return;
+    }
+
+    const newEntry: JournalEntry = {
+      id: `j${Date.now()}`,
+      date: new Date(),
+      mood: selectedMood,
+      content: journalText.trim(),
+      prompt: currentPrompt,
+    };
+
+    const next = [newEntry, ...localEntries];
+    setLocalEntries(next);
+    localStorage.setItem("km_journal_entries", JSON.stringify(next));
+    setShowNewEntry(false);
+    setSelectedMood(null);
+    setJournalText("");
+    toast({ title: "Saved", description: "Your journal entry is saved." });
+  };
+
   const moodIcons = [
     { icon: Frown, label: "Bad", value: 1 },
     { icon: Meh, label: "Meh", value: 2 },
@@ -610,7 +935,7 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
       <div>
         <h3 className="font-semibold text-foreground text-sm mb-3">Recent Entries</h3>
         <div className="space-y-3">
-          {entries.map((entry, i) => (
+          {localEntries.map((entry, i) => (
             <motion.div
               key={entry.id}
               initial={{ opacity: 0, y: 10 }}
@@ -694,8 +1019,9 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
               />
 
               <button
-                onClick={() => setShowNewEntry(false)}
-                className="w-full mt-4 py-3 rounded-xl bg-primary text-white font-medium"
+                onClick={saveEntry}
+                disabled={!selectedMood || !journalText.trim()}
+                className={`w-full mt-4 py-3 rounded-xl text-white font-medium ${!selectedMood || !journalText.trim() ? "bg-muted/40 cursor-not-allowed" : "bg-primary hover:bg-primary/90"}`}
               >
                 Save Entry
               </button>
