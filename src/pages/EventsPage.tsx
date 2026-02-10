@@ -17,207 +17,11 @@ import {
   Filter,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-data";
+import { useEvents } from "@/hooks/use-events";
 import { useLocation } from "react-router-dom";
+import { Event, EventType } from "@/types";
 
-type CalendarView = "month" | "week" | "day";
-type EventType = "neighbourhood" | "clan" | "competition" | "wellness";
-
-interface Event {
-  id: string;
-  title: string;
-  date: Date;
-  endDate?: Date;
-  location: string;
-  type: EventType;
-  attendees: number;
-  capacity?: number;
-  neighbourhood?: string;
-  clanId?: string;
-  clanName?: string;
-  languages: string[];
-  recurring: boolean;
-  description?: string;
-  hasChat: boolean;
-  expenses?: { total: number; perPerson: number };
-}
-
-// Helper to create dates relative to today
-const getDateFromToday = (daysOffset: number, hours: number = 9, minutes: number = 0) => {
-  const date = new Date();
-  date.setDate(date.getDate() + daysOffset);
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-};
-
-// Mock events data - dates are relative to today
-const mockEvents: Event[] = [
-  {
-    id: "ev1",
-    title: "Morning Tai Chi",
-    date: getDateFromToday(0, 7, 0),
-    endDate: getDateFromToday(0, 8, 0),
-    location: "Punggol Park",
-    type: "neighbourhood",
-    attendees: 12,
-    capacity: 20,
-    neighbourhood: "Punggol",
-    languages: ["en", "zh"],
-    recurring: true,
-    hasChat: true,
-  },
-  {
-    id: "ev2",
-    title: "Board Game Night",
-    date: getDateFromToday(4, 19, 30),
-    endDate: getDateFromToday(4, 22, 0),
-    location: "Sengkang CC",
-    type: "clan",
-    attendees: 8,
-    capacity: 12,
-    clanId: "c01",
-    clanName: "Board Game Kakis",
-    languages: ["en"],
-    recurring: false,
-    hasChat: true,
-    expenses: { total: 45, perPerson: 5.63 },
-  },
-  {
-    id: "ev3",
-    title: "Inter-Neighbourhood Badminton",
-    date: getDateFromToday(5, 14, 0),
-    endDate: getDateFromToday(5, 17, 0),
-    location: "Bedok Sports Hall",
-    type: "competition",
-    attendees: 24,
-    neighbourhood: "Punggol vs Bedok",
-    languages: ["en", "zh", "ms"],
-    recurring: false,
-    hasChat: true,
-  },
-  {
-    id: "ev4",
-    title: "Mindfulness Walk",
-    date: getDateFromToday(1, 6, 30),
-    endDate: getDateFromToday(1, 7, 30),
-    location: "Punggol Waterway",
-    type: "wellness",
-    attendees: 6,
-    languages: ["en"],
-    recurring: true,
-    hasChat: true,
-  },
-  {
-    id: "ev5",
-    title: "Photography Walk",
-    date: getDateFromToday(6, 17, 0),
-    endDate: getDateFromToday(6, 19, 0),
-    location: "Gardens by the Bay",
-    type: "clan",
-    attendees: 10,
-    capacity: 15,
-    clanId: "c02",
-    clanName: "Shutter Bugs",
-    languages: ["en", "zh"],
-    recurring: false,
-    hasChat: true,
-  },
-  {
-    id: "ev6",
-    title: "Community Clean-up",
-    date: getDateFromToday(12, 8, 0),
-    endDate: getDateFromToday(12, 11, 0),
-    location: "Punggol Beach",
-    type: "neighbourhood",
-    attendees: 35,
-    capacity: 50,
-    neighbourhood: "Punggol",
-    languages: ["en", "zh", "ms", "ta"],
-    recurring: false,
-    hasChat: true,
-  },
-  {
-    id: "ev7",
-    title: "Evening Yoga",
-    date: getDateFromToday(0, 18, 0),
-    endDate: getDateFromToday(0, 19, 0),
-    location: "Community Centre",
-    type: "wellness",
-    attendees: 8,
-    capacity: 15,
-    languages: ["en"],
-    recurring: true,
-    hasChat: true,
-  },
-  {
-    id: "ev8",
-    title: "Book Club Meeting",
-    date: getDateFromToday(0, 19, 30),
-    endDate: getDateFromToday(0, 21, 0),
-    location: "Library @ Punggol",
-    type: "clan",
-    attendees: 5,
-    capacity: 12,
-    clanId: "c03",
-    clanName: "Page Turners",
-    languages: ["en"],
-    recurring: false,
-    hasChat: true,
-  },
-  {
-    id: "ev9",
-    title: "Cooking Class",
-    date: getDateFromToday(3, 14, 0),
-    endDate: getDateFromToday(3, 16, 0),
-    location: "Sengkang CC Kitchen",
-    type: "clan",
-    attendees: 10,
-    capacity: 12,
-    clanId: "c04",
-    clanName: "Hawker Heroes",
-    languages: ["en", "zh"],
-    recurring: false,
-    hasChat: true,
-  },
-  {
-    id: "ev10",
-    title: "Kids Soccer Practice",
-    date: getDateFromToday(3, 16, 30),
-    endDate: getDateFromToday(3, 18, 0),
-    location: "Punggol Field",
-    type: "neighbourhood",
-    attendees: 18,
-    capacity: 25,
-    neighbourhood: "Punggol",
-    languages: ["en"],
-    recurring: true,
-    hasChat: true,
-  },
-  {
-    id: "ev11",
-    title: "Night Cycling",
-    date: getDateFromToday(3, 20, 0),
-    endDate: getDateFromToday(3, 22, 0),
-    location: "Park Connector",
-    type: "wellness",
-    attendees: 12,
-    languages: ["en"],
-    recurring: false,
-    hasChat: true,
-  },
-  {
-    id: "ev12",
-    title: "Senior Dance Class",
-    date: getDateFromToday(3, 10, 0),
-    endDate: getDateFromToday(3, 11, 30),
-    location: "RC Hall",
-    type: "wellness",
-    attendees: 22,
-    capacity: 30,
-    languages: ["en", "zh"],
-    recurring: true,
-    hasChat: true,
-  },
-];
+// Mock data moved to use-events hook
 
 const eventTypeColors: Record<EventType, { bg: string; text: string; dot: string }> = {
   neighbourhood: { bg: "bg-primary/10", text: "text-primary", dot: "bg-primary" },
@@ -228,8 +32,9 @@ const eventTypeColors: Record<EventType, { bg: string; text: string; dot: string
 
 const EventsPage = () => {
   const currentUser = useCurrentUser();
+  const { events, addEvent } = useEvents();
   const location = useLocation();
-  const [view, setView] = useState<CalendarView>("month");
+  const [view, setView] = useState<"month" | "week" | "day">("month");
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -250,9 +55,9 @@ const EventsPage = () => {
     }
   }, [location.state]);
 
-  const filteredEvents = filterType === "all" 
-    ? mockEvents 
-    : mockEvents.filter(e => e.type === filterType);
+  const filteredEvents = filterType === "all"
+    ? events
+    : events.filter(e => e.type === filterType);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -298,7 +103,7 @@ const EventsPage = () => {
             <p className="text-muted-foreground text-sm mb-1">Events</p>
             <h1 className="text-2xl font-semibold text-foreground">Your Calendar</h1>
           </div>
-            <button
+          <button
             onClick={() => { setDraftData(null); setShowCreateModal(true); }}
             className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-soft hover:shadow-elevated transition-shadow"
           >
@@ -311,13 +116,12 @@ const EventsPage = () => {
       <div className="px-6 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex gap-1 p-1 bg-muted/50 rounded-lg">
-            {(["month", "week", "day"] as CalendarView[]).map((v) => (
+            {(["month", "week", "day"] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
-                  view === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${view === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
               >
                 {v}
               </button>
@@ -400,8 +204,8 @@ const EventsPage = () => {
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
               const dayEvents = getEventsForDay(day);
-              const isToday = day === today.getDate() && 
-                currentDate.getMonth() === today.getMonth() && 
+              const isToday = day === today.getDate() &&
+                currentDate.getMonth() === today.getMonth() &&
                 currentDate.getFullYear() === today.getFullYear();
 
               return (
@@ -410,11 +214,10 @@ const EventsPage = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.01 }}
-                  className={`min-h-[80px] rounded-xl p-1.5 flex flex-col transition-all border-2 ${
-                    isToday 
-                      ? "border-primary bg-primary/5" 
-                      : "border-transparent hover:bg-muted/30"
-                  }`}
+                  className={`min-h-[80px] rounded-xl p-1.5 flex flex-col transition-all border-2 ${isToday
+                    ? "border-primary bg-primary/5"
+                    : "border-transparent hover:bg-muted/30"
+                    }`}
                 >
                   <span className={`text-xs font-semibold mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
                     {day}
@@ -434,7 +237,7 @@ const EventsPage = () => {
                         );
                       })}
                       {dayEvents.length > 2 && (
-                        <button 
+                        <button
                           onClick={() => setSelectedEvent(dayEvents[2])}
                           className="text-[9px] text-primary font-medium pl-1 text-left hover:underline"
                         >
@@ -524,22 +327,15 @@ const EventsPage = () => {
       {/* Create Event Modal */}
       <AnimatePresence>
         {showCreateModal && (
-          <CreateEventModal 
-            onClose={() => { setShowCreateModal(false); setDraftData(null); }} 
+          <CreateEventModal
+            onClose={() => { setShowCreateModal(false); setDraftData(null); }}
             initialData={draftData}
+            onSave={(data) => addEvent(data)}
           />
         )}
       </AnimatePresence>
 
-      {/* Create Event Modal */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <CreateEventModal 
-            onClose={() => { setShowCreateModal(false); setDraftData(null); }} 
-            initialData={draftData}
-          />
-        )}
-      </AnimatePresence>
+
 
       {/* Event Detail Modal */}
       <AnimatePresence>
@@ -592,7 +388,7 @@ const EventsPage = () => {
 };
 
 // Updated Create Event Modal
-const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initialData?: Record<string, unknown> }) => {
+const CreateEventModal = ({ onClose, initialData, onSave }: { onClose: () => void, initialData?: Record<string, unknown>, onSave: (data: any) => void }) => {
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -623,7 +419,13 @@ const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initi
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In real app, this would create the event
+
+    onSave({
+      ...formData,
+      attendees: 1, // Auto-join creator
+      date: new Date(formData.date + 'T' + formData.time), // Basic date construction
+      hasChat: true
+    });
     alert(`Event "${formData.title}" created successfully!`);
     onClose();
   };
@@ -731,11 +533,10 @@ const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initi
                     key={type}
                     type="button"
                     onClick={() => setFormData({ ...formData, type })}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium capitalize transition-all ${
-                      formData.type === type
-                        ? `${eventTypeColors[type].bg} ${eventTypeColors[type].text}`
-                        : "bg-muted/50 text-muted-foreground"
-                    }`}
+                    className={`px-3 py-2 rounded-xl text-xs font-medium capitalize transition-all ${formData.type === type
+                      ? `${eventTypeColors[type].bg} ${eventTypeColors[type].text}`
+                      : "bg-muted/50 text-muted-foreground"
+                      }`}
                   >
                     {type}
                   </button>
@@ -757,11 +558,10 @@ const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initi
                         : [...formData.languages, lang];
                       setFormData({ ...formData, languages: newLangs });
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium uppercase transition-all ${
-                      formData.languages.includes(lang)
-                        ? "bg-primary text-white"
-                        : "bg-muted/50 text-muted-foreground"
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium uppercase transition-all ${formData.languages.includes(lang)
+                      ? "bg-primary text-white"
+                      : "bg-muted/50 text-muted-foreground"
+                      }`}
                   >
                     {lang}
                   </button>
@@ -776,9 +576,8 @@ const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initi
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurring: !formData.recurring })}
-                  className={`h-6 w-11 rounded-full transition-colors ${
-                    formData.recurring ? "bg-primary" : "bg-muted"
-                  }`}
+                  className={`h-6 w-11 rounded-full transition-colors ${formData.recurring ? "bg-primary" : "bg-muted"
+                    }`}
                 >
                   <motion.div
                     animate={{ x: formData.recurring ? 20 : 2 }}
@@ -791,9 +590,8 @@ const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initi
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, openToAll: !formData.openToAll })}
-                  className={`h-6 w-11 rounded-full transition-colors ${
-                    formData.openToAll ? "bg-primary" : "bg-muted"
-                  }`}
+                  className={`h-6 w-11 rounded-full transition-colors ${formData.openToAll ? "bg-primary" : "bg-muted"
+                    }`}
                 >
                   <motion.div
                     animate={{ x: formData.openToAll ? 20 : 2 }}
