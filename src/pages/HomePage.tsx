@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MapPin, Wind, Footprints, Sparkles, Coffee, ArrowRight, MessageCircle, Calendar, Users
+  MapPin, Wind, Footprints, Sparkles, Coffee, ArrowRight, MessageCircle, Calendar, Users,
+  ChevronRight, X, Bot, Compass, Activity, Heart, Lightbulb
 } from "lucide-react";
 import { useCurrentUser, usePulseData } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -109,6 +110,68 @@ const upcomingEvents = [
   { id: "e3", title: "Photography Walk", time: "Sun 5:00 PM", location: "Waterway", attendees: 6 },
 ];
 
+// Tour steps configuration - simpler with arrow positioning
+interface TourStep {
+  id: string;
+  title: string;
+  description: string;
+  icon: typeof Sparkles;
+  // Arrow points to this position
+  arrowTo: { x: string; y: string };
+  // Tooltip card position
+  cardPosition: { x: string; y: string };
+  // Arrow curve direction
+  arrowCurve: "down-left" | "down-right" | "up-left" | "up-right";
+}
+
+const tourSteps: TourStep[] = [
+  {
+    id: "welcome",
+    title: "Community Pulse",
+    description: "See how many neighbours are active right now.",
+    icon: Activity,
+    arrowTo: { x: "50%", y: "28%" },
+    cardPosition: { x: "50%", y: "52%" },
+    arrowCurve: "up-right",
+  },
+  {
+    id: "explore",
+    title: "Explore Button",
+    description: "Discover neighbours and groups with shared interests.",
+    icon: Compass,
+    arrowTo: { x: "50%", y: "42%" },
+    cardPosition: { x: "50%", y: "58%" },
+    arrowCurve: "up-left",
+  },
+  {
+    id: "events",
+    title: "Upcoming Events",
+    description: "Community activities happening near you.",
+    icon: Calendar,
+    arrowTo: { x: "30%", y: "58%" },
+    cardPosition: { x: "50%", y: "30%" },
+    arrowCurve: "down-left",
+  },
+  {
+    id: "actions",
+    title: "Quick Actions",
+    description: "Steps, wellness, and messages at your fingertips.",
+    icon: Heart,
+    arrowTo: { x: "50%", y: "78%" },
+    cardPosition: { x: "50%", y: "40%" },
+    arrowCurve: "down-right",
+  },
+  {
+    id: "assistant",
+    title: "AI Assistant",
+    description: "Tap the button in the corner to chat with me!",
+    icon: Bot,
+    arrowTo: { x: "93%", y: "80%" },
+    cardPosition: { x: "50%", y: "45%" },
+    arrowCurve: "down-right",
+  },
+];
+
 const HomePage = () => {
   const currentUser = useCurrentUser();
   const { profile: storedProfile } = useUserProfile();
@@ -118,6 +181,40 @@ const HomePage = () => {
   const [greeting, setGreeting] = useState("");
   const [nudgePostponed, setNudgePostponed] = useState(false);
   const [showInvite, setShowInvite] = useState(true);
+
+  // Tour state
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  // Check if first visit
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem("km_tour_completed");
+    if (!hasSeenTour) {
+      // Small delay for page to render
+      const timer = setTimeout(() => setShowTour(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const startTour = useCallback(() => {
+    setTourStep(0);
+    setShowTour(true);
+  }, []);
+
+  const completeTour = useCallback(() => {
+    setShowTour(false);
+    localStorage.setItem("km_tour_completed", "true");
+  }, []);
+
+  const nextStep = useCallback(() => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(prev => prev + 1);
+    } else {
+      completeTour();
+    }
+  }, [tourStep, completeTour]);
+
+  const currentTourStep = tourSteps[tourStep];
 
   // Sync with WellnessPageNew steps
   const [dailySteps, setDailySteps] = useState(6847);
@@ -169,6 +266,132 @@ const HomePage = () => {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-gradient-to-b from-background via-background to-muted/20 flex flex-col">
+      {/* Tour Overlay */}
+      <AnimatePresence>
+        {showTour && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] pointer-events-none"
+          >
+            {/* Subtle dark backdrop */}
+            <div className="absolute inset-0 bg-black/40" />
+
+            {/* Curvy Arrow SVG */}
+            <svg
+              key={`arrow-${tourStep}`}
+              className="absolute inset-0 w-full h-full overflow-visible"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              style={{ pointerEvents: "none" }}
+            >
+              <defs>
+                <marker
+                  id="arrowhead"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="6"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="strokeWidth"
+                >
+                  <path
+                    d="M 0 0 L 8 4 L 0 8 Z"
+                    fill="white"
+                  />
+                </marker>
+              </defs>
+              <motion.path
+                d={(() => {
+                  const cardX = parseFloat(currentTourStep.cardPosition.x);
+                  const cardY = parseFloat(currentTourStep.cardPosition.y);
+                  const arrowX = parseFloat(currentTourStep.arrowTo.x);
+                  const arrowY = parseFloat(currentTourStep.arrowTo.y);
+                  
+                  // Start from edge of card
+                  const startX = cardX;
+                  const startY = currentTourStep.arrowCurve.startsWith("down") ? cardY + 8 : cardY - 8;
+                  const endX = arrowX;
+                  const endY = arrowY;
+                  
+                  // Control points for smooth bezier curve
+                  const midY = (startY + endY) / 2;
+                  const curveOffset = currentTourStep.arrowCurve.includes("left") ? -30 : 30;
+                  
+                  return `M ${startX} ${startY} Q ${startX + curveOffset} ${midY + 10}, ${endX} ${endY}`;
+                })()}
+                stroke="white"
+                strokeWidth="0.4"
+                strokeDasharray="1.5 1"
+                strokeLinecap="round"
+                fill="none"
+                markerEnd="url(#arrowhead)"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              />
+            </svg>
+            
+            {/* Tooltip Card */}
+            <motion.div
+              key={`tooltip-${tourStep}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-72 pointer-events-auto"
+              style={{
+                left: currentTourStep.cardPosition.x,
+                top: currentTourStep.cardPosition.y,
+              }}
+            >
+              <div className="bg-white rounded-2xl p-4 shadow-xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <currentTourStep.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">{tourStep + 1}/{tourSteps.length}</p>
+                    <h3 className="text-sm font-semibold text-foreground">{currentTourStep.title}</h3>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">{currentTourStep.description}</p>
+                
+                {/* Progress & Actions */}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-1">
+                    {tourSteps.map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1 rounded-full transition-all ${
+                          i === tourStep ? "w-4 bg-primary" : "w-1 bg-muted"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={completeTour}
+                      className="text-[10px] text-muted-foreground hover:text-foreground"
+                    >
+                      Skip
+                    </button>
+                    <button
+                      onClick={nextStep}
+                      className="text-[10px] font-medium text-primary flex items-center gap-0.5"
+                    >
+                      {tourStep === tourSteps.length - 1 ? "Done" : "Next"}
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Ambient Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <FloatingOrb size={300} color="rgba(139, 92, 246, 0.15)" delay={0} duration={8} x="10%" y="5%" />
@@ -179,17 +402,32 @@ const HomePage = () => {
 
       {/* Header - Clean Greeting */}
       <div className="relative px-6 pt-8 pb-4 flex-shrink-0">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="space-y-0.5"
-        >
-          <p className="text-muted-foreground text-sm">{greeting}</p>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
-            {firstName}
-          </h1>
-        </motion.div>
+        <div className="flex items-start justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="space-y-0.5"
+          >
+            <p className="text-muted-foreground text-sm">{greeting}</p>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+              {firstName}
+            </h1>
+          </motion.div>
+          
+          {/* Help button to restart tour */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            onClick={startTour}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-muted/50 transition-colors group"
+            title="View tutorial"
+          >
+            <span className="text-sm text-muted-foreground group-hover:text-amber-500 transition-colors">Guide</span>
+            <Lightbulb className="h-4 w-4 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+          </motion.button>
+        </div>
       </div>
 
       {/* Hero - Animated Pulse Visualization */}
