@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const tabs = [
-  { to: "/", icon: Home, label: "Home" },
+  { to: "/home", icon: Home, label: "Home" },
   { to: "/explore", icon: Compass, label: "Explore" },
   { to: "/events", icon: Calendar, label: "Events" },
   { to: "/wellness", icon: Heart, label: "Wellness" },
@@ -18,7 +18,7 @@ const BottomNav = () => {
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.to || 
-            (tab.to !== "/" && location.pathname.startsWith(tab.to));
+            location.pathname.startsWith(tab.to + "/");
           
           return (
             <NavLink
