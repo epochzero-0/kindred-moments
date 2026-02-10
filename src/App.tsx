@@ -10,6 +10,7 @@ import EventsPage from "./pages/EventsPage";
 import ClanPage from "./pages/ClanPage";
 import PulsePage from "./pages/PulsePage";
 import ProfilePage from "./pages/ProfilePage";
+import EditNeighbourhoodsPage from "./pages/EditNeighbourhoodsPage";
 import WellnessPage from "./pages/WellnessPageNew";
 import JournalPage from "./pages/JournalPage";
 import GoalsPage from "./pages/GoalsPage";
@@ -22,7 +23,7 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const isOnboarding = location.pathname === "/" || location.pathname.startsWith("/onboarding");
+  const isOnboarding = location.pathname === "/" || location.pathname.startsWith("/onboarding") || location.pathname === "/profile/neighbourhoods";
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,6 +36,7 @@ const AppContent = () => {
           <Route path="/groups" element={<ClanPage />} />
           <Route path="/pulse" element={<PulsePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/neighbourhoods" element={<EditNeighbourhoodsPage />} />
           <Route path="/wellness" element={<WellnessPage />} />
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/goals" element={<GoalsPage />} />

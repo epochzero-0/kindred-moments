@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type ProfileTab = "profile" | "groups" | "achievements" | "leaderboard" | "admin" | "settings";
 
@@ -71,6 +71,7 @@ const flaggedContent = [
 ];
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const { profile: storedProfile } = useUserProfile();
   const clans = useClans();
@@ -142,13 +143,17 @@ const ProfilePage = () => {
                 <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div 
+              onClick={() => navigate("/profile/neighbourhoods")}
+              className="flex items-center gap-2 mt-1 cursor-pointer hover:bg-white/30 rounded-lg px-2 py-1 -mx-2 transition-colors"
+            >
               <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
                 {displayNeighbourhoods.length > 0 
                   ? displayNeighbourhoods.map(n => neighbourhoodLabels[n] || n).join(", ")
                   : currentUser?.neighbourhood || "..."}
               </span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
             </div>
             <div className="flex items-center gap-3 mt-2">
               <span className="text-xs text-muted-foreground">
@@ -301,10 +306,13 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
     </div>
 
     {/* Neighbourhoods */}
-    <div className="bg-white rounded-2xl shadow-soft p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Train className="h-4 w-4 text-muted-foreground" />
-        <h3 className="font-semibold text-foreground text-sm">My Neighbourhoods</h3>
+    <Link to="/profile/neighbourhoods" className="block bg-white rounded-2xl shadow-soft p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Train className="h-4 w-4 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground text-sm">My Neighbourhoods</h3>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </div>
       <div className="flex flex-wrap gap-2">
         {displayNeighbourhoods.length > 0 ? displayNeighbourhoods.map((hood, i) => (
@@ -317,8 +325,8 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
           <span className="text-sm text-muted-foreground">No neighbourhoods selected</span>
         )}
       </div>
-      <button className="mt-3 text-xs text-primary hover:underline">+ Add another MRT station</button>
-    </div>
+      <span className="mt-3 text-xs text-primary inline-block">+ Add or edit MRT stations</span>
+    </Link>
 
     {/* SingPass Verified */}
     <div className="bg-gradient-to-r from-red-50 to-red-100/50 rounded-2xl p-4 flex items-center gap-3">
