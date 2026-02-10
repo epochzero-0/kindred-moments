@@ -6,8 +6,8 @@ import {
   ArrowLeft, Search, Check, Users,
   // Interest icons
   Footprints, Gamepad2, UtensilsCrossed, Flower2, Camera, BookOpen,
-  Music, Palette, Dumbbell, Dog, Sparkles, Coffee, Bike, Mountain,
-  Film, Mic2, Brush, Heart, Baby, TreePine
+  Music, Palette, Dumbbell, Dog, Coffee, Bike, Film, Heart, Cat,
+  Soup, Sunset, MapPin, Monitor, CircleDot
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -25,28 +25,28 @@ interface Interest {
   bgColor: string;
 }
 
+// Interests matching users.json database
 const interests: Interest[] = [
-  { id: "running", label: "Running", icon: Footprints, members: 89, color: "text-emerald-600", bgColor: "bg-emerald-100" },
-  { id: "board-games", label: "Board Games", icon: Gamepad2, members: 156, color: "text-purple-600", bgColor: "bg-purple-100" },
+  { id: "art", label: "Art", icon: Palette, members: 98, color: "text-rose-600", bgColor: "bg-rose-100" },
+  { id: "badminton", label: "Badminton", icon: CircleDot, members: 112, color: "text-blue-600", bgColor: "bg-blue-100" },
+  { id: "board games", label: "Board Games", icon: Gamepad2, members: 156, color: "text-purple-600", bgColor: "bg-purple-100" },
+  { id: "bubble tea", label: "Bubble Tea", icon: Coffee, members: 89, color: "text-pink-600", bgColor: "bg-pink-100" },
+  { id: "cats", label: "Cats", icon: Cat, members: 134, color: "text-orange-500", bgColor: "bg-orange-100" },
   { id: "cooking", label: "Cooking", icon: UtensilsCrossed, members: 203, color: "text-orange-600", bgColor: "bg-orange-100" },
-  { id: "gardening", label: "Gardening", icon: Flower2, members: 67, color: "text-green-600", bgColor: "bg-green-100" },
-  { id: "photography", label: "Photography", icon: Camera, members: 124, color: "text-blue-600", bgColor: "bg-blue-100" },
-  { id: "reading", label: "Reading", icon: BookOpen, members: 178, color: "text-amber-600", bgColor: "bg-amber-100" },
-  { id: "gaming", label: "Gaming", icon: Gamepad2, members: 234, color: "text-indigo-600", bgColor: "bg-indigo-100" },
-  { id: "music", label: "Music", icon: Music, members: 145, color: "text-pink-600", bgColor: "bg-pink-100" },
-  { id: "art", label: "Art & Crafts", icon: Palette, members: 98, color: "text-rose-600", bgColor: "bg-rose-100" },
-  { id: "fitness", label: "Fitness", icon: Dumbbell, members: 187, color: "text-red-600", bgColor: "bg-red-100" },
-  { id: "dog-walking", label: "Dog Walking", icon: Dog, members: 76, color: "text-yellow-600", bgColor: "bg-yellow-100" },
-  { id: "meditation", label: "Meditation", icon: Sparkles, members: 54, color: "text-cyan-600", bgColor: "bg-cyan-100" },
-  { id: "coffee", label: "Coffee & Tea", icon: Coffee, members: 167, color: "text-amber-700", bgColor: "bg-amber-100" },
   { id: "cycling", label: "Cycling", icon: Bike, members: 92, color: "text-lime-600", bgColor: "bg-lime-100" },
-  { id: "hiking", label: "Hiking", icon: Mountain, members: 78, color: "text-teal-600", bgColor: "bg-teal-100" },
+  { id: "dogs", label: "Dogs", icon: Dog, members: 176, color: "text-yellow-600", bgColor: "bg-yellow-100" },
+  { id: "evening walks", label: "Evening Walks", icon: Sunset, members: 145, color: "text-amber-600", bgColor: "bg-amber-100" },
+  { id: "food hunt", label: "Food Hunt", icon: Soup, members: 167, color: "text-red-600", bgColor: "bg-red-100" },
+  { id: "gardening", label: "Gardening", icon: Flower2, members: 67, color: "text-green-600", bgColor: "bg-green-100" },
+  { id: "gym light", label: "Gym Light", icon: Dumbbell, members: 78, color: "text-slate-600", bgColor: "bg-slate-100" },
+  { id: "jogging", label: "Jogging", icon: Footprints, members: 89, color: "text-emerald-600", bgColor: "bg-emerald-100" },
+  { id: "kopi", label: "Kopi", icon: Coffee, members: 187, color: "text-amber-700", bgColor: "bg-amber-100" },
   { id: "movies", label: "Movies", icon: Film, members: 198, color: "text-violet-600", bgColor: "bg-violet-100" },
-  { id: "karaoke", label: "Karaoke", icon: Mic2, members: 112, color: "text-fuchsia-600", bgColor: "bg-fuchsia-100" },
-  { id: "drawing", label: "Drawing", icon: Brush, members: 65, color: "text-sky-600", bgColor: "bg-sky-100" },
+  { id: "music", label: "Music", icon: Music, members: 145, color: "text-pink-600", bgColor: "bg-pink-100" },
+  { id: "photography", label: "Photography", icon: Camera, members: 124, color: "text-blue-600", bgColor: "bg-blue-100" },
+  { id: "study", label: "Study", icon: BookOpen, members: 134, color: "text-indigo-600", bgColor: "bg-indigo-100" },
+  { id: "tech", label: "Tech", icon: Monitor, members: 156, color: "text-cyan-600", bgColor: "bg-cyan-100" },
   { id: "volunteering", label: "Volunteering", icon: Heart, members: 87, color: "text-rose-500", bgColor: "bg-rose-100" },
-  { id: "parenting", label: "Parenting", icon: Baby, members: 134, color: "text-pink-500", bgColor: "bg-pink-100" },
-  { id: "nature", label: "Nature", icon: TreePine, members: 95, color: "text-emerald-500", bgColor: "bg-emerald-100" },
 ];
 
 const InterestSelect = ({ onComplete, onBack }: InterestSelectProps) => {

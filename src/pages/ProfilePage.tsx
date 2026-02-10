@@ -5,7 +5,11 @@ import {
   ChevronRight, Bell, Lock, Globe, LogOut, Shield, BarChart3,
   Calendar, MessageCircle, Star, Zap, Building, Waves, Dumbbell,
   Gift, Crown, Flag, Eye, EyeOff, Check, X, Edit2, Camera, Train,
-  Download, Trash2
+  Download, Trash2, Clock, Moon, Sun, CloudSun, Plus,
+  // Interest icons
+  Palette, CircleDot, Gamepad2, Coffee, Cat, UtensilsCrossed, Bike,
+  Dog, Sunset, Soup, Flower2, Footprints, Film, Music, BookOpen,
+  Monitor, LucideIcon
 } from "lucide-react";
 import { useCurrentUser, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -73,6 +77,8 @@ const ProfilePage = () => {
   const displayInterests = storedProfile?.interests?.length ? storedProfile.interests : currentUser?.interests || [];
   const displayNeighbourhoods = storedProfile?.neighbourhoods?.length ? storedProfile.neighbourhoods : (currentUser?.neighbourhood ? [currentUser.neighbourhood] : []);
   const displayUserId = storedProfile?.userId || "";
+  const displayComfortLevel = storedProfile?.comfortLevel || currentUser?.comfort_level || "ambivert";
+  const displayFreeSlots = storedProfile?.freeSlots?.length ? storedProfile.freeSlots : currentUser?.free_slots || [];
 
   const userClans = clans.filter(c => 
     currentUser?.joined_clans?.includes(c.id) || c.members.includes(currentUser?.id || "")
@@ -219,6 +225,8 @@ const ProfilePage = () => {
               displayInterests={displayInterests}
               displayNeighbourhoods={displayNeighbourhoods}
               displayUserId={displayUserId}
+              displayComfortLevel={displayComfortLevel}
+              displayFreeSlots={displayFreeSlots}
               onUpdate={updateProfile}
             />
           )}
@@ -259,7 +267,9 @@ interface ProfileTabProps {
   displayInterests: string[];
   displayNeighbourhoods: string[];
   displayUserId: string;
-  onUpdate: (updates: Partial<{ bio: string; languages: string[]; interests: string[] }>) => void;
+  displayComfortLevel: string;
+  displayFreeSlots: string[];
+  onUpdate: (updates: Partial<{ bio: string; languages: string[]; interests: string[]; comfortLevel: string; freeSlots: string[] }>) => void;
 }
 
 // Available options for selection
@@ -270,38 +280,60 @@ const availableLanguages = [
   { id: "ta", label: "தமிழ் (Tamil)" },
 ];
 
-const availableInterests = [
-  { id: "running", label: "Running", emoji: "🏃" },
-  { id: "board-games", label: "Board Games", emoji: "🎲" },
-  { id: "cooking", label: "Cooking", emoji: "🍳" },
-  { id: "gardening", label: "Gardening", emoji: "🌱" },
-  { id: "photography", label: "Photography", emoji: "📷" },
-  { id: "reading", label: "Reading", emoji: "📚" },
-  { id: "gaming", label: "Gaming", emoji: "🎮" },
-  { id: "music", label: "Music", emoji: "🎵" },
-  { id: "art", label: "Art & Crafts", emoji: "🎨" },
-  { id: "fitness", label: "Fitness", emoji: "💪" },
-  { id: "dog-walking", label: "Dog Walking", emoji: "🐕" },
-  { id: "meditation", label: "Meditation", emoji: "🧘" },
-  { id: "coffee", label: "Coffee & Tea", emoji: "☕" },
-  { id: "cycling", label: "Cycling", emoji: "🚴" },
-  { id: "hiking", label: "Hiking", emoji: "🥾" },
-  { id: "movies", label: "Movies", emoji: "🎬" },
-  { id: "karaoke", label: "Karaoke", emoji: "🎤" },
-  { id: "drawing", label: "Drawing", emoji: "✏️" },
-  { id: "volunteering", label: "Volunteering", emoji: "🤝" },
-  { id: "parenting", label: "Parenting", emoji: "👶" },
-  { id: "nature", label: "Nature", emoji: "🌿" },
+// Comfort levels
+const comfortLevels = [
+  { id: "introvert", label: "Introvert", icon: Moon, description: "I prefer smaller, quieter gatherings" },
+  { id: "ambivert", label: "Ambivert", icon: CloudSun, description: "I'm comfortable in most situations" },
+  { id: "extrovert", label: "Extrovert", icon: Sun, description: "I thrive in social settings" },
 ];
 
-const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterests, displayNeighbourhoods, displayUserId, onUpdate }: ProfileTabProps) => {
+// Common free time slots
+const availableFreeSlots = [
+  { id: "07:00-09:00", label: "Morning (7-9am)" },
+  { id: "09:00-12:00", label: "Late Morning (9am-12pm)" },
+  { id: "12:00-14:00", label: "Lunch (12-2pm)" },
+  { id: "14:00-17:00", label: "Afternoon (2-5pm)" },
+  { id: "17:00-19:00", label: "Evening (5-7pm)" },
+  { id: "19:00-21:00", label: "Night (7-9pm)" },
+  { id: "21:00-23:00", label: "Late Night (9-11pm)" },
+];
+
+// Interests matching users.json database
+const availableInterests: { id: string; label: string; icon: LucideIcon }[] = [
+  { id: "art", label: "Art", icon: Palette },
+  { id: "badminton", label: "Badminton", icon: CircleDot },
+  { id: "board games", label: "Board Games", icon: Gamepad2 },
+  { id: "bubble tea", label: "Bubble Tea", icon: Coffee },
+  { id: "cats", label: "Cats", icon: Cat },
+  { id: "cooking", label: "Cooking", icon: UtensilsCrossed },
+  { id: "cycling", label: "Cycling", icon: Bike },
+  { id: "dogs", label: "Dogs", icon: Dog },
+  { id: "evening walks", label: "Evening Walks", icon: Sunset },
+  { id: "food hunt", label: "Food Hunt", icon: Soup },
+  { id: "gardening", label: "Gardening", icon: Flower2 },
+  { id: "gym light", label: "Gym Light", icon: Dumbbell },
+  { id: "jogging", label: "Jogging", icon: Footprints },
+  { id: "kopi", label: "Kopi", icon: Coffee },
+  { id: "movies", label: "Movies", icon: Film },
+  { id: "music", label: "Music", icon: Music },
+  { id: "photography", label: "Photography", icon: Camera },
+  { id: "study", label: "Study", icon: BookOpen },
+  { id: "tech", label: "Tech", icon: Monitor },
+  { id: "volunteering", label: "Volunteering", icon: Heart },
+];
+
+const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterests, displayNeighbourhoods, displayUserId, displayComfortLevel, displayFreeSlots, onUpdate }: ProfileTabProps) => {
   const [editingBio, setEditingBio] = useState(false);
   const [editingLanguages, setEditingLanguages] = useState(false);
   const [editingInterests, setEditingInterests] = useState(false);
+  const [editingComfort, setEditingComfort] = useState(false);
+  const [editingFreeSlots, setEditingFreeSlots] = useState(false);
   
   const [bioText, setBioText] = useState(displayBio);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(displayLanguages);
   const [selectedInterests, setSelectedInterests] = useState<string[]>(displayInterests);
+  const [selectedComfort, setSelectedComfort] = useState(displayComfortLevel);
+  const [selectedFreeSlots, setSelectedFreeSlots] = useState<string[]>(displayFreeSlots);
 
   const handleSaveBio = () => {
     onUpdate({ bio: bioText });
@@ -318,6 +350,16 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
     setEditingInterests(false);
   };
 
+  const handleSaveComfort = () => {
+    onUpdate({ comfortLevel: selectedComfort });
+    setEditingComfort(false);
+  };
+
+  const handleSaveFreeSlots = () => {
+    onUpdate({ freeSlots: selectedFreeSlots });
+    setEditingFreeSlots(false);
+  };
+
   const toggleLanguage = (id: string) => {
     setSelectedLanguages(prev => 
       prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]
@@ -327,6 +369,12 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
   const toggleInterest = (id: string) => {
     setSelectedInterests(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleFreeSlot = (id: string) => {
+    setSelectedFreeSlots(prev => 
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
     );
   };
 
@@ -429,6 +477,67 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
         </div>
         <span className="mt-3 text-xs text-primary inline-block">+ Add or edit MRT stations</span>
       </Link>
+
+      {/* Comfort Level */}
+      <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            {displayComfortLevel === 'introvert' && <Moon className="h-4 w-4 text-muted-foreground" />}
+            {displayComfortLevel === 'ambivert' && <CloudSun className="h-4 w-4 text-muted-foreground" />}
+            {displayComfortLevel === 'extrovert' && <Sun className="h-4 w-4 text-muted-foreground" />}
+            <h3 className="font-semibold text-foreground text-sm">Comfort Level</h3>
+          </div>
+          <button 
+            onClick={() => {
+              setSelectedComfort(displayComfortLevel);
+              setEditingComfort(true);
+            }}
+            className="text-xs text-primary hover:underline"
+          >
+            Edit
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-full bg-lavender/20 text-lavender text-sm font-medium capitalize flex items-center gap-1.5">
+            {displayComfortLevel === 'introvert' && <Moon className="h-3.5 w-3.5" />}
+            {displayComfortLevel === 'ambivert' && <CloudSun className="h-3.5 w-3.5" />}
+            {displayComfortLevel === 'extrovert' && <Sun className="h-3.5 w-3.5" />}
+            {displayComfortLevel}
+          </span>
+        </div>
+      </div>
+
+      {/* Free Time Slots */}
+      <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground text-sm">Free Time</h3>
+          </div>
+          <button 
+            onClick={() => {
+              setSelectedFreeSlots(displayFreeSlots);
+              setEditingFreeSlots(true);
+            }}
+            className="text-xs text-primary hover:underline"
+          >
+            Edit
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {displayFreeSlots.length > 0 ? displayFreeSlots.map(slot => {
+            const slotInfo = availableFreeSlots.find(s => s.id === slot);
+            return (
+              <span key={slot} className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {slotInfo?.label || slot}
+              </span>
+            );
+          }) : (
+            <span className="text-sm text-muted-foreground">No free time slots set</span>
+          )}
+        </div>
+      </div>
 
       {/* SingPass Verified */}
       <div className="bg-gradient-to-r from-red-50 to-red-100/50 rounded-2xl p-4 flex items-center gap-3">
@@ -579,7 +688,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
                           : "bg-muted text-foreground hover:bg-muted/80"
                       }`}
                     >
-                      <span>{interest.emoji}</span>
+                      <interest.icon className="h-4 w-4" />
                       <span>{interest.label}</span>
                     </button>
                   );
@@ -599,6 +708,135 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
                   onClick={handleSaveInterests}
                   disabled={selectedInterests.length < 3}
                   className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Comfort Level Modal */}
+      <AnimatePresence>
+        {editingComfort && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingComfort(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated"
+            >
+              <h3 className="font-semibold text-foreground mb-2">Comfort Level</h3>
+              <p className="text-sm text-muted-foreground mb-4">How do you prefer to socialize?</p>
+              <div className="space-y-2">
+                {comfortLevels.map((level) => {
+                  const isSelected = selectedComfort === level.id;
+                  return (
+                    <button
+                      key={level.id}
+                      onClick={() => setSelectedComfort(level.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                        isSelected
+                          ? "bg-lavender/20 border-2 border-lavender"
+                          : "bg-muted hover:bg-muted/80 border-2 border-transparent"
+                      }`}
+                    >
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                        isSelected ? "bg-lavender text-white" : "bg-white text-muted-foreground"
+                      }`}>
+                        <level.icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium ${isSelected ? "text-lavender" : "text-foreground"}`}>
+                          {level.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{level.description}</p>
+                      </div>
+                      {isSelected && <Check className="h-5 w-5 text-lavender" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setEditingComfort(false)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveComfort}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Free Slots Modal */}
+      <AnimatePresence>
+        {editingFreeSlots && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEditingFreeSlots(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-elevated max-h-[80vh] overflow-y-auto"
+            >
+              <h3 className="font-semibold text-foreground mb-2">Free Time Slots</h3>
+              <p className="text-sm text-muted-foreground mb-4">When are you usually available?</p>
+              <div className="space-y-2">
+                {availableFreeSlots.map((slot) => {
+                  const isSelected = selectedFreeSlots.includes(slot.id);
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => toggleFreeSlot(slot.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all ${
+                        isSelected
+                          ? "bg-amber-50 border-2 border-amber-400"
+                          : "bg-muted hover:bg-muted/80 border-2 border-transparent"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Clock className={`h-4 w-4 ${isSelected ? "text-amber-600" : "text-muted-foreground"}`} />
+                        <span className={`font-medium ${isSelected ? "text-amber-700" : "text-foreground"}`}>
+                          {slot.label}
+                        </span>
+                      </div>
+                      {isSelected && <Check className="h-5 w-5 text-amber-600" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setEditingFreeSlots(false)}
+                  className="flex-1 py-2 rounded-lg bg-muted text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveFreeSlots}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
                 >
                   Save
                 </button>

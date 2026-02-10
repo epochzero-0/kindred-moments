@@ -10,6 +10,8 @@ export interface UserProfile {
   interests: string[];
   postalCode: string;
   createdAt: string;
+  comfortLevel: string;
+  freeSlots: string[];
 }
 
 const STORAGE_KEY = "kindred-user-profile";
@@ -24,6 +26,8 @@ const defaultProfile: UserProfile = {
   interests: [],
   postalCode: "",
   createdAt: "",
+  comfortLevel: "ambivert",
+  freeSlots: [],
 };
 
 export function getUserProfile(): UserProfile | null {

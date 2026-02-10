@@ -1,4 +1,4 @@
-import { Home, Compass, Calendar, Heart, Target, User } from "lucide-react";
+import { Home, Compass, Calendar, Heart, Target, User, MessageCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -6,6 +6,7 @@ const tabs = [
   { to: "/home", icon: Home, label: "Home" },
   { to: "/explore", icon: Compass, label: "Explore" },
   { to: "/events", icon: Calendar, label: "Events" },
+  { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/wellness", icon: Heart, label: "Wellness" },
   { to: "/goals", icon: Target, label: "Goals" },
   { to: "/profile", icon: User, label: "Me" },
