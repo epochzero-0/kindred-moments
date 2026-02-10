@@ -5,8 +5,9 @@ import SingPassAuth from "@/components/onboarding/SingPassAuth";
 import ProfileSetup from "@/components/onboarding/ProfileSetup";
 import MoodCheckin from "@/components/onboarding/MoodCheckin";
 import NeighbourhoodSelect from "@/components/onboarding/NeighbourhoodSelect";
+import InterestSelect from "@/components/onboarding/InterestSelect";
 
-type OnboardingStep = "welcome" | "singpass" | "profile" | "mood" | "neighbourhood";
+type OnboardingStep = "welcome" | "singpass" | "profile" | "mood" | "neighbourhood" | "interests";
 
 interface UserProfile {
   displayName: string;
@@ -16,6 +17,7 @@ interface UserProfile {
   languages?: string[];
   bio?: string;
   neighbourhoods?: string[];
+  interests?: string[];
 }
 
 const OnboardingPage = () => {
@@ -49,6 +51,11 @@ const OnboardingPage = () => {
 
   const handleNeighbourhoodComplete = (neighbourhoods: string[]) => {
     setUserProfile((prev) => prev ? { ...prev, neighbourhoods } : null);
+    setStep("interests");
+  };
+
+  const handleInterestsComplete = (interests: string[]) => {
+    setUserProfile((prev) => prev ? { ...prev, interests } : null);
     // For now, navigate to home. Later this will go to the next onboarding step.
     navigate("/home");
   };
@@ -62,6 +69,8 @@ const OnboardingPage = () => {
       setStep("profile");
     } else if (step === "neighbourhood") {
       setStep("mood");
+    } else if (step === "interests") {
+      setStep("neighbourhood");
     }
   };
 
@@ -87,8 +96,13 @@ const OnboardingPage = () => {
       )}
       {step === "neighbourhood" && userProfile && (
         <NeighbourhoodSelect
-          postalCode={userProfile.postalCode}
           onComplete={handleNeighbourhoodComplete}
+          onBack={handleBack}
+        />
+      )}
+      {step === "interests" && userProfile && (
+        <InterestSelect
+          onComplete={handleInterestsComplete}
           onBack={handleBack}
         />
       )}

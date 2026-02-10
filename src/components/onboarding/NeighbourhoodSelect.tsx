@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin, Users, Calendar, Check, Train } from "lucide-react";
 
 interface NeighbourhoodSelectProps {
-  postalCode: string;
   onComplete: (neighbourhoods: string[]) => void;
   onBack: () => void;
 }
@@ -51,17 +50,8 @@ const regionColors = {
   south: { bg: "from-rose-100 to-rose-50", accent: "bg-rose-500", text: "text-rose-600" },
 };
 
-const NeighbourhoodSelect = ({ postalCode, onComplete, onBack }: NeighbourhoodSelectProps) => {
+const NeighbourhoodSelect = ({ onComplete, onBack }: NeighbourhoodSelectProps) => {
   const [selected, setSelected] = useState<string[]>([]);
-
-  // Pre-select nearest neighbourhood based on postal code
-  useEffect(() => {
-    const prefix = postalCode.substring(0, 2);
-    const nearest = neighbourhoods.find(n => n.postalPrefixes.includes(prefix));
-    if (nearest && !selected.includes(nearest.id)) {
-      setSelected([nearest.id]);
-    }
-  }, [postalCode]);
 
   const toggleNeighbourhood = (id: string) => {
     setSelected((prev) =>

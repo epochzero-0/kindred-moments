@@ -424,7 +424,7 @@ const SingPassAuth = ({ onSuccess, onBack }: SingPassAuthProps) => {
               Welcome to Kindred Heart
             </motion.p>
 
-            {/* Profile Card */}
+            {/* Success indicator */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -432,13 +432,11 @@ const SingPassAuth = ({ onSuccess, onBack }: SingPassAuthProps) => {
               className="w-full max-w-xs p-5 rounded-3xl bg-white/80 backdrop-blur-sm border border-pandan/20 shadow-soft"
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 via-sakura/20 to-lavender/20 flex items-center justify-center">
-                  <span className="text-2xl font-semibold text-primary">
-                    {mockProfile.displayName.charAt(0)}
-                  </span>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pandan/20 to-pandan/10 flex items-center justify-center">
+                  <Check className="w-7 h-7 text-pandan" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">{mockProfile.displayName}</p>
+                  <p className="font-semibold text-foreground">Verified</p>
                   <p className="text-sm text-muted-foreground">ID: {mockProfile.userId}</p>
                 </div>
               </div>
