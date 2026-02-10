@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Send, MapPin, Users, Calendar, Wind, Footprints, 
   ChevronRight, Clock, Target, Plus, Bell, Heart
 } from "lucide-react";
 import { useCurrentUser, useActivities, useClans, usePulseData, useUsers } from "@/hooks/use-data";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { Link } from "react-router-dom";
 import StatusFeed from "@/components/StatusFeed";
 
@@ -32,6 +33,7 @@ const liveStatuses = [
 
 const HomePage = () => {
   const currentUser = useCurrentUser();
+  const { profile: storedProfile } = useUserProfile();
   const activities = useActivities();
   const clans = useClans();
   const pulseData = usePulseData();
@@ -39,18 +41,29 @@ const HomePage = () => {
   
   const [quickStatus, setQuickStatus] = useState("");
   const [showQuickStatus, setShowQuickStatus] = useState(false);
+  const [greeting, setGreeting] = useState("");
   
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const totalPeopleActive = pulseData.reduce((sum, p) => sum + p.active_today, 0);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
+  // Update greeting based on real time
+  useEffect(() => {
+    const updateGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) setGreeting("Good morning");
+      else if (hour < 17) setGreeting("Good afternoon");
+      else setGreeting("Good evening");
+    };
+    
+    updateGreeting();
+    // Update every minute
+    const interval = setInterval(updateGreeting, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const firstName = currentUser?.name?.split(' ')[0] || 'there';
+  // Use stored profile name, fallback to current user, then 'there'
+  const displayName = storedProfile?.displayName || currentUser?.name || '';
+  const firstName = displayName?.split(' ')[0] || 'there';
 
   const handlePostStatus = () => {
     if (!quickStatus.trim()) return;
@@ -68,7 +81,7 @@ const HomePage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-muted-foreground text-sm mb-1">{getGreeting()}</p>
+          <p className="text-muted-foreground text-sm mb-1">{greeting}</p>
           <h1 className="text-2xl font-semibold text-foreground">
             {firstName}, <span className="text-gradient">what's happening?</span>
           </h1>

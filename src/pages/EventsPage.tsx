@@ -42,13 +42,21 @@ interface Event {
   expenses?: { total: number; perPerson: number };
 }
 
-// Mock events data
+// Helper to create dates relative to today
+const getDateFromToday = (daysOffset: number, hours: number = 9, minutes: number = 0) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+};
+
+// Mock events data - dates are relative to today
 const mockEvents: Event[] = [
   {
     id: "ev1",
     title: "Morning Tai Chi",
-    date: new Date(2026, 1, 10, 7, 0),
-    endDate: new Date(2026, 1, 10, 8, 0),
+    date: getDateFromToday(0, 7, 0),
+    endDate: getDateFromToday(0, 8, 0),
     location: "Punggol Park",
     type: "neighbourhood",
     attendees: 12,
@@ -61,8 +69,8 @@ const mockEvents: Event[] = [
   {
     id: "ev2",
     title: "Board Game Night",
-    date: new Date(2026, 1, 14, 19, 30),
-    endDate: new Date(2026, 1, 14, 22, 0),
+    date: getDateFromToday(4, 19, 30),
+    endDate: getDateFromToday(4, 22, 0),
     location: "Sengkang CC",
     type: "clan",
     attendees: 8,
@@ -77,8 +85,8 @@ const mockEvents: Event[] = [
   {
     id: "ev3",
     title: "Inter-Neighbourhood Badminton",
-    date: new Date(2026, 1, 15, 14, 0),
-    endDate: new Date(2026, 1, 15, 17, 0),
+    date: getDateFromToday(5, 14, 0),
+    endDate: getDateFromToday(5, 17, 0),
     location: "Bedok Sports Hall",
     type: "competition",
     attendees: 24,
@@ -90,8 +98,8 @@ const mockEvents: Event[] = [
   {
     id: "ev4",
     title: "Mindfulness Walk",
-    date: new Date(2026, 1, 11, 6, 30),
-    endDate: new Date(2026, 1, 11, 7, 30),
+    date: getDateFromToday(1, 6, 30),
+    endDate: getDateFromToday(1, 7, 30),
     location: "Punggol Waterway",
     type: "wellness",
     attendees: 6,
@@ -102,8 +110,8 @@ const mockEvents: Event[] = [
   {
     id: "ev5",
     title: "Photography Walk",
-    date: new Date(2026, 1, 16, 17, 0),
-    endDate: new Date(2026, 1, 16, 19, 0),
+    date: getDateFromToday(6, 17, 0),
+    endDate: getDateFromToday(6, 19, 0),
     location: "Gardens by the Bay",
     type: "clan",
     attendees: 10,
@@ -117,8 +125,8 @@ const mockEvents: Event[] = [
   {
     id: "ev6",
     title: "Community Clean-up",
-    date: new Date(2026, 1, 22, 8, 0),
-    endDate: new Date(2026, 1, 22, 11, 0),
+    date: getDateFromToday(12, 8, 0),
+    endDate: getDateFromToday(12, 11, 0),
     location: "Punggol Beach",
     type: "neighbourhood",
     attendees: 35,
@@ -126,6 +134,88 @@ const mockEvents: Event[] = [
     neighbourhood: "Punggol",
     languages: ["en", "zh", "ms", "ta"],
     recurring: false,
+    hasChat: true,
+  },
+  {
+    id: "ev7",
+    title: "Evening Yoga",
+    date: getDateFromToday(0, 18, 0),
+    endDate: getDateFromToday(0, 19, 0),
+    location: "Community Centre",
+    type: "wellness",
+    attendees: 8,
+    capacity: 15,
+    languages: ["en"],
+    recurring: true,
+    hasChat: true,
+  },
+  {
+    id: "ev8",
+    title: "Book Club Meeting",
+    date: getDateFromToday(0, 19, 30),
+    endDate: getDateFromToday(0, 21, 0),
+    location: "Library @ Punggol",
+    type: "clan",
+    attendees: 5,
+    capacity: 12,
+    clanId: "c03",
+    clanName: "Page Turners",
+    languages: ["en"],
+    recurring: false,
+    hasChat: true,
+  },
+  {
+    id: "ev9",
+    title: "Cooking Class",
+    date: getDateFromToday(3, 14, 0),
+    endDate: getDateFromToday(3, 16, 0),
+    location: "Sengkang CC Kitchen",
+    type: "clan",
+    attendees: 10,
+    capacity: 12,
+    clanId: "c04",
+    clanName: "Hawker Heroes",
+    languages: ["en", "zh"],
+    recurring: false,
+    hasChat: true,
+  },
+  {
+    id: "ev10",
+    title: "Kids Soccer Practice",
+    date: getDateFromToday(3, 16, 30),
+    endDate: getDateFromToday(3, 18, 0),
+    location: "Punggol Field",
+    type: "neighbourhood",
+    attendees: 18,
+    capacity: 25,
+    neighbourhood: "Punggol",
+    languages: ["en"],
+    recurring: true,
+    hasChat: true,
+  },
+  {
+    id: "ev11",
+    title: "Night Cycling",
+    date: getDateFromToday(3, 20, 0),
+    endDate: getDateFromToday(3, 22, 0),
+    location: "Park Connector",
+    type: "wellness",
+    attendees: 12,
+    languages: ["en"],
+    recurring: false,
+    hasChat: true,
+  },
+  {
+    id: "ev12",
+    title: "Senior Dance Class",
+    date: getDateFromToday(3, 10, 0),
+    endDate: getDateFromToday(3, 11, 30),
+    location: "RC Hall",
+    type: "wellness",
+    attendees: 22,
+    capacity: 30,
+    languages: ["en", "zh"],
+    recurring: true,
     hasChat: true,
   },
 ];
@@ -140,7 +230,8 @@ const eventTypeColors: Record<EventType, { bg: string; text: string; dot: string
 const EventsPage = () => {
   const currentUser = useCurrentUser();
   const [view, setView] = useState<CalendarView>("month");
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 10));
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterType, setFilterType] = useState<EventType | "all">("all");
@@ -288,43 +379,54 @@ const EventsPage = () => {
           <div className="grid grid-cols-7 gap-1">
             {/* Empty cells for days before month starts */}
             {Array.from({ length: startingDay }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-square" />
+              <div key={`empty-${i}`} className="min-h-[80px]" />
             ))}
 
             {/* Actual days */}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
               const dayEvents = getEventsForDay(day);
-              const isToday = day === 10; // Feb 10, 2026
+              const isToday = day === today.getDate() && 
+                currentDate.getMonth() === today.getMonth() && 
+                currentDate.getFullYear() === today.getFullYear();
 
               return (
-                <motion.button
+                <motion.div
                   key={day}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.01 }}
-                  onClick={() => dayEvents.length > 0 && setSelectedEvent(dayEvents[0])}
-                  className={`aspect-square rounded-lg p-1 flex flex-col items-center justify-start transition-colors ${
-                    isToday ? "bg-primary/10 ring-2 ring-primary" : "hover:bg-muted/50"
+                  className={`min-h-[80px] rounded-xl p-1.5 flex flex-col transition-all border-2 ${
+                    isToday 
+                      ? "border-primary bg-primary/5" 
+                      : "border-transparent hover:bg-muted/30"
                   }`}
                 >
-                  <span className={`text-xs font-medium ${isToday ? "text-primary" : "text-foreground"}`}>
+                  <span className={`text-xs font-semibold mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
                     {day}
                   </span>
                   {dayEvents.length > 0 && (
-                    <div className="flex gap-0.5 mt-1 flex-wrap justify-center">
-                      {dayEvents.slice(0, 3).map((event) => (
-                        <div
-                          key={event.id}
-                          className={`h-1.5 w-1.5 rounded-full ${eventTypeColors[event.type].dot}`}
-                        />
-                      ))}
-                      {dayEvents.length > 3 && (
-                        <span className="text-[8px] text-muted-foreground">+{dayEvents.length - 3}</span>
+                    <div className="flex flex-col gap-0.5 overflow-hidden flex-1">
+                      {dayEvents.slice(0, 2).map((event) => {
+                        const colors = eventTypeColors[event.type];
+                        return (
+                          <button
+                            key={event.id}
+                            onClick={() => setSelectedEvent(event)}
+                            className={`${colors.bg} ${colors.text} text-[9px] font-medium px-1.5 py-0.5 rounded truncate text-left hover:opacity-80 transition-opacity`}
+                          >
+                            {event.title.length > 12 ? event.title.slice(0, 10) + "…" : event.title}
+                          </button>
+                        );
+                      })}
+                      {dayEvents.length > 2 && (
+                        <span className="text-[9px] text-muted-foreground pl-1">
+                          +{dayEvents.length - 2} more
+                        </span>
                       )}
                     </div>
                   )}
-                </motion.button>
+                </motion.div>
               );
             })}
           </div>
