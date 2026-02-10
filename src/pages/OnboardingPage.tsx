@@ -6,6 +6,7 @@ import ProfileSetup from "@/components/onboarding/ProfileSetup";
 import MoodCheckin from "@/components/onboarding/MoodCheckin";
 import NeighbourhoodSelect from "@/components/onboarding/NeighbourhoodSelect";
 import InterestSelect from "@/components/onboarding/InterestSelect";
+import { saveUserProfile, UserProfile as StoredUserProfile } from "@/hooks/use-user-profile";
 
 type OnboardingStep = "welcome" | "singpass" | "profile" | "mood" | "neighbourhood" | "interests";
 
@@ -55,8 +56,25 @@ const OnboardingPage = () => {
   };
 
   const handleInterestsComplete = (interests: string[]) => {
-    setUserProfile((prev) => prev ? { ...prev, interests } : null);
-    // For now, navigate to home. Later this will go to the next onboarding step.
+    const finalProfile = userProfile ? { ...userProfile, interests } : null;
+    setUserProfile(finalProfile);
+    
+    // Save to sessionStorage for persistence
+    if (finalProfile) {
+      const storedProfile: StoredUserProfile = {
+        userId: finalProfile.userId,
+        displayName: finalProfile.displayName,
+        avatar: finalProfile.avatar || null,
+        bio: finalProfile.bio || "",
+        languages: finalProfile.languages || ["en"],
+        neighbourhoods: finalProfile.neighbourhoods || [],
+        interests: finalProfile.interests || [],
+        postalCode: finalProfile.postalCode,
+        createdAt: new Date().toISOString(),
+      };
+      saveUserProfile(storedProfile);
+    }
+    
     navigate("/home");
   };
 

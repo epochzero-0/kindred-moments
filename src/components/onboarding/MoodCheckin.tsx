@@ -134,7 +134,7 @@ const MoodCheckin = ({ userName, onComplete, onBack, onSkip }: MoodCheckinProps)
           className="text-center mb-8"
         >
           <h1 className="text-2xl font-semibold text-foreground mb-2">
-            Hey {userName.split(' ')[0]}!
+            {userName ? `Hey ${userName.split(' ')[0]}!` : "Hey there!"}
           </h1>
           <p className="text-muted-foreground">
             What brings you to Kindred Heart?

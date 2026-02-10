@@ -9,7 +9,7 @@ import ExplorePage from "./pages/ExplorePage";
 import EventsPage from "./pages/EventsPage";
 import ClanPage from "./pages/ClanPage";
 import PulsePage from "./pages/PulsePage";
-import ProfilePage from "./pages/ProfilePageNew";
+import ProfilePage from "./pages/ProfilePage";
 import WellnessPage from "./pages/WellnessPageNew";
 import JournalPage from "./pages/JournalPage";
 import GoalsPage from "./pages/GoalsPage";
