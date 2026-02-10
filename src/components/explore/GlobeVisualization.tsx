@@ -8,6 +8,7 @@ import {
   TrendingUp, MapPin, Clock, ChevronRight, X
 } from "lucide-react";
 import { useChatConnections } from "@/hooks/use-chat-connections";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { useNavigate } from "react-router-dom";
 import type { Clan, PulseData } from "@/types";
 
@@ -457,6 +458,7 @@ const GlobeVisualization = ({ pulseData, clans }: GlobeVisualizationProps) => {
   const [showActivityFeed, setShowActivityFeed] = useState(true);
   const [particleEvents, setParticleEvents] = useState<{ id: string; from: string; to: string; color: string }[]>([]);
   const { joinedGroups } = useChatConnections();
+  const { profile: storedProfile } = useUserProfile();
   const navigate = useNavigate();
 
   // Get liked users from session storage
@@ -528,7 +530,15 @@ const GlobeVisualization = ({ pulseData, clans }: GlobeVisualizationProps) => {
 
   // Stats calculation
   const totalActive = pulseData.reduce((sum, p) => sum + p.active_today, 0);
-  const avgMood = pulseData.reduce((sum, p) => sum + p.avg_mood, 0) / pulseData.length;
+  
+  // Get user's neighbourhood mood
+  const userNeighbourhoodMood = useMemo(() => {
+    const primaryKey = storedProfile?.neighbourhoods?.[0];
+    if (!primaryKey) return null;
+    return pulseData.find(p => p.neighbourhood.toLowerCase() === primaryKey.toLowerCase());
+  }, [pulseData, storedProfile]);
+  
+  const displayMood = userNeighbourhoodMood?.avg_mood ?? (pulseData.reduce((sum, p) => sum + p.avg_mood, 0) / pulseData.length);
 
   return (
     <motion.div 
@@ -546,7 +556,7 @@ const GlobeVisualization = ({ pulseData, clans }: GlobeVisualizationProps) => {
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-500">
             <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">{avgMood.toFixed(1)} mood</span>
+            <span className="text-sm font-medium">{displayMood.toFixed(1)} mood</span>
           </div>
         </div>
         <button

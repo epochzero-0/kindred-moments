@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { 
@@ -106,7 +107,9 @@ const counsellingResources = [
 type WellnessTab = "breathe" | "steps" | "journal" | "resources";
 
 const WellnessPage = () => {
-  const [activeTab, setActiveTab] = useState<WellnessTab>("breathe");
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as WellnessTab) || "breathe";
+  const [activeTab, setActiveTab] = useState<WellnessTab>(initialTab);
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [exerciseSeconds, setExerciseSeconds] = useState<number | null>(null);

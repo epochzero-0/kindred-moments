@@ -376,7 +376,7 @@ const ChatPage = () => {
       return {
         id: `dm-${c.userId}`,
         userId: c.userId,
-        name: c.name,
+        name: user?.name || c.name, // Always prefer fresh name from users.json
         type: "direct" as const,
         icon: User,
         lastMessage: user ? `Start chatting with ${user.name.split(' ')[0]}` : "Start a conversation",
@@ -709,21 +709,15 @@ const ChatPage = () => {
     if (selectedRoom && pendingDraft && currentUser) {
       // Small delay to ensure UI is ready
       const timer = setTimeout(() => {
-        const message: Message = {
-          id: `m${Date.now()}`,
-          senderId: currentUser.id,
-          senderName: currentUser.name.split(" ")[0],
-          content: pendingDraft,
-          timestamp: new Date(),
-          isMe: true,
-        };
-        setMessages(prev => [...prev, message]);
+        // Use handleSendMessage to trigger auto-reply
+        handleSendMessage(pendingDraft);
         setPendingDraft(null);
         // Clear draft from URL
         window.history.replaceState({}, "", `/chat?userId=${selectedRoom.userId || ""}`);
       }, 300);
       return () => clearTimeout(timer);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom, pendingDraft, currentUser]);
 
   return (
