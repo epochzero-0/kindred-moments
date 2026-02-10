@@ -2,13 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import WelcomeScreen from "@/components/onboarding/WelcomeScreen";
 import SingPassAuth from "@/components/onboarding/SingPassAuth";
+import ProfileSetup from "@/components/onboarding/ProfileSetup";
+import MoodCheckin from "@/components/onboarding/MoodCheckin";
 
-type OnboardingStep = "welcome" | "singpass";
+type OnboardingStep = "welcome" | "singpass" | "profile" | "mood";
 
 interface UserProfile {
   displayName: string;
   postalCode: string;
   userId: string;
+  avatar?: string | null;
+  languages?: string[];
+  bio?: string;
 }
 
 const OnboardingPage = () => {
@@ -20,14 +25,35 @@ const OnboardingPage = () => {
     setStep("singpass");
   };
 
-  const handleSingPassSuccess = (profile: UserProfile) => {
+  const handleSingPassSuccess = (profile: { displayName: string; postalCode: string; userId: string }) => {
     setUserProfile(profile);
+    setStep("profile");
+  };
+
+  const handleProfileComplete = (profileData: {
+    displayName: string;
+    avatar: string | null;
+    languages: string[];
+    bio: string;
+  }) => {
+    setUserProfile((prev) => prev ? { ...prev, ...profileData } : null);
+    setStep("mood");
+  };
+
+  const handleMoodComplete = (_mood: string | null) => {
+    // Mood is not stored, just used to set tone
     // For now, navigate to home. Later this will go to the next onboarding step.
     navigate("/home");
   };
 
   const handleBack = () => {
-    setStep("welcome");
+    if (step === "singpass") {
+      setStep("welcome");
+    } else if (step === "profile") {
+      setStep("singpass");
+    } else if (step === "mood") {
+      setStep("profile");
+    }
   };
 
   return (
@@ -35,6 +61,20 @@ const OnboardingPage = () => {
       {step === "welcome" && <WelcomeScreen onGetStarted={handleGetStarted} />}
       {step === "singpass" && (
         <SingPassAuth onSuccess={handleSingPassSuccess} onBack={handleBack} />
+      )}
+      {step === "profile" && userProfile && (
+        <ProfileSetup
+          onComplete={handleProfileComplete}
+          onBack={handleBack}
+        />
+      )}
+      {step === "mood" && userProfile && (
+        <MoodCheckin
+          userName={userProfile.displayName}
+          onComplete={handleMoodComplete}
+          onBack={handleBack}
+          onSkip={() => handleMoodComplete(null)}
+        />
       )}
     </>
   );
