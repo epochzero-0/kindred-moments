@@ -12,13 +12,11 @@ import {
   Trophy,
   X,
   DollarSign,
-  Split,
   Languages,
   Repeat,
-  Globe,
   Filter,
 } from "lucide-react";
-import { useCurrentUser, useClans, usePulseData } from "@/hooks/use-data";
+import { useCurrentUser } from "@/hooks/use-data";
 import { useLocation } from "react-router-dom";
 
 type CalendarView = "month" | "week" | "day";
@@ -236,11 +234,16 @@ const EventsPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [draftData, setDraftData] = useState<Record<string, unknown> | null>(null);
   const [filterType, setFilterType] = useState<EventType | "all">("all");
 
   // Open create modal if navigated with openCreate state
   useEffect(() => {
-    if ((location.state as { openCreate?: boolean })?.openCreate) {
+    const state = location.state as { openCreate?: boolean; draftData?: Record<string, unknown> };
+    if (state?.openCreate) {
+      if (state.draftData) {
+        setDraftData(state.draftData);
+      }
       setShowCreateModal(true);
       // Clear the state so it doesn't reopen on navigation
       window.history.replaceState({}, document.title);
@@ -295,8 +298,8 @@ const EventsPage = () => {
             <p className="text-muted-foreground text-sm mb-1">Events</p>
             <h1 className="text-2xl font-semibold text-foreground">Your Calendar</h1>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
+            <button
+            onClick={() => { setDraftData(null); setShowCreateModal(true); }}
             className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-soft hover:shadow-elevated transition-shadow"
           >
             <Plus className="h-5 w-5" />
@@ -518,41 +521,25 @@ const EventsPage = () => {
         </div>
       </div>
 
-      {/* Inter-Clan Competitions Section */}
-      <div className="px-6 mt-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Trophy className="h-4 w-4 text-amber-500" />
-          <h3 className="text-sm font-semibold text-foreground">Clan Competitions</h3>
-        </div>
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h4 className="font-medium text-foreground">Punggol vs Bedok</h4>
-              <p className="text-xs text-muted-foreground">Badminton Tournament</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Feb 15, 2:00 PM</p>
-              <p className="text-xs font-medium text-amber-600">24 participants</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 text-center">
-              <p className="text-lg font-bold text-foreground">Punggol</p>
-              <p className="text-xs text-muted-foreground">Your team</p>
-            </div>
-            <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
-              <span className="text-sm font-bold text-amber-600">VS</span>
-            </div>
-            <div className="flex-1 text-center">
-              <p className="text-lg font-bold text-foreground">Bedok</p>
-              <p className="text-xs text-muted-foreground">Challenger</p>
-            </div>
-          </div>
-          <button className="w-full mt-3 py-2 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors">
-            Join Your Clan's Team
-          </button>
-        </div>
-      </div>
+      {/* Create Event Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreateEventModal 
+            onClose={() => { setShowCreateModal(false); setDraftData(null); }} 
+            initialData={draftData}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Create Event Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreateEventModal 
+            onClose={() => { setShowCreateModal(false); setDraftData(null); }} 
+            initialData={draftData}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Event Detail Modal */}
       <AnimatePresence>
@@ -573,125 +560,39 @@ const EventsPage = () => {
               className="bg-white rounded-3xl w-full max-w-lg max-h-[75vh] overflow-y-auto mx-4 shadow-2xl"
             >
               <div className="p-6">
-                {/* Handle */}
                 <div className="w-12 h-1 rounded-full bg-muted mx-auto mb-4" />
-
-                {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${eventTypeColors[selectedEvent.type].bg} ${eventTypeColors[selectedEvent.type].text}`}>
-                        {selectedEvent.type}
-                      </span>
-                      {selectedEvent.recurring && (
-                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <Repeat className="h-3 w-3" /> Recurring
-                        </span>
-                      )}
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${eventTypeColors[selectedEvent.type].bg} ${eventTypeColors[selectedEvent.type].text}`}>{selectedEvent.type}</span>
+                      {selectedEvent.recurring && <span className="flex items-center gap-1 text-[10px] text-muted-foreground"><Repeat className="h-3 w-3" /> Recurring</span>}
                     </div>
                     <h2 className="text-xl font-semibold text-foreground">{selectedEvent.title}</h2>
                   </div>
-                  <button onClick={() => setSelectedEvent(null)} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center">
-                    <X className="h-4 w-4 text-muted-foreground" />
-                  </button>
+                  <button onClick={() => setSelectedEvent(null)} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center"><X className="h-4 w-4 text-muted-foreground" /></button>
                 </div>
-
-                {/* Details */}
                 <div className="space-y-3 mb-5">
-                  <div className="flex items-center gap-3 text-sm">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">
-                      {selectedEvent.date.toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "long" })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">
-                      {formatTime(selectedEvent.date)}
-                      {selectedEvent.endDate && ` - ${formatTime(selectedEvent.endDate)}`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">{selectedEvent.location}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">
-                      {selectedEvent.attendees} attending
-                      {selectedEvent.capacity && ` (${selectedEvent.capacity - selectedEvent.attendees} spots left)`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <Languages className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">{selectedEvent.languages.map(l => l.toUpperCase()).join(", ")}</span>
-                  </div>
+                  <div className="flex items-center gap-3 text-sm"><CalendarIcon className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{selectedEvent.date.toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "long" })}</span></div>
+                  <div className="flex items-center gap-3 text-sm"><Clock className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{formatTime(selectedEvent.date)}{selectedEvent.endDate && ` - ${formatTime(selectedEvent.endDate)}`}</span></div>
+                  <div className="flex items-center gap-3 text-sm"><MapPin className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{selectedEvent.location}</span></div>
+                  <div className="flex items-center gap-3 text-sm"><Users className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{selectedEvent.attendees} attending{selectedEvent.capacity && ` (${selectedEvent.capacity - selectedEvent.attendees} spots left)`}</span></div>
+                  <div className="flex items-center gap-3 text-sm"><Languages className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{selectedEvent.languages.map(l => l.toUpperCase()).join(", ")}</span></div>
                 </div>
-
-                {/* Group Chat Preview */}
-                {selectedEvent.hasChat && (
-                  <div className="bg-muted/50 rounded-xl p-4 mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium text-foreground">Event Chat</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {selectedEvent.recurring ? "Persistent" : "Disbands 3h after event"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedEvent.attendees} members • Auto-joined on RSVP
-                    </p>
-                  </div>
-                )}
-
-                {/* Expense Splitting */}
-                {selectedEvent.expenses && (
-                  <div className="bg-primary/5 rounded-xl p-4 mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Split className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium text-foreground">Shared Expenses</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Total: ${selectedEvent.expenses.total}</span>
-                      <span className="text-sm font-medium text-primary">Your share: ${selectedEvent.expenses.perPerson.toFixed(2)}</span>
-                    </div>
-                    <button className="w-full mt-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
-                      Pay via PayNow
-                    </button>
-                  </div>
-                )}
-
-                {/* Actions */}
                 <div className="flex gap-3">
-                  <button className="flex-1 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors">
-                    RSVP
-                  </button>
-                  <button className="px-4 py-3 rounded-xl bg-muted text-foreground font-medium hover:bg-muted/70 transition-colors">
-                    <MessageCircle className="h-5 w-5" />
-                  </button>
+                  <button className="flex-1 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors">RSVP</button>
+                  <button className="px-4 py-3 rounded-xl bg-muted text-foreground font-medium hover:bg-muted/70 transition-colors"><MessageCircle className="h-5 w-5" /></button>
                 </div>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Create Event Modal */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <CreateEventModal onClose={() => setShowCreateModal(false)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
-// Create Event Modal Component
-const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
+// Updated Create Event Modal
+const CreateEventModal = ({ onClose, initialData }: { onClose: () => void, initialData?: Record<string, unknown> }) => {
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -704,9 +605,26 @@ const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
     openToAll: true,
   });
 
+  // Pre-fill form if initialData is provided
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        title: (initialData.title as string) || prev.title,
+        date: (initialData.date as string) || prev.date,
+        time: (initialData.time as string) || prev.time,
+        location: (initialData.location as string) || prev.location,
+        capacity: (initialData.capacity as string) || prev.capacity,
+        type: (initialData.type as EventType) || prev.type,
+        languages: initialData.languages ? (initialData.languages as string).split(',').map((l: string) => l.trim()) : prev.languages,
+      }));
+    }
+  }, [initialData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // In real app, this would create the event
+    alert(`Event "${formData.title}" created successfully!`);
     onClose();
   };
 
@@ -727,7 +645,9 @@ const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
       >
         <form onSubmit={handleSubmit} className="p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-foreground">Create Event</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              {initialData ? "Edit Draft Event" : "Create Event"}
+            </h2>
             <button type="button" onClick={onClose} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center">
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -889,7 +809,7 @@ const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
             type="submit"
             className="w-full mt-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
           >
-            Create Event
+            {initialData ? "Publish Draft" : "Create Event"}
           </button>
         </form>
       </motion.div>

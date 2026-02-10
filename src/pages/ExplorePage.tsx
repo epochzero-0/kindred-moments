@@ -1,19 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
   Users, Search, MapPin, Globe, Heart, X, MessageCircle,
-  Filter, ChevronRight, Trophy, Calendar, Sparkles, Languages
+  Filter, ChevronRight, Trophy, Sparkles, Languages
 } from "lucide-react";
 import { useUsers, useClans, usePulseData, useCurrentUser } from "@/hooks/use-data";
+import { useNavigate, createSearchParams, useSearchParams } from "react-router-dom";
 
 type ExploreTab = "members" | "groups" | "neighbourhoods" | "globe";
 
 const ExplorePage = () => {
-  const [activeTab, setActiveTab] = useState<ExploreTab>("members");
+  const [searchParams] = useSearchParams();
+  
+  // Initialize state directly from URL to prevent tab mismatch on load
+  const [activeTab, setActiveTab] = useState<ExploreTab>(() => {
+    const tabParam = searchParams.get("tab") as ExploreTab;
+    return (tabParam && ["members", "groups", "neighbourhoods", "globe"].includes(tabParam)) 
+      ? tabParam 
+      : "members";
+  });
+
   const currentUser = useCurrentUser();
   const allUsers = useUsers();
   const clans = useClans();
   const pulseData = usePulseData();
+
+  // Listen for URL changes (e.g. back button) to update the tab
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as ExploreTab;
+    if (tabParam && ["members", "groups", "neighbourhoods", "globe"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Filter out current user and get nearby users
   const nearbyUsers = allUsers.filter(
@@ -67,7 +85,11 @@ const ExplorePage = () => {
             <MembersNearby key="members" users={nearbyUsers} currentUserInterests={currentUser?.interests || []} />
           )}
           {activeTab === "groups" && (
-            <InterestGroupDirectory key="groups" clans={clans} />
+            <InterestGroupDirectory 
+              key="groups" 
+              clans={clans} 
+              initialSearch={searchParams.get("q") || ""} 
+            />
           )}
           {activeTab === "neighbourhoods" && (
             <NeighbourhoodDirectory key="neighbourhoods" pulseData={pulseData} />
@@ -80,8 +102,6 @@ const ExplorePage = () => {
     </div>
   );
 };
-
-import { useNavigate, createSearchParams } from "react-router-dom";
 
 // Members Nearby - Tinder-style swipe cards
 interface MembersNearbyProps {
@@ -299,13 +319,20 @@ const MembersNearby = ({ users, currentUserInterests }: MembersNearbyProps) => {
 // Interest Group Directory
 interface InterestGroupDirectoryProps {
   clans: ReturnType<typeof useClans>;
+  initialSearch?: string;
 }
 
-const InterestGroupDirectory = ({ clans }: InterestGroupDirectoryProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const InterestGroupDirectory = ({ clans, initialSearch = "" }: InterestGroupDirectoryProps) => {
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [filter, setFilter] = useState<string | null>(null);
   const navigate = useNavigate();
-  const currentUser = useCurrentUser();
+
+  // Update search query if initialSearch prop changes (e.g. navigation from bot)
+  useEffect(() => {
+    if (initialSearch) {
+      setSearchQuery(initialSearch);
+    }
+  }, [initialSearch]);
 
   // Show all clans
   const themes = [...new Set(clans.map((c) => c.theme))];
