@@ -82,12 +82,16 @@ A fully-featured chat system that feels alive:
 - **Attachment/camera buttons** (UI ready)
 
 ### Home Page
-- **Personalized greeting** based on time of day
+- **Personalized greeting** based on time of day with animated hand wave
+- **Neighbourhood mood display** showing your area's community mood average
+- **Daily steps tracking** synced with Wellness page via localStorage
+- **Weather integration** with real Singapore conditions
 - **Live status feed** showing what neighbours are doing
-- **Weather integration** display
-- **Upcoming events** with attendee counts
-- **Quick access** to key features
-- **"Happening Nearby"** rotating alerts
+- **What's happening** section with upcoming events and attendee counts
+- **Quick action cards** for Chat, Wellness, Explore, and Goals
+- **Coffee invite connections** linking to suggested chat partners
+- **Guided tour overlay** for first-time users with curvy arrow navigation
+- **"Guide" button** to restart the interactive tutorial anytime
 
 ### Profile Page
 - **Avatar and bio management**
