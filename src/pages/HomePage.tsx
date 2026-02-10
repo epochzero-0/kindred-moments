@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Send, MapPin, Users, Calendar, Wind, Footprints,
-  ChevronRight, Clock, Plus, Bell, Heart
+  MapPin, Users, Calendar, Wind, Footprints,
+  ChevronRight, Clock, Plus
 } from "lucide-react";
 import { useCurrentUser, useActivities, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -42,10 +42,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const [liveStatuses, setLiveStatuses] = useState(initialLiveStatuses);
-  const [quickStatus, setQuickStatus] = useState("");
-  const [showQuickStatus, setShowQuickStatus] = useState(false);
   const [greeting, setGreeting] = useState("");
-  const [postedStatus, setPostedStatus] = useState<{ content: string; timestamp: number } | null>(null);
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const totalPeopleActive = pulseData.reduce((sum, p) => sum + p.active_today, 0);
 
@@ -73,26 +70,6 @@ const HomePage = () => {
   // Use stored profile name, fallback to current user, then 'there'
   const displayName = storedProfile?.displayName || currentUser?.name || '';
   const firstName = displayName?.split(' ')[0] || 'there';
-
-  const handlePostStatus = () => {
-    if (!quickStatus.trim()) return;
-
-    if (currentUser) {
-      const newStatus = {
-        id: `ls-${Date.now()}`,
-        userId: currentUser.id,
-        userName: firstName,
-        activity: quickStatus,
-        time: "Just now"
-      };
-      setLiveStatuses([newStatus, ...liveStatuses]);
-    }
-
-    // Post status and show it in the Updates section
-    setPostedStatus({ content: quickStatus, timestamp: Date.now() });
-    setQuickStatus("");
-    setShowQuickStatus(false);
-  };
 
   const handleAddEvent = () => {
     // Mock functionality
@@ -165,56 +142,6 @@ const HomePage = () => {
               </div>
             </motion.div>
           ))}
-        </div>
-      </motion.div>
-
-      {/* Quick Status */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="px-6 mb-6"
-      >
-        <div className="bg-white rounded-2xl shadow-soft p-4">
-          <div className="flex items-center gap-3">
-            {!showQuickStatus ? (
-              <button
-                onClick={() => setShowQuickStatus(true)}
-                className="flex-1 text-left px-4 py-2.5 rounded-xl bg-muted/50 text-sm text-muted-foreground hover:bg-muted transition-colors"
-              >
-                What are you up to?
-              </button>
-            ) : (
-              <div className="flex-1 flex items-center gap-2">
-                <input
-                  type="text"
-                  value={quickStatus}
-                  onChange={(e) => setQuickStatus(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handlePostStatus()}
-                  placeholder="e.g., Heading for kopi in 10 min..."
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-muted/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  autoFocus
-                />
-                <button
-                  onClick={handlePostStatus}
-                  disabled={!quickStatus.trim()}
-                  className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40 transition-opacity"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-          </div>
-          {showQuickStatus && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="flex items-center gap-2 mt-3 pt-3 border-t border-border/40"
-            >
-              <Bell className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Your groups will be notified when you post</span>
-            </motion.div>
-          )}
         </div>
       </motion.div>
 
@@ -348,7 +275,7 @@ const HomePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <StatusFeed compact newStatus={postedStatus} />
+            <StatusFeed compact />
           </motion.div>
         </div>
       </div>
