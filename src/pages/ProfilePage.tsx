@@ -57,6 +57,13 @@ const neighbourhoodLeaderboard = [
   { rank: 6, name: "Woodlands", points: 8400, change: -2 },
   { rank: 7, name: "Ang Mo Kio", points: 7800, change: 1 },
   { rank: 8, name: "Clementi", points: 7200, change: -1 },
+  { rank: 9, name: "Bishan", points: 6900, change: 0 },
+  { rank: 10, name: "Toa Payoh", points: 6500, change: 2 },
+  { rank: 11, name: "Yishun", points: 6100, change: -1 },
+  { rank: 12, name: "Pasir Ris", points: 5800, change: 0 },
+  { rank: 13, name: "Bukit Batok", points: 5400, change: 1 },
+  { rank: 14, name: "Kallang", points: 5000, change: -1 },
+  { rank: 15, name: "Sembawang", points: 4600, change: 0 },
 ];
 
 const communityGoals = [
@@ -95,6 +102,14 @@ const ProfilePage = () => {
 
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const connectionCount = allUsers.filter(u => u.neighbourhood === currentUser?.neighbourhood).length - 1;
+
+  // Get user's neighbourhood name for leaderboard matching
+  const userNeighbourhoodName = displayNeighbourhoods[0] 
+    ? neighbourhoodLabels[displayNeighbourhoods[0]] || displayNeighbourhoods[0] 
+    : currentUser?.neighbourhood;
+  
+  // Find user's neighbourhood rank from leaderboard
+  const userNeighbourhoodRank = neighbourhoodLeaderboard.find(n => n.name === userNeighbourhoodName)?.rank || null;
 
   const tabs = [
     { id: "profile" as const, label: "Profile", icon: User },
@@ -183,7 +198,9 @@ const ProfilePage = () => {
           </div>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60">
             <Trophy className="h-3.5 w-3.5 text-pandan" />
-            <span className="text-xs font-medium text-foreground">Rank #{userAchievements.rank}</span>
+            <span className="text-xs font-medium text-foreground">
+              {userNeighbourhoodRank ? `Neighbourhood Rank #${userNeighbourhoodRank}` : "Neighbourhood Rank —"}
+            </span>
           </div>
         </motion.div>
       </div>
@@ -233,8 +250,7 @@ const ProfilePage = () => {
             <LeaderboardTab 
               key="leaderboard" 
               neighbourhoods={neighbourhoodLeaderboard} 
-              userNeighbourhood={currentUser?.neighbourhood}
-              userRank={userAchievements.rank}
+              userNeighbourhood={displayNeighbourhoods[0] ? neighbourhoodLabels[displayNeighbourhoods[0]] || displayNeighbourhoods[0] : currentUser?.neighbourhood}
             />
           )}
           {activeTab === "admin" && isAdmin && (
@@ -531,25 +547,10 @@ const AchievementsTab = ({ achievements, perks }: AchievementsTabProps) => (
 interface LeaderboardTabProps {
   neighbourhoods: typeof neighbourhoodLeaderboard;
   userNeighbourhood?: string;
-  userRank: number;
 }
 
-const LeaderboardTab = ({ neighbourhoods, userNeighbourhood, userRank }: LeaderboardTabProps) => (
+const LeaderboardTab = ({ neighbourhoods, userNeighbourhood }: LeaderboardTabProps) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
-    {/* Your Rank */}
-    <div className="bg-gradient-to-br from-primary/10 to-sakura/10 rounded-2xl p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Your Personal Rank</p>
-          <p className="text-2xl font-bold text-foreground">#{userRank}</p>
-          <p className="text-xs text-muted-foreground">out of 245 in {userNeighbourhood}</p>
-        </div>
-        <div className="h-14 w-14 rounded-2xl bg-white/60 flex items-center justify-center">
-          <Trophy className="h-7 w-7 text-primary" />
-        </div>
-      </div>
-    </div>
-
     {/* Neighbourhood Rankings */}
     <div>
       <h3 className="font-semibold text-foreground text-sm mb-3">Neighbourhood Leaderboard</h3>
@@ -583,7 +584,7 @@ const LeaderboardTab = ({ neighbourhoods, userNeighbourhood, userRank }: Leaderb
 
               <div className="flex-1 min-w-0">
                 <p className={`font-medium text-sm ${isUser ? "text-primary" : "text-foreground"}`}>
-                  {n.name} {isUser && "(You)"}
+                  {n.name}
                 </p>
               </div>
 
