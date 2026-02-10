@@ -1,7 +1,6 @@
 import { Home, Compass, Calendar, Heart, Target, User } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { motion } from "framer-motion";
 
 const tabs = [
   { to: "/home", icon: Home, label: "Home" },
@@ -14,26 +13,15 @@ const tabs = [
 
 const BottomNav = () => {
   const location = useLocation();
-  const [isVisible, setIsVisible] = useState(false);
 
   return (
     <>
-      {/* Hover trigger zone */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 h-12 z-40"
-        onMouseEnter={() => setIsVisible(true)}
-      />
-      
-      <AnimatePresence>
-        {isVisible && (
-          <motion.nav
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            onMouseLeave={() => setIsVisible(false)}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white/60 backdrop-blur-2xl border-t border-white/40 shadow-lg px-2"
-          >
+      <motion.nav
+        initial={{ y: 80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white/60 backdrop-blur-2xl border-t border-white/40 shadow-lg px-2"
+      >
             <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
               {tabs.map((tab) => {
                 const isActive = location.pathname === tab.to || 
@@ -70,9 +58,7 @@ const BottomNav = () => {
                 );
               })}
             </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      </motion.nav>
     </>
   );
 };
