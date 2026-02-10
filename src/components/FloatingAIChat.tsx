@@ -1,15 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Sparkles, Shield, Calendar, Users, Heart, Search, Loader2 } from "lucide-react";
+import {
+  X,
+  Send,
+  Sparkles,
+  Calendar,
+  Users,
+  Heart,
+  Search,
+  Loader2,
+  Mic,
+  Square,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useNavigate, createSearchParams } from "react-router-dom";
+
+type MessageType = "text" | "event-created" | "groups-found" | "mindfulness" | "people-found";
 
 interface Message {
   id: string;
   content: string;
   isUser: boolean;
   timestamp: Date;
-  type?: "text" | "event-created" | "groups-found" | "mindfulness" | "people-found";
-  metadata?: Record<string, any>;
+  type?: MessageType;
+  metadata?: Record<string, unknown>;
 }
 
 interface QuickAction {
@@ -18,21 +33,117 @@ interface QuickAction {
   prompt: string;
 }
 
+interface AssistantResponse {
+  content: string;
+  type: MessageType;
+  metadata?: Record<string, unknown>;
+}
+
+const OPENAI_BASE_URL = "https://api.openai.com/v1";
+
+const SYSTEM_PROMPT = `
+You are Kindred, an assistant for a community app.
+
+Main jobs:
+- Help users create events
+- Help users find people nearby
+- Help users find groups by interest
+- Help users start mindfulness sessions
+
+Tool routing:
+- create_event: call when user wants to host or organize something
+- find_people: call when user wants to meet, connect, or find neighbors
+- find_groups: call when user asks for clubs, clans, circles, or communities
+- start_mindfulness: call when user asks for calm, stress relief, breathing, grounding, meditation
+
+Response style:
+- Keep replies warm, concise, and practical.
+- After calling a tool, give one short actionable sentence.
+- For create_event, extract as many details as possible: title, date, time, location, capacity, type, languages (languages are optional).
+`;
+
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "create_event",
+      description: "Draft a new community event card",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          date: { type: "string" },
+          time: { type: "string" },
+          location: { type: "string" },
+          capacity: { type: "string" },
+          type: { type: "string", enum: ["neighbourhood", "clan", "competition", "wellness"] },
+          languages: { type: "string" },
+        },
+        required: ["title"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "find_people",
+      description: "Find nearby members and neighbors",
+      parameters: {
+        type: "object",
+        properties: {
+          interest: { type: "string", description: "Optional interest filter" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "find_groups",
+      description: "Find interest groups or clans",
+      parameters: {
+        type: "object",
+        properties: {
+          category: { type: "string" },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "start_mindfulness",
+      description: "Start a mindfulness or wellness session",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+];
+
 const FloatingAIChat = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      content: "Hi! I'm your Kindred companion. I can help you create events, find people with similar interests, or guide you through mindfulness exercises.",
+      content:
+        "Hi! I'm your Kindred companion. I can help you create events, find people, discover groups, and guide mindfulness sessions.",
       isUser: false,
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState("");
 
   const quickActions: QuickAction[] = [
     { label: "Create Event", icon: <Calendar className="h-3 w-3" />, prompt: "I want to organize a community event" },
@@ -43,229 +154,342 @@ const FloatingAIChat = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping, isTranscribing]);
 
-  // --- OpenAI Configuration ---
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
-  const SYSTEM_PROMPT = `
-    You are Kindred, a local community companion app assistant.
-    
-    TOOLS:
-    - create_event: Extract ALL event details provided.
-    - find_people: Call this immediately when user wants to find people. DO NOT ask for interest.
-    - find_groups: Search for clans/groups.
-    - start_mindfulness: Start wellness session.
+  const mockFallbackResponse = (text: string): AssistantResponse => {
+    const lower = text.toLowerCase();
 
-    RULES:
-    1. For 'create_event', try to extract: activity, date, time, location, capacity, event_type, languages.
-    2. For 'find_people', do NOT ask for an interest. Just call the tool.
-    3. Keep responses warm and concise.
-  `;
-
-  const TOOLS = [
-    {
-      type: "function",
-      function: {
-        name: "create_event",
-        description: "Draft a new community event card",
-        parameters: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            date: { type: "string" },
-            time: { type: "string" },
-            location: { type: "string" },
-            capacity: { type: "string" },
-            type: { type: "string", enum: ["neighbourhood", "clan", "competition", "wellness"] },
-            languages: { type: "string" }
-          },
-          required: ["title"]
-        }
-      }
-    },
-    {
-      type: "function",
-      function: {
-        name: "find_people",
-        description: "Find neighbours",
-        parameters: {
-          type: "object",
-          properties: {
-            interest: { type: "string", description: "Optional interest filter" }
-          },
-        }
-      }
-    },
-    {
-      type: "function",
-      function: {
-        name: "find_groups",
-        description: "Find interest groups",
-        parameters: {
-          type: "object",
-          properties: {
-            category: { type: "string" }
-          },
-          required: ["category"]
-        }
-      }
-    },
-    {
-      type: "function",
-      function: {
-        name: "start_mindfulness",
-        description: "Start wellness session",
-        parameters: { type: "object", properties: {} }
-      }
+    if (lower.includes("event")) {
+      return {
+        content: "I drafted an event card for you. Tap Edit and publish when ready.",
+        type: "event-created",
+        metadata: { title: "Community Meetup" },
+      };
     }
-  ];
 
-  const callOpenAI = async (userText: string, messageHistory: Message[]) => {
+    if (lower.includes("find people") || lower.includes("neighbours") || lower.includes("neighbors")) {
+      return {
+        content: "I can help you connect with nearby members right away.",
+        type: "people-found",
+      };
+    }
+
+    if (lower.includes("group") || lower.includes("clan")) {
+      return {
+        content: "I found groups you can explore now.",
+        type: "groups-found",
+        metadata: { category: "General" },
+      };
+    }
+
+    if (lower.includes("mindful") || lower.includes("stress") || lower.includes("calm")) {
+      return {
+        content: "Let's start a short mindfulness session now.",
+        type: "mindfulness",
+      };
+    }
+
+    return {
+      content: "I can help with events, nearby people, groups, and mindfulness.",
+      type: "text",
+    };
+  };
+
+  const callOpenAI = async (userText: string, messageHistory: Message[]): Promise<AssistantResponse> => {
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    
     if (!apiKey) {
-      console.warn("No OpenAI API Key. Using mock response.");
-      return mockFallbackResponse(userText);
+      return {
+        content: "OpenAI key is missing. Add VITE_OPENAI_API_KEY in your .env file.",
+        type: "text",
+      };
     }
 
     const apiMessages = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...messageHistory.slice(-6).map(m => ({
-        role: m.isUser ? "user" : "assistant",
-        content: m.content
+      ...messageHistory.slice(-8).map((message) => ({
+        role: message.isUser ? "user" : "assistant",
+        content: message.content,
       })),
-      { role: "user", content: userText }
+      { role: "user", content: userText },
     ];
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini", 
+          model: "gpt-4o-mini",
           messages: apiMessages,
           tools: TOOLS,
-          tool_choice: "auto"
-        })
+          tool_choice: "auto",
+          temperature: 0.5,
+        }),
       });
 
-      const data = await response.json();
-      const choice = data.choices[0];
-      const message = choice.message;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Chat request failed (${response.status}): ${errorText}`);
+      }
 
-      if (message.tool_calls && message.tool_calls.length > 0) {
+      const data = await response.json();
+      const message = data?.choices?.[0]?.message;
+      if (!message) {
+        return { content: "I could not generate a response.", type: "text" };
+      }
+
+      if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0) {
         const toolCall = message.tool_calls[0];
-        const fnName = toolCall.function.name;
-        const args = JSON.parse(toolCall.function.arguments);
+        const fnName = toolCall?.function?.name as string;
+        let args: Record<string, unknown> = {};
+
+        try {
+          args = JSON.parse(toolCall?.function?.arguments ?? "{}");
+        } catch {
+          args = {};
+        }
 
         if (fnName === "create_event") {
           return {
-            content: `I've drafted your event: "${args.title}". Review and publish it below.`,
-            type: "event-created" as const,
-            metadata: args 
+            content: `I drafted your event "${String(args.title ?? "New Event")}". Review and publish below.`,
+            type: "event-created",
+            metadata: args,
           };
         }
-        
+
         if (fnName === "find_people") {
           return {
-            content: `Connect with your neighbours! Click below to start matching.`,
-            type: "people-found" as const,
-            metadata: { interest: args.interest || "all" }
+            content: "Great, I can take you to nearby members now.",
+            type: "people-found",
+            metadata: { interest: String(args.interest ?? "all") },
           };
         }
 
         if (fnName === "find_groups") {
           return {
-            content: `Here are some ${args.category || 'community'} groups you might like.`,
-            type: "groups-found" as const,
-            metadata: { category: args.category }
+            content: `I found groups${args.category ? ` for ${String(args.category)}` : ""}.`,
+            type: "groups-found",
+            metadata: { category: args.category ? String(args.category) : "" },
           };
         }
 
         if (fnName === "start_mindfulness") {
           return {
-            content: "Ready for a break? Click below to start.",
-            type: "mindfulness" as const,
-            metadata: {}
+            content: "Ready. I can start your mindfulness session now.",
+            type: "mindfulness",
           };
         }
       }
 
-      return { content: message.content, type: "text" as const };
-
+      return { content: String(message.content ?? "I did not catch that."), type: "text" };
     } catch (error) {
-      console.error("OpenAI Error", error);
-      return { content: "I'm having trouble connecting right now.", type: "text" as const };
+      console.error("OpenAI error:", error);
+      return mockFallbackResponse(userText);
     }
   };
 
-  const mockFallbackResponse = (text: string) => {
-    const lower = text.toLowerCase();
-    
-    if (lower.includes("event")) {
-        return {
-            content: "I've drafted your event.",
-            type: "event-created" as const,
-            metadata: { title: "New Event" }
-        };
+  const speakText = async (text: string) => {
+    if (!voiceEnabled || !text.trim()) return;
+    if (isRecording || isTranscribing) return;
+
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) return;
+
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsSpeaking(false);
+      }
+
+      setIsSpeaking(true);
+      const response = await fetch(`${OPENAI_BASE_URL}/audio/speech`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini-tts",
+          voice: "alloy",
+          input: text.slice(0, 4000),
+          format: "mp3",
+        }),
+      });
+
+      if (!response.ok) {
+        setIsSpeaking(false);
+        return;
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        setIsSpeaking(false);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl);
+        setIsSpeaking(false);
+      };
+      await audio.play();
+    } catch (error) {
+      console.error("TTS error:", error);
+      setIsSpeaking(false);
     }
-    
-    if (lower.includes("find people") || lower.includes("neighbours")) {
-        return {
-            content: "Connect with your neighbours!",
-            type: "people-found" as const,
-            metadata: {}
-        };
+  };
+
+  const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) return "";
+
+    const formData = new FormData();
+    formData.append("model", "whisper-1");
+    formData.append("file", audioBlob, "recording.webm");
+
+    const response = await fetch(`${OPENAI_BASE_URL}/audio/transcriptions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Transcription failed with ${response.status}`);
     }
 
-    if (lower.includes("groups")) {
-        return {
-            content: "Browse interest groups.",
-            type: "groups-found" as const,
-            metadata: { category: "General" }
-        };
-    }
+    const data = await response.json();
+    return String(data?.text ?? "").trim();
+  };
 
-    return { content: "I can help with events, people, and groups.", type: "text" as const };
+  const startRecording = async () => {
+    if (isRecording || isTranscribing || isTyping) return;
+
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      recordingChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordingChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        setIsRecording(false);
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+
+        const audioBlob = new Blob(recordingChunksRef.current, { type: "audio/webm" });
+        if (!audioBlob.size) return;
+
+        setIsTranscribing(true);
+        try {
+          const transcript = await transcribeAudio(audioBlob);
+          if (transcript) {
+            setInput(transcript);
+            await handleSend(transcript);
+          }
+        } catch (error) {
+          console.error("Voice transcription error:", error);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `ai-${Date.now()}`,
+              content: "I could not transcribe that recording. Please try again.",
+              isUser: false,
+              timestamp: new Date(),
+              type: "text",
+            },
+          ]);
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Microphone access error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          content: "Microphone access is blocked. Please allow microphone permission and try again.",
+          isUser: false,
+          timestamp: new Date(),
+          type: "text",
+        },
+      ]);
+    }
+  };
+
+  const stopRecording = () => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state !== "recording") return;
+    mediaRecorderRef.current.stop();
   };
 
   const handleSend = async (text?: string) => {
-    const messageText = text || input;
-    if (!messageText.trim()) return;
+    const messageText = (text ?? input).trim();
+    if (!messageText || isTyping || isTranscribing) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       content: messageText,
       isUser: true,
       timestamp: new Date(),
+      type: "text",
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const historyForModel = [...messages, userMessage];
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
-    const response = await callOpenAI(messageText, messages);
-
+    const assistantResponse = await callOpenAI(messageText, historyForModel);
     const aiMessage: Message = {
       id: `ai-${Date.now()}`,
-      content: response.content || "I didn't catch that.",
+      content: assistantResponse.content || "I did not catch that.",
       isUser: false,
       timestamp: new Date(),
-      type: response.type as any,
-      metadata: response.metadata
+      type: assistantResponse.type,
+      metadata: assistantResponse.metadata,
     };
 
+    setMessages((prev) => [...prev, aiMessage]);
     setIsTyping(false);
-    setMessages(prev => [...prev, aiMessage]);
+
+    if (assistantResponse.content) {
+      void speakText(assistantResponse.content);
+    }
   };
 
-  const handleEditDraft = (metadata: any) => {
+  const handleEditDraft = (metadata: Record<string, unknown>) => {
     setIsOpen(false);
-    navigate("/events", { 
-      state: { openCreate: true, draftData: metadata } 
+    navigate("/events", {
+      state: { openCreate: true, draftData: metadata },
     });
   };
 
@@ -275,14 +499,13 @@ const FloatingAIChat = () => {
       pathname: "/explore",
       search: createSearchParams({
         tab: "groups",
-        ...(category ? { q: category } : {})
-      }).toString()
+        ...(category ? { q: category } : {}),
+      }).toString(),
     });
   };
 
   const handleFindPeople = () => {
     setIsOpen(false);
-    // Navigate to default Explore page (Members tab)
     navigate("/explore");
   };
 
@@ -310,7 +533,6 @@ const FloatingAIChat = () => {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-24 right-6 z-50 w-80 h-[32rem] bg-white rounded-2xl shadow-elevated flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-gradient-to-r from-primary/5 to-sakura/5">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-sakura flex items-center justify-center">
@@ -321,18 +543,20 @@ const FloatingAIChat = () => {
                   <p className="text-[10px] text-muted-foreground">Always here to help</p>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center"
+              >
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
 
-            {/* Quick Actions Bar */}
             <div className="px-3 py-2 border-b border-border/20 bg-muted/30">
               <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
                 {quickActions.map((action, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleSend(action.prompt)}
+                    onClick={() => void handleSend(action.prompt)}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white border border-border/40 text-xs text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap"
                   >
                     {action.icon}
@@ -342,7 +566,6 @@ const FloatingAIChat = () => {
               </div>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((message) => (
                 <motion.div
@@ -351,9 +574,11 @@ const FloatingAIChat = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
                 >
-                  <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-line ${
-                    message.isUser ? "bg-primary text-white rounded-br-md" : "bg-muted text-foreground rounded-bl-md"
-                  }`}>
+                  <div
+                    className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-line ${
+                      message.isUser ? "bg-primary text-white rounded-br-md" : "bg-muted text-foreground rounded-bl-md"
+                    }`}
+                  >
                     {message.content}
 
                     {message.type === "event-created" && message.metadata && (
@@ -362,12 +587,12 @@ const FloatingAIChat = () => {
                           <Calendar className="h-4 w-4" />
                           <span>Event Draft</span>
                         </div>
-                        <p className="font-semibold text-foreground text-xs">{message.metadata.title}</p>
+                        <p className="font-semibold text-foreground text-xs">{String(message.metadata.title ?? "New Event")}</p>
                         <p className="text-xs text-muted-foreground mb-3">
-                            {message.metadata.date || 'Date TBD'} • {message.metadata.location || 'Location TBD'}
+                          {String(message.metadata.date ?? "Date TBD")} - {String(message.metadata.location ?? "Location TBD")}
                         </p>
-                        <button 
-                          onClick={() => handleEditDraft(message.metadata)}
+                        <button
+                          onClick={() => handleEditDraft(message.metadata as Record<string, unknown>)}
                           className="w-full py-2 bg-primary text-white text-xs rounded-lg font-medium hover:bg-primary/90 transition-colors"
                         >
                           Edit & Publish
@@ -376,8 +601,8 @@ const FloatingAIChat = () => {
                     )}
 
                     {message.type === "groups-found" && (
-                      <button 
-                        onClick={() => handleFindGroups(message.metadata?.category)}
+                      <button
+                        onClick={() => handleFindGroups(String(message.metadata?.category ?? ""))}
                         className="mt-3 w-full py-2 bg-white border border-border/50 text-foreground text-xs rounded-lg font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
                       >
                         <Search className="h-3 w-3" /> Browse Groups
@@ -385,7 +610,7 @@ const FloatingAIChat = () => {
                     )}
 
                     {message.type === "people-found" && (
-                      <button 
+                      <button
                         onClick={handleFindPeople}
                         className="mt-3 w-full py-2 bg-white border border-border/50 text-foreground text-xs rounded-lg font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
                       >
@@ -394,7 +619,7 @@ const FloatingAIChat = () => {
                     )}
 
                     {message.type === "mindfulness" && (
-                      <button 
+                      <button
                         onClick={handleStartMindfulness}
                         className="mt-3 w-full py-2 bg-lavender text-white text-xs rounded-lg font-medium hover:bg-lavender/90 transition-colors flex items-center justify-center gap-2"
                       >
@@ -404,34 +629,62 @@ const FloatingAIChat = () => {
                   </div>
                 </motion.div>
               ))}
-              {isTyping && (
+
+              {(isTyping || isTranscribing) && (
                 <div className="flex justify-start">
-                  <div className="px-3 py-2 rounded-2xl rounded-bl-md bg-muted flex items-center gap-1">
+                  <div className="px-3 py-2 rounded-2xl rounded-bl-md bg-muted flex items-center gap-1 text-xs text-muted-foreground">
                     <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                    {isTranscribing ? "Transcribing voice..." : "Thinking..."}
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="p-3 border-t border-border/40">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-2">
                 <input
                   type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => event.key === "Enter" && void handleSend()}
                   placeholder="Ask me anything..."
                   className="flex-1 px-3 py-2 rounded-xl bg-muted text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
                 />
                 <button
-                  onClick={() => handleSend()}
-                  disabled={!input.trim()}
+                  onClick={() => setVoiceEnabled((prev) => !prev)}
+                  title={voiceEnabled ? "Voice reply on" : "Voice reply off"}
+                  className={`h-9 w-9 rounded-xl flex items-center justify-center ${
+                    voiceEnabled ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => void handleSend()}
+                  disabled={!input.trim() || isTyping || isTranscribing}
                   className="h-9 w-9 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />
                 </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={isRecording ? stopRecording : () => void startRecording()}
+                  disabled={isTyping || isTranscribing}
+                  className={`h-9 px-3 rounded-xl text-xs font-medium flex items-center gap-2 disabled:opacity-40 ${
+                    isRecording
+                      ? "bg-red-500 text-white"
+                      : "bg-muted text-foreground hover:bg-muted/70 transition-colors"
+                  }`}
+                >
+                  {isRecording ? <Square className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  {isRecording ? "Stop recording" : "Talk to AI"}
+                </button>
+                <span className="text-[10px] text-muted-foreground">
+                  {isRecording ? "Listening..." : isSpeaking ? "Speaking..." : "Voice ready"}
+                </span>
               </div>
             </div>
           </motion.div>
