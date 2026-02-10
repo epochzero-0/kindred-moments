@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { 
-  Users, Search, MapPin, Globe, Heart, X, MessageCircle, 
+import {
+  Users, Search, MapPin, Globe, Heart, X, MessageCircle,
   Filter, ChevronRight, Trophy, Calendar, Sparkles, Languages
 } from "lucide-react";
 import { useUsers, useClans, usePulseData, useCurrentUser } from "@/hooks/use-data";
@@ -48,11 +48,10 @@ const ExplorePage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
+                ? "bg-white text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               <span className="hidden sm:inline">{tab.label}</span>
@@ -82,6 +81,8 @@ const ExplorePage = () => {
   );
 };
 
+import { useNavigate, createSearchParams } from "react-router-dom";
+
 // Members Nearby - Tinder-style swipe cards
 interface MembersNearbyProps {
   users: ReturnType<typeof useUsers>;
@@ -92,8 +93,16 @@ const MembersNearby = ({ users, currentUserInterests }: MembersNearbyProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
   const [matches, setMatches] = useState<string[]>([]);
+  const navigate = useNavigate();
 
-  const currentProfile = users[currentIndex];
+  // Sort users by number of shared interests
+  const sortedUsers = [...users].sort((a, b) => {
+    const aShared = a.interests.filter(i => currentUserInterests.includes(i)).length;
+    const bShared = b.interests.filter(i => currentUserInterests.includes(i)).length;
+    return bShared - aShared;
+  });
+
+  const currentProfile = sortedUsers[currentIndex];
 
   const handleSwipe = (swipeDirection: "left" | "right") => {
     setDirection(swipeDirection);
@@ -121,7 +130,16 @@ const MembersNearby = ({ users, currentUserInterests }: MembersNearbyProps) => {
     return userInterests.filter((i) => currentUserInterests.includes(i));
   };
 
-  if (currentIndex >= users.length) {
+  const handleChat = () => {
+    if (currentProfile) {
+      navigate({
+        pathname: "/chat",
+        search: createSearchParams({ userId: currentProfile.id }).toString()
+      });
+    }
+  };
+
+  if (currentIndex >= sortedUsers.length) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -149,7 +167,7 @@ const MembersNearby = ({ users, currentUserInterests }: MembersNearbyProps) => {
   const sharedInterests = getSharedInterests(currentProfile?.interests || []);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-24">
       <div className="relative h-[28rem] flex items-center justify-center">
         <AnimatePresence>
           {currentProfile && (
@@ -242,7 +260,7 @@ const MembersNearby = ({ users, currentUserInterests }: MembersNearbyProps) => {
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center justify-center gap-6 mt-4">
+      <div className="flex items-center justify-center gap-6 mt-8">
         <button
           onClick={() => handleSwipe("left")}
           className="h-14 w-14 rounded-full bg-white shadow-soft flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:shadow-elevated transition-all"
@@ -255,22 +273,24 @@ const MembersNearby = ({ users, currentUserInterests }: MembersNearbyProps) => {
         >
           <Heart className="h-7 w-7" />
         </button>
-        <button className="h-14 w-14 rounded-full bg-white shadow-soft flex items-center justify-center text-muted-foreground hover:text-primary hover:shadow-elevated transition-all">
+        <button
+          onClick={handleChat}
+          className="h-14 w-14 rounded-full bg-white shadow-soft flex items-center justify-center text-muted-foreground hover:text-primary hover:shadow-elevated transition-all"
+        >
           <MessageCircle className="h-6 w-6" />
         </button>
       </div>
 
       {/* Progress indicator */}
       <div className="flex items-center justify-center gap-1 mt-6">
-        {users.slice(0, 10).map((_, i) => (
+        {sortedUsers.slice(0, 10).map((_, i) => (
           <div
             key={i}
-            className={`h-1.5 rounded-full transition-all ${
-              i === currentIndex ? "w-6 bg-primary" : i < currentIndex ? "w-1.5 bg-pandan" : "w-1.5 bg-muted"
-            }`}
+            className={`h-1.5 rounded-full transition-all ${i === currentIndex ? "w-6 bg-primary" : i < currentIndex ? "w-1.5 bg-pandan" : "w-1.5 bg-muted"
+              }`}
           />
         ))}
-        {users.length > 10 && <span className="text-xs text-muted-foreground ml-1">+{users.length - 10}</span>}
+        {sortedUsers.length > 10 && <span className="text-xs text-muted-foreground ml-1">+{sortedUsers.length - 10}</span>}
       </div>
     </motion.div>
   );
@@ -284,7 +304,10 @@ interface InterestGroupDirectoryProps {
 const InterestGroupDirectory = ({ clans }: InterestGroupDirectoryProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const currentUser = useCurrentUser();
 
+  // Show all clans
   const themes = [...new Set(clans.map((c) => c.theme))];
 
   const filteredClans = clans.filter((clan) => {
@@ -298,6 +321,7 @@ const InterestGroupDirectory = ({ clans }: InterestGroupDirectoryProps) => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       {/* Search and filter */}
       <div className="flex gap-3 mb-5">
+
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -318,9 +342,8 @@ const InterestGroupDirectory = ({ clans }: InterestGroupDirectoryProps) => {
       <div className="flex gap-2 mb-5 overflow-x-auto pb-2">
         <button
           onClick={() => setFilter(null)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-            !filter ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${!filter ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
         >
           All
         </button>
@@ -328,9 +351,8 @@ const InterestGroupDirectory = ({ clans }: InterestGroupDirectoryProps) => {
           <button
             key={theme}
             onClick={() => setFilter(theme)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap capitalize transition-colors ${
-              filter === theme ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap capitalize transition-colors ${filter === theme ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
           >
             {theme}
           </button>
@@ -345,6 +367,7 @@ const InterestGroupDirectory = ({ clans }: InterestGroupDirectoryProps) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
+            onClick={() => navigate(`/chat?roomId=${clan.id}`)}
             className="bg-white rounded-2xl p-4 shadow-soft hover:shadow-elevated transition-shadow cursor-pointer"
           >
             <div className="flex items-center gap-4">
@@ -410,15 +433,14 @@ const NeighbourhoodDirectory = ({ pulseData }: NeighbourhoodDirectoryProps) => {
             <div className="flex items-center gap-4">
               {/* Rank */}
               <div
-                className={`h-10 w-10 rounded-xl flex items-center justify-center font-semibold ${
-                  i === 0
-                    ? "bg-yellow-100 text-yellow-600"
-                    : i === 1
+                className={`h-10 w-10 rounded-xl flex items-center justify-center font-semibold ${i === 0
+                  ? "bg-yellow-100 text-yellow-600"
+                  : i === 1
                     ? "bg-gray-100 text-gray-500"
                     : i === 2
-                    ? "bg-orange-100 text-orange-600"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                      ? "bg-orange-100 text-orange-600"
+                      : "bg-muted text-muted-foreground"
+                  }`}
               >
                 {i + 1}
               </div>
@@ -530,9 +552,8 @@ const GlobeVisualization = ({ pulseData, clans }: GlobeVisualizationProps) => {
             onClick={() => setSelectedNode(selectedNode === node.id ? null : node.id)}
           >
             <div
-              className={`rounded-full bg-gradient-to-br from-primary to-sakura flex items-center justify-center transition-all ${
-                selectedNode === node.id ? "ring-4 ring-white/40" : "group-hover:ring-2 group-hover:ring-white/20"
-              }`}
+              className={`rounded-full bg-gradient-to-br from-primary to-sakura flex items-center justify-center transition-all ${selectedNode === node.id ? "ring-4 ring-white/40" : "group-hover:ring-2 group-hover:ring-white/20"
+                }`}
               style={{
                 width: `${Math.max(24, node.size / 2)}px`,
                 height: `${Math.max(24, node.size / 2)}px`,
