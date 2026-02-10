@@ -43,16 +43,6 @@ const mockStatuses: StatusUpdate[] = [
     joinable: false,
     joined: 0,
   },
-  {
-    id: "s4",
-    userName: "Wei Lin",
-    userInitials: "WL",
-    content: "Board game night tonight! 🎲",
-    location: "Bedok",
-    timestamp: new Date(Date.now() - 1000 * 60 * 90),
-    joinable: true,
-    joined: 6,
-  },
 ];
 
 const formatTime = (date: Date) => {
