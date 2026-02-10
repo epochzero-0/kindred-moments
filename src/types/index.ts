@@ -86,3 +86,25 @@ export interface NeighborhoodGoal {
   deadline: Date;
   participants: string[];
 }
+
+export type EventType = "neighbourhood" | "clan" | "competition" | "wellness";
+
+export interface Event {
+  id: string;
+  title: string;
+  date: Date;
+  endDate?: Date;
+  location: string;
+  type: EventType;
+  attendees: number;
+  capacity?: number;
+  neighbourhood?: string;
+  clanId?: string;
+  clanName?: string;
+  languages: string[];
+  recurring: boolean;
+  description?: string;
+  hasChat: boolean;
+  expenses?: { total: number; perPerson: number };
+  openToAll?: boolean; // Added from CreateEventModal form data
+}

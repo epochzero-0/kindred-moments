@@ -5,6 +5,7 @@ import {
   ChevronRight, X, Bot, Compass, Activity, Heart, Lightbulb
 } from "lucide-react";
 import { useCurrentUser, usePulseData } from "@/hooks/use-data";
+import { useEvents } from "@/hooks/use-events";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { useNavigate, createSearchParams } from "react-router-dom";
 
@@ -17,17 +18,17 @@ const neighbourhoodLabels: Record<string, string> = {
 };
 
 // Floating orb component for ambient effect
-const FloatingOrb = ({ 
-  size, 
-  color, 
-  delay, 
-  duration, 
-  x, 
-  y 
-}: { 
-  size: number; 
-  color: string; 
-  delay: number; 
+const FloatingOrb = ({
+  size,
+  color,
+  delay,
+  duration,
+  x,
+  y
+}: {
+  size: number;
+  color: string;
+  delay: number;
   duration: number;
   x: string;
   y: string;
@@ -78,13 +79,13 @@ const PulseRing = ({ delay, size }: { delay: number; size: number }) => (
 // Animated counter component
 const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
   const [displayValue, setDisplayValue] = useState(0);
-  
+
   useEffect(() => {
     const duration = 1500;
     const steps = 30;
     const increment = value / steps;
     let current = 0;
-    
+
     const timer = setInterval(() => {
       current += increment;
       if (current >= value) {
@@ -94,21 +95,16 @@ const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string
         setDisplayValue(Math.floor(current));
       }
     }, duration / steps);
-    
+
     return () => clearInterval(timer);
   }, [value]);
-  
+
   return (
     <span>{displayValue}{suffix}</span>
   );
 };
 
-// Mock data for upcoming events
-const upcomingEvents = [
-  { id: "e1", title: "Morning Tai Chi", time: "Tomorrow 7:00 AM", location: "Punggol Park", attendees: 12 },
-  { id: "e2", title: "Board Game Night", time: "Sat 7:30 PM", location: "RC Hall", attendees: 8 },
-  { id: "e3", title: "Photography Walk", time: "Sun 5:00 PM", location: "Waterway", attendees: 6 },
-];
+// Mock data replaced by useEvents hook
 
 // Tour steps configuration - simpler with arrow positioning
 interface TourStep {
@@ -174,6 +170,7 @@ const tourSteps: TourStep[] = [
 
 const HomePage = () => {
   const currentUser = useCurrentUser();
+  const { upcomingEvents } = useEvents();
   const { profile: storedProfile } = useUserProfile();
   const pulseData = usePulseData();
   const navigate = useNavigate();
@@ -223,7 +220,7 @@ const HomePage = () => {
       try {
         const raw = localStorage.getItem("km_daily_steps");
         if (raw) setDailySteps(Number(raw));
-      } catch (e) {}
+      } catch (e) { }
     };
     loadSteps();
     window.addEventListener("storage", loadSteps);
@@ -242,7 +239,7 @@ const HomePage = () => {
 
   // Get neighbourhood display name from session storage profile
   const primaryNeighbourhood = storedProfile?.neighbourhoods?.[0];
-  const neighbourhoodDisplayName = primaryNeighbourhood 
+  const neighbourhoodDisplayName = primaryNeighbourhood
     ? neighbourhoodLabels[primaryNeighbourhood] || primaryNeighbourhood
     : userNeighbourhoodMood?.neighbourhood || 'Your area';
 
@@ -308,17 +305,17 @@ const HomePage = () => {
                   const cardY = parseFloat(currentTourStep.cardPosition.y);
                   const arrowX = parseFloat(currentTourStep.arrowTo.x);
                   const arrowY = parseFloat(currentTourStep.arrowTo.y);
-                  
+
                   // Start from edge of card
                   const startX = cardX;
                   const startY = currentTourStep.arrowCurve.startsWith("down") ? cardY + 8 : cardY - 8;
                   const endX = arrowX;
                   const endY = arrowY;
-                  
+
                   // Control points for smooth bezier curve
                   const midY = (startY + endY) / 2;
                   const curveOffset = currentTourStep.arrowCurve.includes("left") ? -30 : 30;
-                  
+
                   return `M ${startX} ${startY} Q ${startX + curveOffset} ${midY + 10}, ${endX} ${endY}`;
                 })()}
                 stroke="white"
@@ -332,7 +329,7 @@ const HomePage = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
               />
             </svg>
-            
+
             {/* Tooltip Card */}
             <motion.div
               key={`tooltip-${tourStep}`}
@@ -357,16 +354,15 @@ const HomePage = () => {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">{currentTourStep.description}</p>
-                
+
                 {/* Progress & Actions */}
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1">
                     {tourSteps.map((_, i) => (
                       <div
                         key={i}
-                        className={`h-1 rounded-full transition-all ${
-                          i === tourStep ? "w-4 bg-primary" : "w-1 bg-muted"
-                        }`}
+                        className={`h-1 rounded-full transition-all ${i === tourStep ? "w-4 bg-primary" : "w-1 bg-muted"
+                          }`}
                       />
                     ))}
                   </div>
@@ -414,7 +410,7 @@ const HomePage = () => {
               {firstName}
             </h1>
           </motion.div>
-          
+
           {/* Help button to restart tour */}
           <motion.button
             initial={{ opacity: 0 }}
@@ -444,7 +440,7 @@ const HomePage = () => {
             <PulseRing delay={1} size={150} />
             <PulseRing delay={2} size={150} />
           </div>
-          
+
           {/* Central content */}
           <div className="relative z-10 text-center">
             <motion.div
@@ -457,7 +453,7 @@ const HomePage = () => {
               </span>
             </motion.div>
             <p className="text-muted-foreground text-sm mb-4">neighbours active right now</p>
-            
+
             {/* Quick stats row */}
             <div className="flex items-center justify-center gap-6 mb-4">
               <motion.div
@@ -517,13 +513,13 @@ const HomePage = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={() => navigate({ pathname: "/chat", search: createSearchParams({ userId: "u002", draft: "I'm in!" }).toString() })}
                     className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors"
                   >
                     Join
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowInvite(false)}
                     className="text-muted-foreground hover:text-foreground p-1"
                   >
@@ -548,7 +544,7 @@ const HomePage = () => {
             <Calendar className="h-3 w-3" />
             What's happening
           </p>
-          <button 
+          <button
             onClick={() => navigate("/events")}
             className="text-[10px] text-primary hover:underline"
           >
@@ -566,7 +562,9 @@ const HomePage = () => {
               className="flex-shrink-0 bg-white/70 backdrop-blur-sm rounded-lg p-2.5 border border-border/50 cursor-pointer hover:bg-white/90 transition-colors min-w-[140px]"
             >
               <p className="text-xs font-medium text-foreground truncate">{event.title}</p>
-              <p className="text-[10px] text-muted-foreground">{event.time}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {new Date(event.date).toLocaleDateString("en-SG", { weekday: "short", hour: "numeric", minute: "2-digit" })}
+              </p>
               <div className="flex items-center gap-1 mt-1">
                 <Users className="h-2.5 w-2.5 text-muted-foreground" />
                 <span className="text-[10px] text-muted-foreground">{event.attendees}</span>
@@ -590,7 +588,7 @@ const HomePage = () => {
             onClick={() => navigate("/wellness?tab=steps")}
             className="bg-gradient-to-br from-pandan/10 to-emerald-50/50 rounded-xl p-3 border border-pandan/10 cursor-pointer"
           >
-            <motion.div 
+            <motion.div
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
               className="h-8 w-8 rounded-lg bg-white/80 flex items-center justify-center mb-2"
@@ -610,7 +608,7 @@ const HomePage = () => {
             onClick={() => navigate("/wellness")}
             className="bg-gradient-to-br from-lavender/10 to-sakura/5 rounded-xl p-3 border border-lavender/10 cursor-pointer"
           >
-            <motion.div 
+            <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="h-8 w-8 rounded-lg bg-white/80 flex items-center justify-center mb-2"
