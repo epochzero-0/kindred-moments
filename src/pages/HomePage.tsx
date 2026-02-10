@@ -2,13 +2,20 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, MapPin, Users, Calendar, Wind, Footprints,
-  ChevronRight, Clock, Target, Plus, Bell, Heart
+  ChevronRight, Clock, Plus, Bell, Heart
 } from "lucide-react";
 import { useCurrentUser, useActivities, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { useCommunityGoals } from "@/hooks/use-community-goals";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, createSearchParams } from "react-router-dom";
 import StatusFeed from "@/components/StatusFeed";
+
+// Neighbourhood labels for display
+const neighbourhoodLabels: Record<string, string> = {
+  woodlands: "Woodlands", yishun: "Yishun", sembawang: "Sembawang", amk: "Ang Mo Kio",
+  tampines: "Tampines", bedok: "Bedok", "pasir-ris": "Pasir Ris", punggol: "Punggol",
+  sengkang: "Sengkang", "jurong-east": "Jurong East", clementi: "Clementi",
+  "bukit-batok": "Bukit Batok", bishan: "Bishan", "toa-payoh": "Toa Payoh", kallang: "Kallang",
+};
 
 // Mock data for upcoming events
 const upcomingEvents = [
@@ -19,10 +26,10 @@ const upcomingEvents = [
 
 // Mock live status data (moved inside component as initial state)
 const initialLiveStatuses = [
-  { id: "ls1", userName: "Ravi", activity: "heading for kopi", time: "2m ago" },
-  { id: "ls2", userName: "Mei Lin", activity: "at the gym", time: "5m ago" },
-  { id: "ls3", userName: "Ahmad", activity: "walking at park", time: "8m ago" },
-  { id: "ls4", userName: "Priya", activity: "free to chat", time: "12m ago" },
+  { id: "ls1", userId: "u002", userName: "Ravi", activity: "heading for kopi", time: "2m ago" },
+  { id: "ls2", userId: "u019", userName: "Mei Ling", activity: "at the gym", time: "5m ago" },
+  { id: "ls3", userId: "u003", userName: "Aiman", activity: "walking at park", time: "8m ago" },
+  { id: "ls4", userId: "u014", userName: "Priya", activity: "free to chat", time: "12m ago" },
 ];
 
 const HomePage = () => {
@@ -33,7 +40,6 @@ const HomePage = () => {
   const pulseData = usePulseData();
   const users = useUsers();
   const navigate = useNavigate();
-  const { activeGoals: neighbourhoodGoals } = useCommunityGoals();
 
   const [liveStatuses, setLiveStatuses] = useState(initialLiveStatuses);
   const [quickStatus, setQuickStatus] = useState("");
@@ -42,6 +48,12 @@ const HomePage = () => {
   const [postedStatus, setPostedStatus] = useState<{ content: string; timestamp: number } | null>(null);
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const totalPeopleActive = pulseData.reduce((sum, p) => sum + p.active_today, 0);
+
+  // Get neighbourhood display name from session storage profile
+  const primaryNeighbourhood = storedProfile?.neighbourhoods?.[0];
+  const neighbourhoodDisplayName = primaryNeighbourhood 
+    ? neighbourhoodLabels[primaryNeighbourhood] || primaryNeighbourhood
+    : userNeighbourhood?.neighbourhood || 'Your area';
 
   // Update greeting based on real time
   useEffect(() => {
@@ -68,6 +80,7 @@ const HomePage = () => {
     if (currentUser) {
       const newStatus = {
         id: `ls-${Date.now()}`,
+        userId: currentUser.id,
         userName: firstName,
         activity: quickStatus,
         time: "Just now"
@@ -114,7 +127,7 @@ const HomePage = () => {
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10">
             <MapPin className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs font-medium text-primary">{userNeighbourhood?.neighbourhood || 'Your area'}</span>
+            <span className="text-xs font-medium text-primary">{neighbourhoodDisplayName}</span>
           </div>
         </motion.div>
       </div>
@@ -137,7 +150,11 @@ const HomePage = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               key={status.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-soft whitespace-nowrap flex-shrink-0"
+              onClick={() => navigate({
+                pathname: "/chat",
+                search: createSearchParams({ userId: status.userId }).toString()
+              })}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-soft whitespace-nowrap flex-shrink-0 cursor-pointer hover:bg-primary/5 transition-colors"
             >
               <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/70 to-sakura/70 flex items-center justify-center text-[10px] font-semibold text-white">
                 {status.userName[0]}
@@ -160,9 +177,6 @@ const HomePage = () => {
       >
         <div className="bg-white rounded-2xl shadow-soft p-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-sakura flex items-center justify-center text-sm font-semibold text-white">
-              {currentUser?.name?.split(' ').map(n => n[0]).join('') || '?'}
-            </div>
             {!showQuickStatus ? (
               <button
                 onClick={() => setShowQuickStatus(true)}
@@ -207,49 +221,6 @@ const HomePage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-6">
         {/* Main Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Neighbourhood Goals */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-foreground flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" />
-                Neighbourhood Goals
-              </h2>
-              <Link to="/goals" className="text-xs text-primary hover:underline flex items-center gap-1">
-                View all <ChevronRight className="h-3 w-3" />
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {neighbourhoodGoals.map((goal, i) => (
-                <motion.div
-                  key={goal.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + i * 0.05 }}
-                  className="bg-white rounded-xl p-4 shadow-soft"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-foreground">{goal.title}</p>
-                    <span className="text-xs text-muted-foreground">
-                      {goal.current}/{goal.target} {goal.unit}
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(goal.current / goal.target) * 100}%` }}
-                      transition={{ duration: 0.8, delay: 0.4 + i * 0.1 }}
-                      className="h-full bg-gradient-to-r from-pandan to-emerald-400 rounded-full"
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
           {/* Upcoming Events Carousel */}
           <motion.section
             initial={{ opacity: 0, y: 10 }}

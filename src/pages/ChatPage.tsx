@@ -24,6 +24,7 @@ interface ChatRoom {
   members: number;
   isNew?: boolean;
   suggestedStarters?: string[];
+  userId?: string;
 }
 
 const mockDirectRooms: ChatRoom[] = [
@@ -39,6 +40,7 @@ const mockDirectRooms: ChatRoom[] = [
   },
   {
     id: "uid-ravi",
+    userId: "u002",
     name: "Ravi Kumar",
     type: "direct",
     icon: User,
@@ -143,8 +145,8 @@ const ChatPage = () => {
     }
 
     if (userId) {
-      // Check existing direct chat
-      const existingRoom = allRooms.find(r => r.type === 'direct' && r.name.includes('Ravi') && userId.includes('002'));
+      // Check existing direct chat by userId
+      const existingRoom = allRooms.find(r => r.type === 'direct' && r.userId === userId);
 
       if (existingRoom) {
         setSelectedRoom(existingRoom);
@@ -161,6 +163,7 @@ const ChatPage = () => {
 
         const newRoom: ChatRoom = {
           id: `new-${userId}`,
+          userId: userId,
           name: targetUser.name,
           type: "direct",
           icon: User,
