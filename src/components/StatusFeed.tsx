@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, MessageCircle, Plus, Send } from "lucide-react";
 
@@ -66,10 +66,26 @@ const formatTime = (date: Date) => {
 
 interface StatusFeedProps {
   compact?: boolean;
+  newStatus?: { content: string; timestamp: number } | null;
 }
 
-const StatusFeed = ({ compact = false }: StatusFeedProps) => {
+const StatusFeed = ({ compact = false, newStatus }: StatusFeedProps) => {
   const [statuses, setStatuses] = useState<StatusUpdate[]>(mockStatuses);
+
+  // Watch for new status from parent (e.g., HomePage quick status)
+  useEffect(() => {
+    if (newStatus && newStatus.content.trim()) {
+      setStatuses(prev => [{
+        id: `s${newStatus.timestamp}`,
+        userName: "You",
+        userInitials: "ME",
+        content: newStatus.content,
+        timestamp: new Date(newStatus.timestamp),
+        joinable: false,
+        joined: 0,
+      }, ...prev]);
+    }
+  }, [newStatus]);
   const [showInput, setShowInput] = useState(false);
   const [newContent, setNewContent] = useState("");
 

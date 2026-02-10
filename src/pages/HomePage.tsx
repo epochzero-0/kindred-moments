@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser, useActivities, useClans, usePulseData, useUsers } from "@/hooks/use-data";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import StatusFeed from "@/components/StatusFeed";
 
 // Mock data for neighbourhood goals
@@ -38,10 +38,12 @@ const HomePage = () => {
   const clans = useClans();
   const pulseData = usePulseData();
   const users = useUsers();
+  const navigate = useNavigate();
   
   const [quickStatus, setQuickStatus] = useState("");
   const [showQuickStatus, setShowQuickStatus] = useState(false);
   const [greeting, setGreeting] = useState("");
+  const [postedStatus, setPostedStatus] = useState<{ content: string; timestamp: number } | null>(null);
   
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const totalPeopleActive = pulseData.reduce((sum, p) => sum + p.active_today, 0);
@@ -67,7 +69,8 @@ const HomePage = () => {
 
   const handlePostStatus = () => {
     if (!quickStatus.trim()) return;
-    // In real app, this would post to the backend
+    // Post status and show it in the Updates section
+    setPostedStatus({ content: quickStatus, timestamp: Date.now() });
     setQuickStatus("");
     setShowQuickStatus(false);
   };
@@ -159,6 +162,7 @@ const HomePage = () => {
                   type="text"
                   value={quickStatus}
                   onChange={(e) => setQuickStatus(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handlePostStatus()}
                   placeholder="e.g., Heading for kopi in 10 min..."
                   className="flex-1 px-4 py-2.5 rounded-xl bg-muted/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                   autoFocus
@@ -243,7 +247,7 @@ const HomePage = () => {
                 <Calendar className="h-4 w-4 text-primary" />
                 Upcoming Events
               </h2>
-              <Link to="/clan" className="text-xs text-primary hover:underline flex items-center gap-1">
+              <Link to="/events" className="text-xs text-primary hover:underline flex items-center gap-1">
                 See all <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
@@ -277,6 +281,7 @@ const HomePage = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.55 }}
+                onClick={() => navigate("/events", { state: { openCreate: true } })}
                 className="min-w-[100px] bg-muted/50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
                 <Plus className="h-5 w-5 text-muted-foreground" />
@@ -358,7 +363,7 @@ const HomePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <StatusFeed compact />
+            <StatusFeed compact newStatus={postedStatus} />
           </motion.div>
         </div>
       </div>
