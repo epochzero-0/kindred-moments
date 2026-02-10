@@ -204,7 +204,7 @@ const MoodCheckin = ({ userName, onComplete, onBack, onSkip }: MoodCheckinProps)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="py-6"
+          className="pt-4 pb-[env(safe-area-inset-bottom,24px)] mb-6"
         >
           <Button
             onClick={handleContinue}

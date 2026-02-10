@@ -4,8 +4,9 @@ import WelcomeScreen from "@/components/onboarding/WelcomeScreen";
 import SingPassAuth from "@/components/onboarding/SingPassAuth";
 import ProfileSetup from "@/components/onboarding/ProfileSetup";
 import MoodCheckin from "@/components/onboarding/MoodCheckin";
+import NeighbourhoodSelect from "@/components/onboarding/NeighbourhoodSelect";
 
-type OnboardingStep = "welcome" | "singpass" | "profile" | "mood";
+type OnboardingStep = "welcome" | "singpass" | "profile" | "mood" | "neighbourhood";
 
 interface UserProfile {
   displayName: string;
@@ -14,6 +15,7 @@ interface UserProfile {
   avatar?: string | null;
   languages?: string[];
   bio?: string;
+  neighbourhoods?: string[];
 }
 
 const OnboardingPage = () => {
@@ -42,6 +44,11 @@ const OnboardingPage = () => {
 
   const handleMoodComplete = (_mood: string | null) => {
     // Mood is not stored, just used to set tone
+    setStep("neighbourhood");
+  };
+
+  const handleNeighbourhoodComplete = (neighbourhoods: string[]) => {
+    setUserProfile((prev) => prev ? { ...prev, neighbourhoods } : null);
     // For now, navigate to home. Later this will go to the next onboarding step.
     navigate("/home");
   };
@@ -53,6 +60,8 @@ const OnboardingPage = () => {
       setStep("singpass");
     } else if (step === "mood") {
       setStep("profile");
+    } else if (step === "neighbourhood") {
+      setStep("mood");
     }
   };
 
@@ -74,6 +83,13 @@ const OnboardingPage = () => {
           onComplete={handleMoodComplete}
           onBack={handleBack}
           onSkip={() => handleMoodComplete(null)}
+        />
+      )}
+      {step === "neighbourhood" && userProfile && (
+        <NeighbourhoodSelect
+          postalCode={userProfile.postalCode}
+          onComplete={handleNeighbourhoodComplete}
+          onBack={handleBack}
         />
       )}
     </>
