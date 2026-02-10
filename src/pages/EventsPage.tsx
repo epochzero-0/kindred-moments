@@ -420,9 +420,12 @@ const EventsPage = () => {
                         );
                       })}
                       {dayEvents.length > 2 && (
-                        <span className="text-[9px] text-muted-foreground pl-1">
+                        <button 
+                          onClick={() => setSelectedEvent(dayEvents[2])}
+                          className="text-[9px] text-primary font-medium pl-1 text-left hover:underline"
+                        >
                           +{dayEvents.length - 2} more
-                        </span>
+                        </button>
                       )}
                     </div>
                   )}
@@ -547,7 +550,7 @@ const EventsPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm pb-20"
             onClick={() => setSelectedEvent(null)}
           >
             <motion.div
@@ -556,7 +559,7 @@ const EventsPage = () => {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-t-3xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
+              className="bg-white rounded-3xl w-full max-w-lg max-h-[75vh] overflow-y-auto mx-4 shadow-2xl"
             >
               <div className="p-6">
                 {/* Handle */}
