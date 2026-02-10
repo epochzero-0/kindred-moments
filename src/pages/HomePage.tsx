@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Send, MapPin, Users, Calendar, Wind, Footprints, 
+import {
+  Send, MapPin, Users, Calendar, Wind, Footprints,
   ChevronRight, Clock, Target, Plus, Bell, Heart
 } from "lucide-react";
 import { useCurrentUser, useActivities, useClans, usePulseData, useUsers } from "@/hooks/use-data";
@@ -23,8 +23,8 @@ const upcomingEvents = [
   { id: "e3", title: "Photography Walk", time: "Sun 5:00 PM", location: "Waterway", attendees: 6 },
 ];
 
-// Mock live status data
-const liveStatuses = [
+// Mock live status data (moved inside component as initial state)
+const initialLiveStatuses = [
   { id: "ls1", userName: "Ravi", activity: "heading for kopi", time: "2m ago" },
   { id: "ls2", userName: "Mei Lin", activity: "at the gym", time: "5m ago" },
   { id: "ls3", userName: "Ahmad", activity: "walking at park", time: "8m ago" },
@@ -39,12 +39,12 @@ const HomePage = () => {
   const pulseData = usePulseData();
   const users = useUsers();
   const navigate = useNavigate();
-  
+
+  const [liveStatuses, setLiveStatuses] = useState(initialLiveStatuses);
   const [quickStatus, setQuickStatus] = useState("");
   const [showQuickStatus, setShowQuickStatus] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [postedStatus, setPostedStatus] = useState<{ content: string; timestamp: number } | null>(null);
-  
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const totalPeopleActive = pulseData.reduce((sum, p) => sum + p.active_today, 0);
 
@@ -56,7 +56,7 @@ const HomePage = () => {
       else if (hour < 17) setGreeting("Good afternoon");
       else setGreeting("Good evening");
     };
-    
+
     updateGreeting();
     // Update every minute
     const interval = setInterval(updateGreeting, 60000);
@@ -69,10 +69,26 @@ const HomePage = () => {
 
   const handlePostStatus = () => {
     if (!quickStatus.trim()) return;
+
+    if (currentUser) {
+      const newStatus = {
+        id: `ls-${Date.now()}`,
+        userName: firstName,
+        activity: quickStatus,
+        time: "Just now"
+      };
+      setLiveStatuses([newStatus, ...liveStatuses]);
+    }
+
     // Post status and show it in the Updates section
     setPostedStatus({ content: quickStatus, timestamp: Date.now() });
     setQuickStatus("");
     setShowQuickStatus(false);
+  };
+
+  const handleAddEvent = () => {
+    // Mock functionality
+    alert("Event creation feature coming soon!");
   };
 
   return (
@@ -119,11 +135,14 @@ const HomePage = () => {
           <div className="h-2 w-2 rounded-full bg-pandan animate-pulse" />
           <span className="text-xs font-medium text-muted-foreground">Live now</span>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {liveStatuses.map((status) => (
-            <div
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
               key={status.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-soft whitespace-nowrap"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-soft whitespace-nowrap flex-shrink-0"
             >
               <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/70 to-sakura/70 flex items-center justify-center text-[10px] font-semibold text-white">
                 {status.userName[0]}
@@ -132,7 +151,7 @@ const HomePage = () => {
                 <p className="text-xs font-medium text-foreground">{status.userName}</p>
                 <p className="text-[10px] text-muted-foreground">{status.activity}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.div>
@@ -251,7 +270,7 @@ const HomePage = () => {
                 See all <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2">
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {upcomingEvents.map((event, i) => (
                 <motion.div
                   key={event.id}

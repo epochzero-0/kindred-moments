@@ -1,5 +1,18 @@
 [
   {
+    "id": "c00-new",
+    "name": "Punggol Pumas",
+    "neighbourhood": "Punggol",
+    "theme": "fitness",
+    "members": [
+      "u001",
+      "u003",
+      "u011"
+    ],
+    "weekly_goal": "Running 10km",
+    "events_planned": 1
+  },
+  {
     "id": "c01",
     "name": "Bedok Buddies",
     "neighbourhood": "Tampines",
