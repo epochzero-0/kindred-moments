@@ -126,7 +126,6 @@ const ExplorePage = () => {
           {activeTab === "groups" && (
             <InterestGroupDirectory 
               key="groups" 
-              clans={clans}
               allUsers={allUsers}
               currentUserInterests={userInterests}
               initialSearch={searchParams.get("q") || ""} 

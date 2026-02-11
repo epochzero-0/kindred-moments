@@ -459,7 +459,23 @@ const ChatPage = () => {
       // Check if already joined
       if (isGroupJoined(groupId)) {
         const room = allRooms.find(r => r.id === roomId);
-        if (room) setSelectedRoom(room);
+        if (room) {
+          setSelectedRoom(room);
+        } else {
+          // Room not yet in allRooms (timing) — create it inline
+          const memberCount = users.filter(u => u.interests.includes(groupId)).length;
+          const newRoom: ChatRoom = {
+            id: `group-${groupId}`,
+            name: groupName,
+            type: "group",
+            icon: groupIcons[groupId] || Users,
+            lastMessage: "Tap to view conversation",
+            lastMessageTime: new Date(),
+            unread: 0,
+            members: memberCount || 1,
+          };
+          setSelectedRoom(newRoom);
+        }
       } else {
         // Show join popup
         setPendingGroup({ id: groupId, name: groupName });
@@ -703,6 +719,23 @@ const ChatPage = () => {
         setMessages(neighborhoodMessages);
       } else if (selectedRoom.type === "group") {
         const groupId = selectedRoom.id.replace("group-", "");
+        // Check if there are messages saved from the join modal first
+        try {
+          const saved = sessionStorage.getItem(`kindred-group-chat-${groupId}`);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            const restored: Message[] = parsed.map((m: any) => ({
+              id: m.id,
+              senderId: m.senderId,
+              senderName: m.senderName,
+              content: m.content,
+              timestamp: new Date(m.timestamp),
+              isMe: m.isMe,
+            }));
+            setMessages(restored);
+            return;
+          }
+        } catch { /* ignore parse errors */ }
         setMessages(groupMessages[groupId] || []);
       } else {
         // Direct messages start empty
@@ -710,6 +743,24 @@ const ChatPage = () => {
       }
     }
   }, [selectedRoom]);
+
+  // Persist group chat messages to sessionStorage so they survive navigation
+  useEffect(() => {
+    if (selectedRoom?.type === "group" && messages.length > 0) {
+      const groupId = selectedRoom.id.replace("group-", "");
+      try {
+        const toSave = messages.map(m => ({
+          id: m.id,
+          senderId: m.senderId,
+          senderName: m.senderName,
+          content: m.content,
+          timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp,
+          isMe: m.isMe,
+        }));
+        sessionStorage.setItem(`kindred-group-chat-${groupId}`, JSON.stringify(toSave));
+      } catch { /* ignore */ }
+    }
+  }, [messages, selectedRoom]);
 
   // Send pending draft message after room is selected
   useEffect(() => {
