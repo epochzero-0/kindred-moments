@@ -8,7 +8,7 @@ import {
   MembersNearby,
   InterestGroupDirectory,
   NeighbourhoodDirectory,
-  GlobeVisualization,
+  CommunityGlobe,
 } from "@/components/explore";
 
 // Neighbourhood labels for filtering
@@ -48,12 +48,19 @@ const ExplorePage = () => {
 
   // Get user's neighborhood from stored profile, convert to match users.json format
   const userNeighbourhood = storedProfile?.neighbourhoods?.[0];
-  const neighbourhoodDisplayName = userNeighbourhood 
+  const neighbourhoodDisplayName = userNeighbourhood
     ? neighbourhoodLabels[userNeighbourhood] || userNeighbourhood
     : currentUser?.neighbourhood || 'Punggol';
 
   // Get user interests from stored profile or current user
   const userInterests = storedProfile?.interests || currentUser?.interests || [];
+
+  // Create a merged user object with profile interests (for passing to components)
+  const effectiveUser = currentUser ? {
+    ...currentUser,
+    interests: userInterests, // Override with profile interests
+    neighbourhood: neighbourhoodDisplayName
+  } : null;
 
   // Filter users by same neighborhood (matching display name)
   const nearbyUsers = allUsers.filter(
@@ -125,7 +132,12 @@ const ExplorePage = () => {
             <NeighbourhoodDirectory key="neighbourhoods" pulseData={pulseData} />
           )}
           {activeTab === "globe" && (
-            <GlobeVisualization key="globe" pulseData={pulseData} clans={clans} />
+            <CommunityGlobe
+              key="globe"
+              currentUser={effectiveUser}
+              allUsers={allUsers}
+              clans={clans}
+            />
           )}
         </AnimatePresence>
       </div>
