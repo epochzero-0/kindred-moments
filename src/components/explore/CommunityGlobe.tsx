@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { Users, Sparkles, Heart, X, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { User, Clan } from "@/types";
+import { useChatConnections } from "@/hooks/use-chat-connections";
 
 export interface CommunityGlobeProps {
   currentUser: User | null;
@@ -13,44 +14,42 @@ export interface CommunityGlobeProps {
   clans: Clan[];
 }
 
-// Calculate 3D position on sphere based on theme clustering and user relevance
+// Calculate 3D position on sphere dynamically based on user interests
 const calculateCommunityPosition = (
   theme: string,
   index: number,
   total: number,
+  userInterests: string[],
   isUserMember: boolean,
   matchesUserInterests: boolean
 ): [number, number, number] => {
-  const themeAngles: Record<string, { theta: number; phi: number }> = {
-    fitness: { theta: 0, phi: Math.PI / 4 },
-    tech: { theta: Math.PI / 2, phi: Math.PI / 4 },
-    art: { theta: Math.PI, phi: Math.PI / 4 },
-    food: { theta: -Math.PI / 2, phi: Math.PI / 4 },
-    study: { theta: Math.PI / 4, phi: Math.PI / 3 },
-    gaming: { theta: 3 * Math.PI / 4, phi: Math.PI / 3 },
-    music: { theta: -3 * Math.PI / 4, phi: Math.PI / 3 },
-    pets: { theta: -Math.PI / 4, phi: Math.PI / 3 },
-    books: { theta: Math.PI / 6, phi: 2 * Math.PI / 3 },
-    travel: { theta: -Math.PI / 6, phi: 2 * Math.PI / 3 },
-    dogs: { theta: -Math.PI / 4, phi: Math.PI / 3 }, // Map dogs to pets area
-    "food hunt": { theta: -Math.PI / 2, phi: Math.PI / 4 }, // Map to food area
-    "evening walks": { theta: 0, phi: Math.PI / 4 }, // Map to fitness area
-    cooking: { theta: -Math.PI / 2, phi: Math.PI / 4 }, // Map to food area
-    movies: { theta: Math.PI, phi: Math.PI / 4 }, // Map to art/entertainment
-    "board games": { theta: 3 * Math.PI / 4, phi: Math.PI / 3 } // Map to gaming
-  };
+  let theta: number;
+  let phi: number;
 
-  const baseAngle = themeAngles[theme] || { theta: (index / total) * Math.PI * 2, phi: Math.PI / 2 };
+  const matchedInterestIndex = userInterests.findIndex(interest => 
+    theme.toLowerCase().includes(interest.toLowerCase()) || 
+    interest.toLowerCase().includes(theme.toLowerCase())
+  );
 
-  // Communities user is part of or match interests are positioned MUCH closer
+  if (matchedInterestIndex !== -1) {
+    const sectorSize = (Math.PI * 2) / Math.max(1, userInterests.length);
+    theta = matchedInterestIndex * sectorSize;
+    phi = Math.PI / 4; 
+  } else {
+    theta = (index / total) * Math.PI * 2;
+    phi = Math.PI / 1.8; 
+  }
+
   const radius = isUserMember ? 0.8 : matchesUserInterests ? 1.4 : 2.2;
+  const variation = (Math.random() - 0.5) * 0.5;
+  const phiVariation = (Math.random() - 0.5) * 0.2;
 
-  // Add slight variation to avoid overlap, less variation for user communities
-  const variation = isUserMember ? (Math.random() - 0.5) * 0.2 : (Math.random() - 0.5) * 0.4;
+  const finalTheta = theta + variation;
+  const finalPhi = phi + phiVariation;
 
-  const x = radius * Math.sin(baseAngle.phi) * Math.cos(baseAngle.theta + variation);
-  const y = radius * Math.sin(baseAngle.phi) * Math.sin(baseAngle.theta + variation);
-  const z = radius * Math.cos(baseAngle.phi);
+  const x = radius * Math.sin(finalPhi) * Math.cos(finalTheta);
+  const y = radius * Math.sin(finalPhi) * Math.sin(finalTheta);
+  const z = radius * Math.cos(finalPhi);
 
   return [x, y, z];
 };
@@ -92,13 +91,11 @@ function CommunityNode({
   return (
     <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
       <group position={position}>
-        {/* Glow effect */}
         <mesh>
           <sphereGeometry args={[size * 1.8, 16, 16]} />
           <meshBasicMaterial color={color} transparent opacity={0.08} />
         </mesh>
 
-        {/* Main sphere */}
         <mesh
           ref={meshRef}
           onClick={(e) => { e.stopPropagation(); onClick(); }}
@@ -115,7 +112,6 @@ function CommunityNode({
           />
         </mesh>
 
-        {/* Member ring for user communities */}
         {isUserMember && (
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <ringGeometry args={[size * 1.3, size * 1.5, 32]} />
@@ -123,7 +119,6 @@ function CommunityNode({
           </mesh>
         )}
 
-        {/* Label */}
         <Text
           position={[0, size + 0.08, 0]}
           fontSize={0.05}
@@ -136,7 +131,6 @@ function CommunityNode({
           {clan.name}
         </Text>
 
-        {/* Member count */}
         <Text
           position={[0, -size - 0.06, 0]}
           fontSize={0.035}
@@ -293,7 +287,8 @@ function CommunityGlobeScene({
   selectedCommunity,
   onSelectCommunity,
   hoveredCommunity,
-  onHoverCommunity
+  onHoverCommunity,
+  joinedGroupIds 
 }: {
   currentUser: User | null;
   allUsers: User[];
@@ -302,31 +297,36 @@ function CommunityGlobeScene({
   onSelectCommunity: (id: string | null) => void;
   hoveredCommunity: string | null;
   onHoverCommunity: (id: string | null) => void;
+  joinedGroupIds: Set<string>;
 }) {
   // Calculate community positions
   const communityPositions = useMemo(() => {
     const positions = new Map<string, [number, number, number]>();
-    const userInterests = new Set(currentUser?.interests || []);
-    const userCommunities = new Set(currentUser?.joined_clans || []);
+    const userInterests = currentUser?.interests || [];
 
     clans.forEach((clan, idx) => {
-      // Check BOTH directions: user's joined_clans AND if user is in clan.members
-      const isUserMember = userCommunities.has(clan.id) ||
-        (currentUser && clan.members.includes(currentUser.id));
+      // Check joined status by ID OR by theme (since chat groups often use theme as ID)
+      const isUserMember = joinedGroupIds.has(clan.id) || joinedGroupIds.has(clan.theme);
 
-      const matchesUserInterests = userInterests.has(clan.theme) ||
-        currentUser?.interests.some(interest =>
+      const matchesUserInterests = userInterests.some(interest =>
           clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
           interest.toLowerCase().includes(clan.theme.toLowerCase())
         );
 
       positions.set(
         clan.id,
-        calculateCommunityPosition(clan.theme, idx, clans.length, isUserMember, matchesUserInterests || false)
+        calculateCommunityPosition(
+          clan.theme, 
+          idx, 
+          clans.length, 
+          userInterests, 
+          isUserMember || false, 
+          matchesUserInterests || false
+        )
       );
     });
     return positions;
-  }, [clans, currentUser]);
+  }, [clans, currentUser, joinedGroupIds]);
 
   // Calculate user positions (near their communities)
   const userPositions = useMemo(() => {
@@ -366,37 +366,23 @@ function CommunityGlobeScene({
     return positions;
   }, [allUsers, communityPositions, currentUser]);
 
-  // Find related communities (share members with user's communities)
+  // Find related communities
   const relatedCommunities = useMemo(() => {
     if (!currentUser) return new Set<string>();
-
-    // Get all clans the user is actually in (check both directions)
-    const userCommunityIds = new Set([
-      ...currentUser.joined_clans,
-      ...clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id)
-    ]);
 
     const related = new Set<string>();
 
     clans.forEach(clan => {
-      // Skip if user is already a member
-      if (userCommunityIds.has(clan.id)) return;
+      // Skip if user is member
+      if (joinedGroupIds.has(clan.id) || joinedGroupIds.has(clan.theme)) return;
 
-      // Check if any members are in user's communities OR share interests
       const hasSharedMembers = clan.members.some(memberId => {
         const member = allUsers.find(u => u.id === memberId);
         if (!member) return false;
-
-        // Check if member is in any of user's communities
-        const memberCommunities = new Set([
-          ...member.joined_clans,
-          ...clans.filter(c => c.members.includes(memberId)).map(c => c.id)
-        ]);
-
-        return Array.from(userCommunityIds).some(ucId => memberCommunities.has(ucId));
+        
+        return member.joined_clans.some(c => joinedGroupIds.has(c));
       });
 
-      // Also consider related if theme matches user interests
       const matchesInterests = currentUser.interests.some(interest =>
         clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
         interest.toLowerCase().includes(clan.theme.toLowerCase())
@@ -408,27 +394,22 @@ function CommunityGlobeScene({
     });
 
     return related;
-  }, [currentUser, clans, allUsers]);
+  }, [currentUser, clans, allUsers, joinedGroupIds]);
 
   return (
     <>
-      {/* Lighting */}
       <ambientLight intensity={0.4} />
       <pointLight position={[10, 10, 10]} intensity={1} />
       <pointLight position={[-10, -10, -10]} intensity={0.5} color="#8b5cf6" />
       <spotLight position={[0, 10, 0]} angle={0.3} penumbra={1} intensity={0.5} />
 
-      {/* Central user */}
       {currentUser && <CentralUserNode user={currentUser} />}
 
-      {/* Communities */}
       {clans.map(clan => {
         const position = communityPositions.get(clan.id);
         if (!position) return null;
 
-        // Check BOTH directions for membership
-        const isUserMember = (currentUser?.joined_clans.includes(clan.id)) ||
-          (currentUser && clan.members.includes(currentUser.id)) || false;
+        const isUserMember = joinedGroupIds.has(clan.id) || joinedGroupIds.has(clan.theme);
         const isRelated = relatedCommunities.has(clan.id);
         const size = 0.06 + (clan.members.length / 20) * 0.03;
 
@@ -446,7 +427,6 @@ function CommunityGlobeScene({
         );
       })}
 
-      {/* Users - show all users */}
       {allUsers.map(user => {
         const position = userPositions.get(user.id);
         if (!position || user.id === currentUser?.id) return null;
@@ -462,9 +442,8 @@ function CommunityGlobeScene({
         );
       })}
 
-      {/* Connections from current user to their communities */}
       {currentUser && clans
-        .filter(clan => currentUser.joined_clans.includes(clan.id) || clan.members.includes(currentUser.id))
+        .filter(clan => joinedGroupIds.has(clan.id) || joinedGroupIds.has(clan.theme))
         .map(clan => {
           const position = communityPositions.get(clan.id);
           if (!position) return null;
@@ -479,7 +458,6 @@ function CommunityGlobeScene({
         })
       }
 
-      {/* Camera controls */}
       <OrbitControls
         enableZoom={true}
         enablePan={true}
@@ -496,56 +474,48 @@ const CommunityGlobe = ({ currentUser, allUsers, clans }: CommunityGlobeProps) =
   const [selectedCommunity, setSelectedCommunity] = useState<string | null>(null);
   const [hoveredCommunity, setHoveredCommunity] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { joinedGroups } = useChatConnections();
 
   const selectedClan = clans.find(c => c.id === selectedCommunity);
 
-  // Count user communities (check both directions) - updates when user joins new communities
-  const userCommunities = useMemo(() => {
-    if (!currentUser) return 0;
-    return new Set([
-      ...currentUser.joined_clans,
-      ...clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id)
-    ]).size;
-  }, [currentUser, clans]);
+  // Merge static profile clans with dynamic session joined groups
+  const allJoinedGroupIds = useMemo(() => {
+    const staticIds = currentUser?.joined_clans || [];
+    const dynamicIds = joinedGroups.map(g => g.id);
+    // Also include any clans where the user ID is explicitly in the members list (mock data back-compat)
+    const memberIds = currentUser ? clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id) : [];
+    
+    return new Set([...staticIds, ...dynamicIds, ...memberIds]);
+  }, [currentUser, joinedGroups, clans]);
 
-  // Calculate discovery communities - updates based on current user's interests and communities
+  // Calculate actual count of joined CLANS (handling theme overlap)
+  const userCommunitiesCount = useMemo(() => {
+    return clans.filter(c => allJoinedGroupIds.has(c.id) || allJoinedGroupIds.has(c.theme)).length;
+  }, [clans, allJoinedGroupIds]);
+
   const discoveryCommunities = useMemo(() => {
     if (!currentUser) return [];
-
-    const userCommunityIds = new Set([
-      ...currentUser.joined_clans,
-      ...clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id)
-    ]);
 
     const userInterests = new Set(currentUser.interests);
 
     return clans.filter(clan => {
-      // Skip if user is already a member
-      if (userCommunityIds.has(clan.id)) return false;
+      if (allJoinedGroupIds.has(clan.id) || allJoinedGroupIds.has(clan.theme)) return false;
 
-      // Check if theme matches user interests
       const matchesInterests = userInterests.has(clan.theme) ||
         currentUser.interests.some(interest =>
           clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
           interest.toLowerCase().includes(clan.theme.toLowerCase())
         );
 
-      // Check if members overlap with user's communities
       const hasSharedMembers = clan.members.some(memberId => {
         const member = allUsers.find(u => u.id === memberId);
         if (!member) return false;
-
-        const memberCommunities = new Set([
-          ...member.joined_clans,
-          ...clans.filter(c => c.members.includes(memberId)).map(c => c.id)
-        ]);
-
-        return Array.from(userCommunityIds).some(ucId => memberCommunities.has(ucId));
+        return member.joined_clans.some(c => allJoinedGroupIds.has(c));
       });
 
       return matchesInterests || hasSharedMembers;
     }).slice(0, 6);
-  }, [currentUser, clans, allUsers]);
+  }, [currentUser, clans, allUsers, allJoinedGroupIds]);
 
   return (
     <motion.div
@@ -560,7 +530,7 @@ const CommunityGlobe = ({ currentUser, allUsers, clans }: CommunityGlobeProps) =
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-pink-500/10 text-pink-500">
             <Heart className="h-4 w-4" />
             <span className="text-sm font-medium">
-              {userCommunities} {userCommunities === 1 ? 'community' : 'communities'}
+              {userCommunitiesCount} {userCommunitiesCount === 1 ? 'community' : 'communities'}
             </span>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-500">
@@ -609,6 +579,7 @@ const CommunityGlobe = ({ currentUser, allUsers, clans }: CommunityGlobeProps) =
               onSelectCommunity={setSelectedCommunity}
               hoveredCommunity={hoveredCommunity}
               onHoverCommunity={setHoveredCommunity}
+              joinedGroupIds={allJoinedGroupIds}
             />
           </Canvas>
         </Suspense>

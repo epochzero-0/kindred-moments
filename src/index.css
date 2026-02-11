@@ -106,11 +106,80 @@
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
   }
-  
+
   .glass-strong {
     background: rgba(255, 252, 250, 0.92);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Enhanced glass variants for calendar */
+  .glass-calendar {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .glass-event-card {
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(255, 255, 255, 0.6) 100%
+    );
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow:
+      0 8px 32px 0 rgba(31, 38, 135, 0.07),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-3d-overlay {
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    mix-blend-mode: screen;
+  }
+
+  .glass-border-gradient {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(white, white) padding-box,
+      linear-gradient(135deg,
+        rgba(255, 123, 89, 0.5),
+        rgba(236, 72, 153, 0.5)
+      ) border-box;
+  }
+
+  /* Event type specific glass tints */
+  .glass-neighbourhood {
+    background: linear-gradient(135deg,
+      rgba(255, 123, 89, 0.15) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
+  }
+
+  .glass-clan {
+    background: linear-gradient(135deg,
+      rgba(236, 72, 153, 0.15) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
+  }
+
+  .glass-competition {
+    background: linear-gradient(135deg,
+      rgba(251, 191, 36, 0.15) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
+  }
+
+  .glass-wellness {
+    background: linear-gradient(135deg,
+      rgba(155, 89, 182, 0.15) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
   }
 
   .text-gradient {
@@ -121,21 +190,47 @@
   }
 
   .shadow-soft {
-    box-shadow: 
+    box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.02),
       0 4px 12px rgba(0, 0, 0, 0.04);
   }
 
   .shadow-elevated {
-    box-shadow: 
+    box-shadow:
       0 1px 3px rgba(0, 0, 0, 0.02),
       0 8px 24px rgba(0, 0, 0, 0.05);
   }
 
   .shadow-elevated-lg {
-    box-shadow: 
+    box-shadow:
       0 2px 4px rgba(0, 0, 0, 0.02),
       0 16px 40px rgba(0, 0, 0, 0.07);
+  }
+
+  /* Glass card with shimmer effect */
+  .glass-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .glass-shimmer:hover::after {
+    transform: translateX(100%);
   }
 
   .card-hover {
