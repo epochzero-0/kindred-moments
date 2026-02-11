@@ -139,5 +139,185 @@
     ],
     "weekly_goal": "Two focus sessions",
     "events_planned": 3
+  },
+  {
+    "id": "c09",
+    "name": "Dog Lovers Club",
+    "neighbourhood": "Punggol",
+    "theme": "dogs",
+    "members": [
+      "u003",
+      "u011",
+      "u020",
+      "u034",
+      "u012"
+    ],
+    "weekly_goal": "Weekend dog park meetup",
+    "events_planned": 2
+  },
+  {
+    "id": "c10",
+    "name": "Pet Parents",
+    "neighbourhood": "Sengkang",
+    "theme": "pets",
+    "members": [
+      "u003",
+      "u011",
+      "u020",
+      "u027",
+      "u038"
+    ],
+    "weekly_goal": "Share pet care tips",
+    "events_planned": 3
+  },
+  {
+    "id": "c11",
+    "name": "Tech Innovators",
+    "neighbourhood": "Tampines",
+    "theme": "tech",
+    "members": [
+      "u023",
+      "u027",
+      "u047",
+      "u024",
+      "u009"
+    ],
+    "weekly_goal": "Build a project together",
+    "events_planned": 5
+  },
+  {
+    "id": "c12",
+    "name": "Foodie Explorers",
+    "neighbourhood": "Bedok",
+    "theme": "food hunt",
+    "members": [
+      "u009",
+      "u003",
+      "u028",
+      "u044",
+      "u018"
+    ],
+    "weekly_goal": "Discover new eateries",
+    "events_planned": 4
+  },
+  {
+    "id": "c13",
+    "name": "Gaming Squad",
+    "neighbourhood": "Punggol",
+    "theme": "gaming",
+    "members": [
+      "u011",
+      "u024",
+      "u032",
+      "u043",
+      "u047"
+    ],
+    "weekly_goal": "Weekly gaming session",
+    "events_planned": 6
+  },
+  {
+    "id": "c14",
+    "name": "Book Club",
+    "neighbourhood": "Bishan",
+    "theme": "books",
+    "members": [
+      "u002",
+      "u017",
+      "u022",
+      "u032",
+      "u042"
+    ],
+    "weekly_goal": "Read and discuss",
+    "events_planned": 2
+  },
+  {
+    "id": "c15",
+    "name": "Music Makers",
+    "neighbourhood": "Clementi",
+    "theme": "music",
+    "members": [
+      "u020",
+      "u024",
+      "u038",
+      "u044",
+      "u050"
+    ],
+    "weekly_goal": "Jam session",
+    "events_planned": 3
+  },
+  {
+    "id": "c16",
+    "name": "Travel Buddies",
+    "neighbourhood": "Tampines",
+    "theme": "travel",
+    "members": [
+      "u012",
+      "u018",
+      "u027",
+      "u034",
+      "u041"
+    ],
+    "weekly_goal": "Plan next adventure",
+    "events_planned": 2
+  },
+  {
+    "id": "c17",
+    "name": "Study Group Central",
+    "neighbourhood": "Punggol",
+    "theme": "study",
+    "members": [
+      "u001",
+      "u017",
+      "u022",
+      "u032",
+      "u039"
+    ],
+    "weekly_goal": "Collaborative learning",
+    "events_planned": 5
+  },
+  {
+    "id": "c18",
+    "name": "Cooking Circle",
+    "neighbourhood": "Yishun",
+    "theme": "cooking",
+    "members": [
+      "u002",
+      "u009",
+      "u020",
+      "u028",
+      "u048"
+    ],
+    "weekly_goal": "Try new recipes",
+    "events_planned": 3
+  },
+  {
+    "id": "c19",
+    "name": "Board Game Nights",
+    "neighbourhood": "Sengkang",
+    "theme": "board games",
+    "members": [
+      "u002",
+      "u024",
+      "u032",
+      "u043",
+      "u050"
+    ],
+    "weekly_goal": "Play new games",
+    "events_planned": 4
+  },
+  {
+    "id": "c20",
+    "name": "Movie Buffs",
+    "neighbourhood": "Bedok",
+    "theme": "movies",
+    "members": [
+      "u002",
+      "u018",
+      "u038",
+      "u042",
+      "u046"
+    ],
+    "weekly_goal": "Watch and discuss films",
+    "events_planned": 2
   }
 ]

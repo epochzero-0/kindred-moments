@@ -53,22 +53,52 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
     }
   }, [initialSearch]);
 
-  // Count members per interest group
-  const getGroupMemberCount = (interestId: string) => {
-    return allUsers.filter(u => u.interests.includes(interestId)).length;
+  // Get icon for clan based on theme
+  const getIconForTheme = (theme: string): LucideIcon => {
+    const themeIcons: Record<string, LucideIcon> = {
+      fitness: Dumbbell,
+      tech: Monitor,
+      art: Palette,
+      food: UtensilsCrossed,
+      study: BookOpen,
+      gaming: Gamepad2,
+      music: Music,
+      pets: Cat,
+      dogs: Dog,
+      books: BookOpen,
+      travel: Globe,
+      "food hunt": Soup,
+      cooking: UtensilsCrossed,
+      movies: Film,
+      "board games": Gamepad2,
+    };
+    return themeIcons[theme.toLowerCase()] || Sparkles;
   };
 
+  // Convert clans to group format with icons
+  const allClanGroups = clans.map(clan => ({
+    id: clan.id,
+    name: clan.name,
+    icon: getIconForTheme(clan.theme),
+    theme: clan.theme,
+    memberCount: clan.members.length,
+    clanData: clan
+  }));
+
   // Split groups into recommended (matching user interests) and explore (others)
-  const recommendedGroups = interestGroups
-    .filter(g => currentUserInterests.includes(g.id))
-    .map(g => ({ ...g, memberCount: getGroupMemberCount(g.id) }))
+  const recommendedGroups = allClanGroups
+    .filter(g => currentUserInterests.some(interest =>
+      g.theme.toLowerCase().includes(interest.toLowerCase()) ||
+      interest.toLowerCase().includes(g.theme.toLowerCase())
+    ))
     .sort((a, b) => b.memberCount - a.memberCount);
 
-  const exploreGroups = interestGroups
-    .filter(g => !currentUserInterests.includes(g.id))
-    .map(g => ({ ...g, memberCount: getGroupMemberCount(g.id) }))
-    .sort((a, b) => b.memberCount - a.memberCount)
-    .slice(0, 10); // Top 10 to explore
+  const exploreGroups = allClanGroups
+    .filter(g => !currentUserInterests.some(interest =>
+      g.theme.toLowerCase().includes(interest.toLowerCase()) ||
+      interest.toLowerCase().includes(g.theme.toLowerCase())
+    ))
+    .sort((a, b) => b.memberCount - a.memberCount);
 
   // Filter by search
   const filterBySearch = (groups: typeof recommendedGroups) => {
@@ -84,7 +114,12 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
   const filteredExplore = filterBySearch(exploreGroups);
 
   const handleGroupClick = (groupId: string, groupName: string) => {
-    navigate(`/chat?roomId=group-${groupId}&roomName=${encodeURIComponent(groupName)}`);
+    // Find the clan to get its theme
+    const clan = clans.find(c => c.id === groupId);
+    const roomId = clan ? clan.theme : groupId;
+
+    // Navigate to group chat using theme as roomId (matches ChatPage expectations)
+    navigate(`/chat?roomId=group-${roomId}&roomName=${encodeURIComponent(groupName)}`);
   };
 
   return (
@@ -131,14 +166,11 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
                         <Users className="h-3 w-3" />
                         {group.memberCount} members
                       </span>
-                      {isGroupJoined(group.id) ? (
+                      <span className="capitalize text-muted-foreground/70">{group.theme}</span>
+                      {isGroupJoined(group.id) && (
                         <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-medium">
                           <Check className="h-2.5 w-2.5" />
                           Joined
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-pandan/10 text-pandan text-[10px] font-medium">
-                          Matches your interest
                         </span>
                       )}
                     </div>
