@@ -222,7 +222,7 @@ const JournalPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-8"
+            className="fixed inset-0 z-50 flex items-start pt-16 justify-center bg-black/40 backdrop-blur-sm p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -249,9 +249,8 @@ const JournalPage = () => {
                   <button
                     key={i}
                     onClick={() => setNewMood(i + 1)}
-                    className={`h-11 w-11 rounded-xl flex items-center justify-center transition-all ${
-                      newMood === i + 1 ? "bg-primary/20 scale-110" : "bg-muted hover:bg-muted/70"
-                    }`}
+                    className={`h-11 w-11 rounded-xl flex items-center justify-center transition-all ${newMood === i + 1 ? "bg-primary/20 scale-110" : "bg-muted hover:bg-muted/70"
+                      }`}
                   >
                     <MoodIcon className={`h-5 w-5 ${newMood === i + 1 ? "text-primary" : "text-muted-foreground"}`} />
                   </button>
@@ -263,7 +262,7 @@ const JournalPage = () => {
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 placeholder="Write about your day..."
-                className="w-full h-32 p-4 rounded-xl bg-muted border-none resize-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-5"
+                className="w-full h-64 p-4 rounded-xl bg-muted border-none resize-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-5"
               />
 
               {/* Tags */}
@@ -274,9 +273,8 @@ const JournalPage = () => {
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                        newTags.includes(tag) ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/70"
-                      }`}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${newTags.includes(tag) ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/70"
+                        }`}
                     >
                       {tag}
                     </button>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Send, Shield, Users, ChevronLeft, Search, User, Paperclip, Camera, 
+import {
+  Send, Shield, Users, ChevronLeft, Search, User, Paperclip, Camera,
   MessageCircle, Sparkles, Heart,
   // Group icons
   Palette, CircleDot, Gamepad2, Coffee, Cat, UtensilsCrossed, Bike,
@@ -470,7 +470,7 @@ const ChatPage = () => {
           suggestedStarters: starters,
         };
         setSelectedRoom(newRoom);
-        
+
         // Check for draft message
         const draft = searchParams.get("draft");
         if (draft) {
@@ -614,6 +614,109 @@ const ChatPage = () => {
     ],
   };
 
+  const getTopicSnippet = (message: string) => {
+    const cleaned = message.trim().replace(/\s+/g, " ");
+    const words = cleaned.split(" ").slice(0, 6);
+    return words.join(" ");
+  };
+
+  const generateContextualGroupReply = (
+    userMessage: string,
+    groupId: string,
+    fallbackReplies: string[],
+  ) => {
+    const text = userMessage.trim();
+    const lower = text.toLowerCase();
+    const snippet = getTopicSnippet(text);
+    const isQuestion = lower.includes("?");
+    const isPlanning =
+      /\b(when|where|time|meet|tomorrow|tonight|weekend|saturday|sunday|\d{1,2}(am|pm))\b/.test(lower);
+    const isAgreeing = /\b(yes|yeah|yep|count me in|i'm in|im in|let's|lets|sure)\b/.test(lower);
+    const isThanks = /\b(thanks|thank you|thx)\b/.test(lower);
+
+    const topicReplies: Record<string, string[]> = {
+      art: ["That art idea sounds amazing!", "I'd love to get creative with that.", "Count me in for an art session!", "Do we need to bring our own supplies?"],
+      badminton: ["I'm down for badminton!", "When is the next game?", "My racquet is ready to go.", "I can book a court if we have enough players."],
+      "board games": ["Board game night? Yes please!", "I have Catan if anyone wants to play.", "I'm in! I love board games.", "Strategy games or party games?"],
+      "bubble tea": ["Boba run? I'm there.", "I'm craving bubble tea too.", "Sugar level 0% for me please!", "Let's go get some after this."],
+      cats: ["Aww, that's adorable.", "Cat lovers unite!", "Can I bring my cat too?", "We should do a cat cafe meet."],
+      cooking: ["That sounds delicious!", "I'd love to learn that recipe.", "Potluck dinner?", "I can bring dessert!"],
+      cycling: ["I'm up for a ride.", "Is it a long distance route?", "I'll bring my road bike.", "Cycling sounds great for this weekend."],
+      dogs: ["Dog park meetup?", "My golden retriever would love that.", "Puppy playdate!", "Let's go for a walk with the dogs."],
+      "evening walks": ["Evening walks are the best.", "I need to get my steps in.", "Fresh air sounds good.", "Where should we meet for the walk?"],
+      "food hunt": ["I'm always hungry. Where are we going?", "Food hunt! Yes!", "I know a great hawker center nearby.", "Let's try that new place."],
+      gardening: ["My plants need some help honestly.", "I love gardening.", "Community garden meetup?", "Anyone have spare potting soil?"],
+      "gym light": ["Gym buddy?", "I need motivation to go.", "Let's hit the weights.", "Cardio or lifting?"],
+      jogging: ["Running sounds good.", "What pace are we thinking?", "I can do a 5k.", "Morning jog?"],
+      kopi: ["Kopi sounds perfect right now.", "Meet at the usual coffeeshop?", "Kopi C Kosong for me.", "Let's catch up over coffee."],
+      movies: ["Movie night?", "I've been wanting to see that.", "Popcorn is on me.", "Cinema or Netflix party?"],
+      music: ["Jam session?", "I can bring my guitar.", "What genre are we thinking?", "Karaoke night anyone?"],
+      photography: ["Photo walk?", "I'll bring my camera.", "Golden hour shoot?", "Any specific location in mind?"],
+      study: ["Study session?", "I need to focus too.", "Library meetup?", "Let's be productive."],
+      tech: ["Tech talk! specific topic?", "I'm working on a project too.", "Hackathon ideas?", "Anyone into coding?"],
+      volunteering: ["Giving back sounds rewarding.", "Count me in to help.", "When is this happening?", "Great initiative."],
+    };
+
+    const fillerReplies = [
+      "That sounds interesting!",
+      "Tell me more about the plan.",
+      "I was thinking the same thing.",
+      "Good point!",
+      "Haha totally agree.",
+      "Hmm, let me check my schedule.",
+      "Anyone else interested in this?",
+      "Lets make it happen!",
+      "Sounds like a plan to me.",
+      "Ooh nice idea."
+    ];
+
+    if (isThanks) {
+      return ["No problem!", "Anytime!", "You're welcome!", "Happy to help!"].sort(() => 0.5 - Math.random())[0];
+    }
+
+    // If it's a specific question or logistical planning message, agree or ask for details
+    if (isPlanning) {
+      const planningReplies = [
+        "Sounds good. When exactly?",
+        "I'm free then.",
+        "That time works for me.",
+        "Let's lock in the details.",
+        "Where are we meeting?"
+      ];
+      return planningReplies[Math.floor(Math.random() * planningReplies.length)];
+    }
+
+    if (isQuestion) {
+      const questionReplies = [
+        "Good question. I'm not sure yet.",
+        "I think we can decide that together.",
+        "Does anyone else know?",
+        "Let's figure it out."
+      ];
+      return questionReplies[Math.floor(Math.random() * questionReplies.length)];
+    }
+
+    if (isAgreeing) {
+      return ["Same here!", "Me too.", "Count me in as well.", "Awesome."][Math.floor(Math.random() * 4)];
+    }
+
+    const groupSpecific = topicReplies[groupId];
+    // Higher chance to use specific replies if available
+    if (groupSpecific && groupSpecific.length > 0 && Math.random() > 0.3) {
+      return groupSpecific[Math.floor(Math.random() * groupSpecific.length)];
+    }
+
+    // Check for keywords in specific topics even if group ID doesn't match perfectly
+    // (Simple keyword matching as fallback)
+    for (const [topic, replies] of Object.entries(topicReplies)) {
+      if (lower.includes(topic)) {
+        return replies[Math.floor(Math.random() * replies.length)];
+      }
+    }
+
+    return fillerReplies[Math.floor(Math.random() * fillerReplies.length)];
+  };
+
   // Auto-reply for personal chats
   const personalAutoReplies = [
     "That sounds great! Let me know when you're free.",
@@ -649,23 +752,27 @@ const ChatPage = () => {
         // Group chat: 3 replies from different members
         const groupId = selectedRoom.id.replace("group-", "");
         const replyData = groupAutoReplies[groupId];
-        
+
         if (replyData) {
           const shuffled = [...replyData].sort(() => Math.random() - 0.5).slice(0, 3);
-          
+
           shuffled.forEach((responder, index) => {
             setTimeout(() => {
-              const randomReply = responder.replies[Math.floor(Math.random() * responder.replies.length)];
+              const contextualReply = generateContextualGroupReply(
+                content,
+                groupId,
+                responder.replies,
+              );
               const replyMessage: Message = {
                 id: `m${Date.now()}-${index}`,
                 senderId: responder.senderId,
                 senderName: responder.senderName,
-                content: randomReply,
+                content: contextualReply,
                 timestamp: new Date(),
                 isMe: false,
               };
               setMessages(prev => [...prev, replyMessage]);
-            }, 1000 + (index * 800) + Math.random() * 500);
+            }, 600 + (index * 400) + Math.random() * 400);
           });
         }
       } else {
@@ -682,7 +789,7 @@ const ChatPage = () => {
             isMe: false,
           };
           setMessages(prev => [...prev, replyMessage]);
-        }, 1500 + Math.random() * 1000);
+        }, 1000 + Math.random() * 600);
       }
     }
   };
@@ -717,11 +824,11 @@ const ChatPage = () => {
       }, 300);
       return () => clearTimeout(timer);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom, pendingDraft, currentUser]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Join Group Popup */}
       <AnimatePresence>
         {showJoinPopup && pendingGroup && (
@@ -811,7 +918,7 @@ const ChatPage = () => {
           </AnimatePresence>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-3">
+          <div className="flex-1 overflow-y-auto p-6 pb-32 space-y-3">
             <div className="flex justify-center mb-4">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pandan/10 text-pandan text-xs">
                 <Shield className="h-3 w-3" />
@@ -861,11 +968,10 @@ const ChatPage = () => {
                     <p className={`text-[10px] mb-0.5 ml-3 font-medium ${getSenderColor(message.senderId).text}`}>{message.senderName}</p>
                   )}
                   <div
-                    className={`px-3.5 py-2.5 rounded-2xl ${
-                      message.isMe
-                        ? "bg-primary text-white rounded-br-md"
-                        : `${getSenderColor(message.senderId).bg} shadow-soft rounded-bl-md`
-                    }`}
+                    className={`px-3.5 py-2.5 rounded-2xl ${message.isMe
+                      ? "bg-primary text-white rounded-br-md"
+                      : `${getSenderColor(message.senderId).bg} shadow-soft rounded-bl-md`
+                      }`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -878,44 +984,45 @@ const ChatPage = () => {
           </div>
 
           {/* Message input */}
-          <div className="p-4 bg-white/80 backdrop-blur-md border-t border-border/50">
-            <div className="flex items-end gap-2">
-              <div className="flex gap-1 mb-1">
-                <button
-                  className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
-                  title="Attach file"
-                >
-                  <Paperclip className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={toggleCamera}
-                  className={`h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
-                    isCameraActive
+          <div className="fixed bottom-16 left-0 right-0 z-40 p-4 bg-white/80 backdrop-blur-md border-t border-border/50">
+            <div className="max-w-7xl mx-auto w-full">
+              <div className="flex items-end gap-2">
+                <div className="flex gap-1 mb-1">
+                  <button
+                    className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
+                    title="Attach file"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={toggleCamera}
+                    className={`h-9 w-9 rounded-full flex items-center justify-center transition-colors ${isCameraActive
                       ? "bg-primary text-white"
                       : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                  }`}
-                  title="Take photo"
+                      }`}
+                    title="Take photo"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex-1 bg-muted rounded-xl flex items-center px-4 py-2.5">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                </div>
+                <button
+                  onClick={() => handleSendMessage()}
+                  disabled={!newMessage.trim()}
+                  className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-soft disabled:opacity-50 hover:opacity-90 transition-opacity mb-0.5"
                 >
-                  <Camera className="h-4 w-4" />
+                  <Send className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex-1 bg-muted rounded-xl flex items-center px-4 py-2.5">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Type a message..."
-                  className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                />
-              </div>
-              <button
-                onClick={() => handleSendMessage()}
-                disabled={!newMessage.trim()}
-                className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-soft disabled:opacity-50 hover:opacity-90 transition-opacity mb-0.5"
-              >
-                <Send className="h-4 w-4" />
-              </button>
             </div>
           </div>
         </div>
@@ -944,7 +1051,7 @@ const ChatPage = () => {
           </div>
 
           {/* Chat list */}
-          <div className="px-8 pb-12 flex-1 scrollbar-hide">
+          <div className="px-8 flex-1 overflow-y-auto scrollbar-hide">
             {allRooms.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -971,9 +1078,8 @@ const ChatPage = () => {
                     className="w-full flex items-center gap-3 p-4 bg-white rounded-2xl shadow-soft text-left card-hover"
                   >
                     <div className="relative">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                        room.type === "group" ? "bg-pandan/10" : "bg-primary/10"
-                      }`}>
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${room.type === "group" ? "bg-pandan/10" : "bg-primary/10"
+                        }`}>
                         <room.icon className={`h-5 w-5 ${room.type === "group" ? "text-pandan" : "text-primary"}`} />
                       </div>
                       {room.unread > 0 && (

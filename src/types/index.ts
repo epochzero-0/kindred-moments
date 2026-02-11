@@ -107,4 +107,5 @@ export interface Event {
   hasChat: boolean;
   expenses?: { total: number; perPerson: number };
   openToAll?: boolean; // Added from CreateEventModal form data
+  isUserAttending?: boolean;
 }

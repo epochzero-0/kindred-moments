@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, ChevronRight, Footprints, Brain, Handshake, Medal, Dumbbell, Waves, Coffee, Flame, Target, Users, Award, Check, type LucideIcon } from "lucide-react";
+import { TrendingUp, ChevronRight, Footprints, Brain, Handshake, Medal, Dumbbell, Waves, Coffee, Flame, Target, Users, Award, Check, Crown, type LucideIcon } from "lucide-react";
 import { usePulseData } from "@/hooks/use-data";
 import { useCommunityGoals } from "@/hooks/use-community-goals";
 
@@ -40,6 +41,13 @@ const GoalsPage = () => {
   const { activeGoals, goals } = useCommunityGoals();
   const endedGoals = goals.filter(g => !g.active);
   const totalActive = pulseData.reduce((a, p) => a + p.active_today, 0);
+
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  const handleRegister = () => {
+    setIsRegistered(true);
+    // In a real app, this would call an API
+  };
 
   return (
     <div className="min-h-screen px-8 py-10 max-w-7xl mx-auto">
@@ -203,34 +211,99 @@ const GoalsPage = () => {
             transition={{ duration: 0.4, delay: 0.2 }}
             className="bg-white rounded-2xl shadow-soft p-5"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="font-serif text-lg text-foreground">Clan leaderboard</h2>
               <button className="text-xs text-primary font-medium hover:underline">Full list</button>
             </div>
-            <div className="space-y-2">
-              {leaderboard.map((clan, i) => (
+
+            {/* Podium for Top 3 */}
+            <div className="relative pt-6 pb-2 px-2">
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-primary/5 to-transparent rounded-b-xl" />
+
+              <div className="flex items-end justify-center gap-3 mb-4 h-48 relative z-10">
+                {/* 2nd Place */}
+                <div className="flex flex-col items-center gap-2 w-1/3">
+                  <div className="relative">
+                    <div className="h-14 w-14 rounded-full border-4 border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shadow-lg transform translate-y-2">
+                      <span className="text-2xl">🥪</span>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-slate-400 flex items-center justify-center text-xs font-bold text-white shadow-md ring-2 ring-white z-10">2</div>
+                  </div>
+                  <div className="text-center w-full px-1">
+                    <p className="text-xs font-bold text-foreground truncate w-full">{leaderboard[1].name}</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{leaderboard[1].points} pts</p>
+                  </div>
+                  <div className="w-full h-20 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-50 rounded-t-lg border-t border-x border-slate-300 shadow-sm relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-white/30 skew-y-12 transform -translate-y-full group-hover:translate-y-full transition-transform duration-1000" />
+                  </div>
+                </div>
+
+                {/* 1st Place */}
+                <div className="flex flex-col items-center gap-2 w-1/3 z-20 -mx-1">
+                  <div className="relative mb-1">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 animate-bounce">
+                      <Crown className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                    </div>
+                    <div className="h-20 w-20 rounded-full border-4 border-yellow-300 overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center shadow-xl ring-4 ring-white/50">
+                      <span className="text-4xl">🍜</span>
+                    </div>
+                    <div className="absolute -bottom-2 -right-0 h-7 w-7 rounded-full bg-yellow-500 flex items-center justify-center text-sm font-bold text-white shadow-md ring-2 ring-white z-10">1</div>
+                  </div>
+                  <div className="text-center w-full px-1">
+                    <p className="text-sm font-bold text-foreground truncate w-full">{leaderboard[0].name}</p>
+                    <p className="text-xs text-yellow-600 font-bold">{leaderboard[0].points} pts</p>
+                  </div>
+                  <div className="w-full h-28 bg-gradient-to-b from-yellow-200 via-yellow-100 to-yellow-50 rounded-t-lg border-t border-x border-yellow-300 shadow-md relative group overflow-hidden flex items-end justify-center pb-3">
+                    <TrendingUp className="h-5 w-5 text-yellow-600 drop-shadow-sm" />
+                    <div className="absolute inset-0 bg-white/40 skew-y-12 transform -translate-y-full group-hover:translate-y-full transition-transform duration-1000 delay-100" />
+                  </div>
+                </div>
+
+                {/* 3rd Place */}
+                <div className="flex flex-col items-center gap-2 w-1/3">
+                  <div className="relative">
+                    <div className="h-14 w-14 rounded-full border-4 border-amber-700/20 overflow-hidden bg-amber-50 flex items-center justify-center shadow-lg transform translate-y-2">
+                      <span className="text-2xl">🏃</span>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold text-white shadow-md ring-2 ring-white z-10">3</div>
+                  </div>
+                  <div className="text-center w-full px-1">
+                    <p className="text-xs font-bold text-foreground truncate w-full">{leaderboard[2].name}</p>
+                    <p className="text-[10px] text-amber-700/70 font-medium">{leaderboard[2].points} pts</p>
+                  </div>
+                  <div className="w-full h-14 bg-gradient-to-b from-amber-200 via-amber-100 to-amber-50 rounded-t-lg border-t border-x border-amber-300 shadow-sm relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-white/30 skew-y-12 transform -translate-y-full group-hover:translate-y-full transition-transform duration-1000 delay-200" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Rest of the list */}
+            <div className="space-y-3">
+              {leaderboard.slice(3).map((clan, i) => (
                 <motion.div
                   key={clan.rank}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.25 + i * 0.05 }}
-                  className={`flex items-center gap-3 p-2.5 rounded-xl ${
-                    clan.rank <= 3 ? "bg-primary/5" : "bg-muted/50"
-                  }`}
+                  transition={{ duration: 0.3, delay: 0.4 + i * 0.05 }}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-transparent hover:border-muted-foreground/10 hover:bg-muted/50 transition-all"
                 >
-                  <div className="w-7 flex items-center justify-center">
-                    {clan.rank <= 3 ? (
-                      <Medal className={`h-5 w-5 ${clan.rank === 1 ? "text-yellow-500" : clan.rank === 2 ? "text-gray-400" : "text-amber-600"}`} />
-                    ) : (
-                      <span className="font-medium text-foreground text-sm">#{clan.rank}</span>
-                    )}
+                  <span className="mobile-touch-target font-medium text-muted-foreground text-xs w-6 text-center">#{clan.rank}</span>
+                  <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-sm text-sm border border-muted">
+                    {i === 0 ? "🏸" : "🧘"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{clan.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{clan.points.toLocaleString()} pts</p>
                   </div>
-                  {clan.trend === "up" && <TrendingUp className="h-3.5 w-3.5 text-pandan" />}
-                  {clan.trend === "down" && <TrendingUp className="h-3.5 w-3.5 text-destructive rotate-180" />}
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-foreground">{clan.points.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground">pts</p>
+                  </div>
+                  <div className="w-6 flex justify-end">
+                    {clan.trend === "up" && <TrendingUp className="h-3.5 w-3.5 text-pandan" />}
+                    {clan.trend === "down" && <TrendingUp className="h-3.5 w-3.5 text-destructive rotate-180" />}
+                    {clan.trend === "same" && <div className="h-1 w-2 bg-muted-foreground/30 rounded-full" />}
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -250,8 +323,15 @@ const GoalsPage = () => {
             </p>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Feb 15, 2026</span>
-              <button className="px-3 py-1.5 rounded-lg bg-lavender/20 text-lavender text-xs font-medium hover:bg-lavender/30 transition-colors">
-                Register
+              <button
+                onClick={handleRegister}
+                disabled={isRegistered}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isRegistered
+                  ? "bg-pandan/20 text-pandan cursor-default"
+                  : "bg-lavender/20 text-lavender hover:bg-lavender/30"
+                  }`}
+              >
+                {isRegistered ? "Registered ✓" : "Register"}
               </button>
             </div>
           </motion.div>
@@ -295,9 +375,8 @@ const GoalsPage = () => {
               {rewards.map((reward, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-3 p-2.5 rounded-xl ${
-                    reward.claimed ? "bg-pandan/10" : "bg-muted/50"
-                  }`}
+                  className={`flex items-center gap-3 p-2.5 rounded-xl ${reward.claimed ? "bg-pandan/10" : "bg-muted/50"
+                    }`}
                 >
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                     <reward.icon className="h-4 w-4 text-primary" />
@@ -319,7 +398,7 @@ const GoalsPage = () => {
           </motion.div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

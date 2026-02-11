@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-data";
 import { useEvents } from "@/hooks/use-events";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Event, EventType } from "@/types";
 
 // Mock data moved to use-events hook
@@ -32,12 +32,14 @@ const eventTypeColors: Record<EventType, { bg: string; text: string; dot: string
 
 const EventsPage = () => {
   const currentUser = useCurrentUser();
-  const { events, addEvent } = useEvents();
+  const { events, addEvent, rsvpEvent } = useEvents();
   const location = useLocation();
+  const navigate = useNavigate();
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const selectedEvent = selectedEventId ? events.find(e => e.id === selectedEventId) : null;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [draftData, setDraftData] = useState<Record<string, unknown> | null>(null);
   const [filterType, setFilterType] = useState<EventType | "all">("all");
@@ -229,7 +231,7 @@ const EventsPage = () => {
                         return (
                           <button
                             key={event.id}
-                            onClick={() => setSelectedEvent(event)}
+                            onClick={() => setSelectedEventId(event.id)}
                             className={`${colors.bg} ${colors.text} text-[9px] font-medium px-1.5 py-0.5 rounded truncate text-left hover:opacity-80 transition-opacity`}
                           >
                             {event.title.length > 12 ? event.title.slice(0, 10) + "…" : event.title}
@@ -268,7 +270,7 @@ const EventsPage = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  onClick={() => setSelectedEvent(event)}
+                  onClick={() => setSelectedEventId(event.id)}
                   className="bg-white rounded-2xl p-4 shadow-soft hover:shadow-elevated transition-shadow cursor-pointer"
                 >
                   <div className="flex items-start gap-3">
@@ -345,7 +347,7 @@ const EventsPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm pb-20"
-            onClick={() => setSelectedEvent(null)}
+            onClick={() => setSelectedEventId(null)}
           >
             <motion.div
               initial={{ y: "100%" }}
@@ -365,7 +367,7 @@ const EventsPage = () => {
                     </div>
                     <h2 className="text-xl font-semibold text-foreground">{selectedEvent.title}</h2>
                   </div>
-                  <button onClick={() => setSelectedEvent(null)} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center"><X className="h-4 w-4 text-muted-foreground" /></button>
+                  <button onClick={() => setSelectedEventId(null)} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center"><X className="h-4 w-4 text-muted-foreground" /></button>
                 </div>
                 <div className="space-y-3 mb-5">
                   <div className="flex items-center gap-3 text-sm"><CalendarIcon className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{selectedEvent.date.toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "long" })}</span></div>
@@ -375,8 +377,33 @@ const EventsPage = () => {
                   <div className="flex items-center gap-3 text-sm"><Languages className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{selectedEvent.languages.map(l => l.toUpperCase()).join(", ")}</span></div>
                 </div>
                 <div className="flex gap-3">
-                  <button className="flex-1 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors">RSVP</button>
-                  <button className="px-4 py-3 rounded-xl bg-muted text-foreground font-medium hover:bg-muted/70 transition-colors"><MessageCircle className="h-5 w-5" /></button>
+                  <button
+                    onClick={() => {
+                      if (selectedEvent) {
+                        rsvpEvent(selectedEvent.id, !selectedEvent.isUserAttending);
+                      }
+                    }}
+                    className={`flex-1 py-3 rounded-xl font-medium transition-colors ${selectedEvent.isUserAttending
+                      ? "bg-muted text-foreground hover:bg-muted/80"
+                      : "bg-primary text-white hover:bg-primary/90"
+                      }`}
+                  >
+                    {selectedEvent.isUserAttending ? "Going ✓" : "RSVP"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Navigate to chat
+                      const roomId = selectedEvent.type === 'clan' && selectedEvent.clanId
+                        ? `group-${selectedEvent.clanId}` // Use clan ID if available
+                        : `group-${selectedEvent.id}`; // Else use event ID for temp group
+
+                      // Pass room details to chat page
+                      navigate(`/chat?roomId=${roomId}&roomName=${encodeURIComponent(selectedEvent.title)}`);
+                    }}
+                    className="px-4 py-3 rounded-xl bg-muuted text-foreground font-medium hover:bg-muted/70 transition-colors border-2 border-transparent hover:border-muted-foreground/10"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
             </motion.div>

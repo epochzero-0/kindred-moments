@@ -236,9 +236,26 @@ export function useEvents() {
         const event: Event = {
             ...newEvent,
             id: `ev_${Date.now()}`,
+            isUserAttending: true, // Creator attends by default
         };
         setEvents((prev) => [...prev, event]);
         return event;
+    };
+
+    const rsvpEvent = (eventId: string, attending: boolean) => {
+        setEvents(prev => prev.map(event => {
+            if (event.id === eventId) {
+                // If status isn't changing, do nothing
+                if (event.isUserAttending === attending) return event;
+
+                return {
+                    ...event,
+                    isUserAttending: attending,
+                    attendees: attending ? event.attendees + 1 : Math.max(0, event.attendees - 1)
+                };
+            }
+            return event;
+        }));
     };
 
     const getUpcomingEvents = (limit: number = 5) => {
@@ -252,6 +269,7 @@ export function useEvents() {
     return {
         events,
         addEvent,
+        rsvpEvent,
         upcomingEvents: getUpcomingEvents(),
         isLoaded,
     };
