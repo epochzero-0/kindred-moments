@@ -37,7 +37,7 @@ The main discovery interface with four distinct tabs:
 - **AI-generated conversation starters** - Get personalized icebreakers based on shared interests
 - **Post-swipe summary** showing all liked users with quick-contact buttons
 
-#### **Groups Tab - Interest Groups**
+#### **Clans Tab - Interest Groups**
 - **Searchable group directory** with themed icons
 - **"For You" recommendations** based on user interests
 - **Join/Leave functionality** with visual "Joined" badges
@@ -49,19 +49,18 @@ The main discovery interface with four distinct tabs:
 - **Engagement metrics** and trending interests per area
 - **Mood indicators** for community wellness tracking
 
-#### **Globe Tab - 3D Community Pulse Visualization** 
-A breathtaking Three.js-powered 3D visualization:
-- **Interactive 3D globe** with rotating neighbourhood nodes
-- **Glowing orbs** representing each neighbourhood, sized by activity level
-- **Mood-based coloring** (green = high mood, yellow = neutral, orange = low)
-- **Particle streams** connecting neighbourhoods with shared interests
-- **Pulsing central core** with orbiting rings
-- **200 floating background particles** for atmosphere
-- **Live activity feed overlay** showing real-time community events
-- **Personal network highlighting** - Pink glow for liked users' neighbourhoods
-- **Interactive deep-dive panel** - Tap any node for detailed stats
-- **Event burst animations** when activities occur
-- **Drag-to-rotate and zoom controls**
+#### **Globe Tab - 3D Community Network Visualization** 
+An interactive Three.js-powered 3D visualization of your community network:
+- **Your node at the center** — you are the focal point of the network
+- **Pink dots** represent groups you've joined, positioned closest to you with glowing connection lines back to your node
+- **Purple dots** represent groups matching your interests, positioned at a medium distance
+- **Green dots** represent all other community groups, placed furthest away
+- **Small dots** represent individual users scattered throughout the network
+- **Spatial proximity = relevance** — the closer a node is to you, the stronger its relationship to your profile
+- **Tap any pink node** to open a detail panel — scroll down to navigate directly to that group's page
+- **Drag-to-rotate and zoom controls** for exploring the full network
+- **Pulsing central core** with orbiting rings for atmospheric depth
+- **Floating background particles** for ambiance
 
 ###  Chat Page - Living Conversations
 A fully-featured chat system that feels alive:
