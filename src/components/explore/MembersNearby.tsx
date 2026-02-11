@@ -520,7 +520,7 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
   const ComfortIcon = currentProfile ? getComfortIcon(currentProfile.comfort_level) : Sparkles;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-16">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-28">
       {/* Header info */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -551,7 +551,7 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
       </div>
 
       {/* Card stack area */}
-      <div className="relative h-[26rem] flex items-center justify-center mb-4">
+      <div className="relative h-[24rem] flex items-center justify-center mb-5">
         {/* Ambient glow behind card */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <motion.div 
@@ -570,9 +570,9 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
 
         {/* Background card (next profile preview) */}
         {nextProfile && (
-          <div className="absolute w-[calc(100%-2rem)] max-w-[calc(24rem-1rem)] h-[24rem]">
+          <div className="absolute w-[calc(100%-2rem)] max-w-[calc(24rem-1rem)] h-[22rem]">
             <div className="w-full h-full bg-card rounded-3xl shadow-sm border border-border/30 overflow-hidden opacity-50 scale-[0.94] translate-y-3">
-              <div className="h-44 bg-gradient-to-br from-muted to-muted/50">
+              <div className="h-36 bg-gradient-to-br from-muted to-muted/50">
                 <img 
                   src={getAvatarUrl(nextProfile.id, nextProfile.name)}
                   alt=""
@@ -646,7 +646,7 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
               )}
 
               {/* Profile image */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-40 overflow-hidden">
                 <img 
                   src={getAvatarUrl(currentProfile.id, currentProfile.name)}
                   alt={currentProfile.name}
@@ -753,7 +753,7 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center justify-center gap-5">
+      <div className="flex items-center justify-center gap-5 mb-2">
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}

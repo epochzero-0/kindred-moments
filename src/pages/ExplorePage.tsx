@@ -80,7 +80,7 @@ const ExplorePage = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-24">
       {/* Header */}
       <div className="px-6 pt-6 pb-3">
         <motion.div
