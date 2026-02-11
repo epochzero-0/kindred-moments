@@ -779,7 +779,7 @@ const ChatPage = () => {
   }, [selectedRoom, pendingDraft, currentUser]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-pandan/5 dark:to-pandan/5">
       {/* Join Group Popup */}
       <AnimatePresence>
         {showJoinPopup && pendingGroup && (
@@ -787,15 +787,16 @@ const ChatPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.92, opacity: 0, y: 24 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-elevated text-center"
+              exit={{ scale: 0.92, opacity: 0, y: 24 }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              className="relative w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-white/20 dark:border-white/10 bg-white/75 dark:bg-zinc-900/80 backdrop-blur-2xl backdrop-saturate-150 p-6 text-center"
             >
-              <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-pandan/20 to-emerald-100 flex items-center justify-center mb-4">
+              <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-pandan/20 to-emerald-100 dark:to-emerald-900/30 flex items-center justify-center mb-4">
                 {(() => {
                   const Icon = groupIcons[pendingGroup.id] || Users;
                   return <Icon className="h-8 w-8 text-pandan" />;
@@ -812,13 +813,13 @@ const ChatPage = () => {
               <div className="flex gap-3">
                 <button
                   onClick={handleMaybeLater}
-                  className="flex-1 py-3 rounded-xl bg-muted text-muted-foreground font-medium hover:bg-muted/80 transition-colors"
+                  className="flex-1 py-3 rounded-2xl bg-white/60 dark:bg-white/10 border border-border/30 dark:border-white/10 text-muted-foreground font-medium hover:bg-white/80 dark:hover:bg-white/15 transition-all"
                 >
                   Maybe later
                 </button>
                 <button
                   onClick={handleJoinGroup}
-                  className="flex-1 py-3 rounded-xl bg-pandan text-white font-medium hover:bg-pandan/90 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-pandan to-emerald-400 text-white font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   <Heart className="h-4 w-4" />
                   Join Group
@@ -831,24 +832,24 @@ const ChatPage = () => {
 
       {selectedRoom ? (
         <div className="flex-1 flex flex-col">
-          {/* Chat header */}
-          <div className="px-6 py-4 bg-white/80 backdrop-blur-md border-b border-border/50 flex items-center gap-3 w-full justify-between z-10 sticky top-0">
-            <div className="flex items-center gap-3">
+          {/* Chat header — glassmorphism */}
+          <div className="px-5 py-3.5 bg-white/60 dark:bg-zinc-900/70 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/20 dark:border-white/10 flex items-center gap-3 w-full justify-between z-10 sticky top-0">
+            <div className="flex items-center gap-3 flex-1">
               <button
                 onClick={() => {
                   setSelectedRoom(null);
                   window.history.pushState({}, "", "/chat");
                 }}
-                className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors"
+                className="h-9 w-9 rounded-xl bg-white/60 dark:bg-white/10 border border-white/30 dark:border-white/10 flex items-center justify-center hover:bg-white/80 dark:hover:bg-white/15 transition-all shadow-sm"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 text-foreground" />
               </button>
-              <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${selectedRoom.isNeighborhood ? "bg-pandan/10" : "bg-primary/10"}`}>
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${selectedRoom.isNeighborhood ? "bg-gradient-to-br from-pandan/20 to-emerald-100 dark:to-emerald-900/30" : "bg-gradient-to-br from-primary/15 to-primary/5 dark:from-primary/20 dark:to-primary/10"}`}>
                 <selectedRoom.icon className={`h-5 w-5 ${selectedRoom.isNeighborhood ? "text-pandan" : "text-primary"}`} />
               </div>
-              <div className="flex-1">
-                <h2 className="font-medium text-foreground text-sm">{selectedRoom.name}</h2>
-                <p className="text-xs text-muted-foreground">{selectedRoom.members} members</p>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-semibold text-foreground text-sm truncate">{selectedRoom.name}</h2>
+                <p className="text-[11px] text-muted-foreground">{selectedRoom.members} members</p>
               </div>
             </div>
           </div>
@@ -860,7 +861,7 @@ const ChatPage = () => {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-primary/5 px-6 py-2 flex items-center justify-center text-xs text-primary font-medium border-b border-primary/10"
+                className="bg-pandan/5 dark:bg-pandan/10 px-6 py-2 flex items-center justify-center text-xs text-pandan font-medium border-b border-pandan/10"
               >
                 <Camera className="h-3 w-3 mr-2 animate-pulse" />
                 You are taking a photo...
@@ -869,11 +870,11 @@ const ChatPage = () => {
           </AnimatePresence>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 pb-32 space-y-3">
+          <div className="flex-1 overflow-y-auto p-5 pb-36 space-y-3">
             <div className="flex justify-center mb-4">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pandan/10 text-pandan text-xs">
+              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/60 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/10 text-pandan text-xs shadow-sm">
                 <Shield className="h-3 w-3" />
-                <span>All members verified</span>
+                <span className="font-medium">All members verified</span>
               </div>
             </div>
 
@@ -891,11 +892,11 @@ const ChatPage = () => {
                   )}
                   <div
                     className={`px-3.5 py-2.5 rounded-2xl ${message.isMe
-                      ? "bg-primary text-white rounded-br-md"
-                      : `${getSenderColor(message.senderId).bg} shadow-soft rounded-bl-md`
+                      ? "bg-gradient-to-r from-pandan to-emerald-400 text-white rounded-br-md shadow-md"
+                      : `${getSenderColor(message.senderId).bg} dark:bg-opacity-20 border border-white/40 dark:border-white/10 rounded-bl-md shadow-sm`
                       }`}
                   >
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm leading-relaxed">{message.content}</p>
                   </div>
                   <p className={`text-[10px] text-muted-foreground mt-0.5 ${message.isMe ? "text-right mr-3" : "ml-3"}`}>
                     {formatTime(message.timestamp)}
@@ -905,29 +906,29 @@ const ChatPage = () => {
             ))}
           </div>
 
-          {/* Message input */}
-          <div className="fixed bottom-16 left-0 right-0 z-40 p-4 bg-white/80 backdrop-blur-md border-t border-border/50">
+          {/* Message input — glassmorphism */}
+          <div className="fixed bottom-16 left-0 right-0 z-40 p-3 bg-white/60 dark:bg-zinc-900/70 backdrop-blur-2xl backdrop-saturate-150 border-t border-white/20 dark:border-white/10">
             <div className="max-w-7xl mx-auto w-full">
               <div className="flex items-end gap-2">
-                <div className="flex gap-1 mb-1">
+                <div className="flex gap-1.5 mb-0.5">
                   <button
-                    className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
+                    className="h-9 w-9 rounded-xl bg-white/60 dark:bg-white/10 border border-white/30 dark:border-white/10 flex items-center justify-center text-muted-foreground hover:bg-white/80 dark:hover:bg-white/15 hover:text-foreground transition-all shadow-sm"
                     title="Attach file"
                   >
                     <Paperclip className="h-4 w-4" />
                   </button>
                   <button
                     onClick={toggleCamera}
-                    className={`h-9 w-9 rounded-full flex items-center justify-center transition-colors ${isCameraActive
-                      ? "bg-primary text-white"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                    className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all shadow-sm ${isCameraActive
+                      ? "bg-gradient-to-r from-pandan to-emerald-400 text-white border border-pandan/30"
+                      : "bg-white/60 dark:bg-white/10 border border-white/30 dark:border-white/10 text-muted-foreground hover:bg-white/80 dark:hover:bg-white/15 hover:text-foreground"
                       }`}
                     title="Take photo"
                   >
                     <Camera className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="flex-1 bg-muted rounded-xl flex items-center px-4 py-2.5">
+                <div className="flex-1 bg-white/70 dark:bg-white/10 rounded-2xl flex items-center px-4 py-2.5 border border-white/30 dark:border-white/10 shadow-sm">
                   <input
                     type="text"
                     value={newMessage}
@@ -940,7 +941,7 @@ const ChatPage = () => {
                 <button
                   onClick={() => handleSendMessage()}
                   disabled={!newMessage.trim()}
-                  className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-soft disabled:opacity-50 hover:opacity-90 transition-opacity mb-0.5"
+                  className="h-10 w-10 rounded-xl bg-gradient-to-br from-pandan to-emerald-400 flex items-center justify-center text-white shadow-md disabled:opacity-40 hover:shadow-lg transition-all mb-0.5"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -950,62 +951,70 @@ const ChatPage = () => {
         </div>
       ) : (
         <>
-          {/* Header */}
-          <div className="px-8 py-10 pb-6">
+          {/* Header — glassmorphism */}
+          <div className="px-6 pt-8 pb-5">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <p className="text-muted-foreground text-sm mb-1">Messages</p>
-              <h1 className="text-3xl text-foreground mb-6">Stay connected</h1>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="h-4 w-4 text-pandan" />
+                <p className="text-pandan text-sm font-medium">Messages</p>
+              </div>
+              <h1 className="text-3xl font-bold text-foreground mb-5">Stay connected</h1>
 
-              {/* Search */}
+              {/* Search — glassmorphism */}
               <div className="relative">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search conversations..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white shadow-soft border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/70 dark:bg-white/10 border border-white/30 dark:border-white/10 backdrop-blur-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-pandan/40 shadow-sm transition-all"
                 />
               </div>
             </motion.div>
           </div>
 
           {/* Chat list */}
-          <div className="px-8 flex-1 overflow-y-auto scrollbar-hide">
+          <div className="px-5 flex-1 overflow-y-auto scrollbar-hide pb-20">
             {allRooms.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-16"
               >
-                <div className="h-20 w-20 mx-auto rounded-2xl bg-muted flex items-center justify-center mb-4">
-                  <MessageCircle className="h-10 w-10 text-muted-foreground" />
+                <div className="h-20 w-20 mx-auto rounded-3xl bg-white/60 dark:bg-white/10 backdrop-blur-xl border border-white/20 dark:border-white/10 flex items-center justify-center mb-4 shadow-sm">
+                  <MessageCircle className="h-10 w-10 text-pandan/60" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">No conversations yet</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No conversations yet</h3>
                 <p className="text-sm text-muted-foreground mb-4 max-w-xs mx-auto">
                   Join interest groups or connect with members from the Explore tab to start chatting!
                 </p>
               </motion.div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {allRooms.map((room, i) => (
                   <motion.button
                     key={room.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
+                    transition={{ duration: 0.3, delay: 0.05 + i * 0.04 }}
                     onClick={() => setSelectedRoom(room)}
-                    className="w-full flex items-center gap-3 p-4 bg-white rounded-2xl shadow-soft text-left card-hover"
+                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-white/65 dark:bg-zinc-900/60 backdrop-blur-xl backdrop-saturate-150 border border-white/25 dark:border-white/10 text-left shadow-sm hover:shadow-md hover:bg-white/80 dark:hover:bg-zinc-900/70 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200"
                   >
                     <div className="relative">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${room.isNeighborhood ? "bg-pandan/10" : room.type === "group" ? "bg-purple-100" : "bg-primary/10"
+                      <div className={`h-11 w-11 rounded-xl flex items-center justify-center shadow-sm ${
+                        room.isNeighborhood
+                          ? "bg-gradient-to-br from-pandan/20 to-emerald-100 dark:to-emerald-900/30"
+                          : room.type === "group"
+                            ? "bg-gradient-to-br from-violet-100 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/20"
+                            : "bg-gradient-to-br from-primary/15 to-primary/5 dark:from-primary/20 dark:to-primary/10"
                         }`}>
-                        <room.icon className={`h-5 w-5 ${room.isNeighborhood ? "text-pandan" : room.type === "group" ? "text-purple-600" : "text-primary"}`} />
+                        <room.icon className={`h-5 w-5 ${room.isNeighborhood ? "text-pandan" : room.type === "group" ? "text-violet-600 dark:text-violet-400" : "text-primary"}`} />
                       </div>
                       {room.unread > 0 && (
-                        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
+                        <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-gradient-to-r from-pandan to-emerald-400 text-white text-[10px] font-bold flex items-center justify-center shadow-sm ring-2 ring-white/80 dark:ring-zinc-900/80">
                           {room.unread}
                         </span>
                       )}
@@ -1013,18 +1022,18 @@ const ChatPage = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-foreground text-sm">{room.name}</h3>
+                          <h3 className="font-semibold text-foreground text-sm">{room.name}</h3>
                           {room.fromLikedList && !isUserContacted(room.userId || "") && (
-                            <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 font-medium">
+                            <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-rose-100/80 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 font-medium border border-rose-200/50 dark:border-rose-800/30">
                               <Heart className="h-2.5 w-2.5" />
                               Liked
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-muted-foreground">{formatTime(room.lastMessageTime)}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{formatTime(room.lastMessageTime)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        {room.type === "group" && <Users className="h-3 w-3 text-muted-foreground" />}
+                        {room.type === "group" && <Users className="h-3 w-3 text-muted-foreground/70" />}
                         <p className="text-xs text-muted-foreground truncate">{room.lastMessage}</p>
                       </div>
                     </div>

@@ -112,12 +112,12 @@ const ProfilePage = () => {
         return {
           id: g.id,
           name: g.name,
-          theme: g.id, // Usually the ID is the theme for topic groups
-          description: `Community group for ${g.name}`,
+          neighbourhood: "",
+          theme: g.id,
           members: interestedUserIds.length > 0 ? interestedUserIds : [currentUser?.id || "user"],
           weekly_goal: "Stay active!",
-          meeting_time: "Various times"
-        } as Clan;
+          events_planned: 0,
+        } satisfies Clan;
       });
 
     return [...realClans, ...topicGroups];
