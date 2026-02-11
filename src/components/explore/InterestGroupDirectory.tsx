@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, Search, Globe, ChevronRight, Sparkles, Check,
+  Users, Search, Globe, ChevronRight, Sparkles, Check, Heart,
   Palette, CircleDot, Gamepad2, Coffee, Cat, UtensilsCrossed, Bike,
   Dog, Sunset, Soup, Flower2, Dumbbell, Footprints, Film, Music,
   Camera, BookOpen, Monitor, HandHeart, LucideIcon
@@ -16,30 +16,6 @@ export interface InterestGroupDirectoryProps {
   currentUserInterests: string[];
   initialSearch?: string;
 }
-
-// Top interest-based groups
-const interestGroups: { id: string; name: string; icon: LucideIcon; theme: string }[] = [
-  { id: "art", name: "Art & Creativity", icon: Palette, theme: "creative" },
-  { id: "badminton", name: "Badminton Players", icon: CircleDot, theme: "sports" },
-  { id: "board games", name: "Board Game Nights", icon: Gamepad2, theme: "games" },
-  { id: "bubble tea", name: "Bubble Tea Lovers", icon: Coffee, theme: "food" },
-  { id: "cats", name: "Cat Parents", icon: Cat, theme: "pets" },
-  { id: "cooking", name: "Home Cooks", icon: UtensilsCrossed, theme: "food" },
-  { id: "cycling", name: "Cycling Squad", icon: Bike, theme: "fitness" },
-  { id: "dogs", name: "Dog Lovers", icon: Dog, theme: "pets" },
-  { id: "evening walks", name: "Evening Walkers", icon: Sunset, theme: "wellness" },
-  { id: "food hunt", name: "Food Hunters", icon: Soup, theme: "food" },
-  { id: "gardening", name: "Green Thumbs", icon: Flower2, theme: "hobby" },
-  { id: "gym light", name: "Gym Buddies", icon: Dumbbell, theme: "fitness" },
-  { id: "jogging", name: "Jogging Club", icon: Footprints, theme: "fitness" },
-  { id: "kopi", name: "Kopi Kakis", icon: Coffee, theme: "food" },
-  { id: "movies", name: "Movie Buffs", icon: Film, theme: "entertainment" },
-  { id: "music", name: "Music Enthusiasts", icon: Music, theme: "entertainment" },
-  { id: "photography", name: "Photography Club", icon: Camera, theme: "creative" },
-  { id: "study", name: "Study Buddies", icon: BookOpen, theme: "learning" },
-  { id: "tech", name: "Tech Explorers", icon: Monitor, theme: "tech" },
-  { id: "volunteering", name: "Volunteers United", icon: HandHeart, theme: "community" },
-];
 
 const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initialSearch = "" }: InterestGroupDirectoryProps) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -85,16 +61,24 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
     clanData: clan
   }));
 
-  // Split groups into recommended (matching user interests) and explore (others)
+  // Helper to check if a group is joined (by ID or Theme)
+  const isJoined = (group: typeof allClanGroups[0]) => 
+    isGroupJoined(group.id) || isGroupJoined(group.theme);
+
+  // 1. Joined Groups
+  const joinedGroupsList = allClanGroups.filter(g => isJoined(g));
+
+  // 2. Recommended (Matching interests, NOT joined)
   const recommendedGroups = allClanGroups
-    .filter(g => currentUserInterests.some(interest =>
+    .filter(g => !isJoined(g) && currentUserInterests.some(interest =>
       g.theme.toLowerCase().includes(interest.toLowerCase()) ||
       interest.toLowerCase().includes(g.theme.toLowerCase())
     ))
     .sort((a, b) => b.memberCount - a.memberCount);
 
+  // 3. Explore (Everything else, NOT joined)
   const exploreGroups = allClanGroups
-    .filter(g => !currentUserInterests.some(interest =>
+    .filter(g => !isJoined(g) && !currentUserInterests.some(interest =>
       g.theme.toLowerCase().includes(interest.toLowerCase()) ||
       interest.toLowerCase().includes(g.theme.toLowerCase())
     ))
@@ -110,6 +94,7 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
     );
   };
 
+  const filteredJoined = filterBySearch(joinedGroupsList);
   const filteredRecommended = filterBySearch(recommendedGroups);
   const filteredExplore = filterBySearch(exploreGroups);
 
@@ -138,7 +123,50 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
         </div>
       </div>
 
-      {/* Recommended for you */}
+      {/* 1. Joined Groups Section */}
+      {filteredJoined.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Heart className="h-4 w-4 text-rose-500" />
+            <h3 className="font-semibold text-foreground text-sm">Your Groups</h3>
+          </div>
+          <div className="space-y-2">
+            {filteredJoined.map((group, i) => (
+              <motion.div
+                key={group.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => handleGroupClick(group.id, group.name)}
+                className="bg-white rounded-2xl p-4 shadow-soft hover:shadow-elevated transition-all cursor-pointer border-2 border-rose-100/50 hover:border-rose-200"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+                    <group.icon className="h-6 w-6 text-rose-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-foreground">{group.name}</h4>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {group.memberCount} members
+                      </span>
+                      <span className="capitalize text-muted-foreground/70">{group.theme}</span>
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-medium">
+                        <Check className="h-2.5 w-2.5" />
+                        Joined
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 2. Recommended Section */}
       {filteredRecommended.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
@@ -167,12 +195,6 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
                         {group.memberCount} members
                       </span>
                       <span className="capitalize text-muted-foreground/70">{group.theme}</span>
-                      {isGroupJoined(group.id) && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-medium">
-                          <Check className="h-2.5 w-2.5" />
-                          Joined
-                        </span>
-                      )}
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -183,7 +205,7 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
         </div>
       )}
 
-      {/* Explore more */}
+      {/* 3. Explore More Section */}
       {filteredExplore.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -211,14 +233,7 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
                         <Users className="h-3 w-3" />
                         {group.memberCount} members
                       </span>
-                      {isGroupJoined(group.id) ? (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-medium">
-                          <Check className="h-2.5 w-2.5" />
-                          Joined
-                        </span>
-                      ) : (
-                        <span className="capitalize text-muted-foreground/70">{group.theme}</span>
-                      )}
+                      <span className="capitalize text-muted-foreground/70">{group.theme}</span>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -230,7 +245,7 @@ const InterestGroupDirectory = ({ clans, allUsers, currentUserInterests, initial
       )}
 
       {/* No results */}
-      {filteredRecommended.length === 0 && filteredExplore.length === 0 && (
+      {filteredJoined.length === 0 && filteredRecommended.length === 0 && filteredExplore.length === 0 && (
         <div className="text-center py-12">
           <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
             <Search className="h-8 w-8 text-muted-foreground" />
