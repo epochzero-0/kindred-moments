@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import {
   MapPin, Wind, Footprints, Sparkles, Coffee, ArrowRight, MessageCircle, Calendar, Users,
-  ChevronRight, X, Bot, Compass, Activity, Heart, Lightbulb
+  ChevronRight, ChevronDown, X, Bot, Compass, Activity, Heart, Lightbulb
 } from "lucide-react";
 import { useCurrentUser, usePulseData } from "@/hooks/use-data";
 import { useEvents } from "@/hooks/use-events";
@@ -17,106 +17,89 @@ const neighbourhoodLabels: Record<string, string> = {
   "bukit-batok": "Bukit Batok", bishan: "Bishan", "toa-payoh": "Toa Payoh", kallang: "Kallang",
 };
 
-// Floating orb component for ambient effect
-const FloatingOrb = ({
-  size,
-  color,
-  delay,
-  duration,
-  x,
-  y
-}: {
-  size: number;
-  color: string;
-  delay: number;
-  duration: number;
-  x: string;
-  y: string;
-}) => (
+// Ambient radial glow — very subtle, atmospheric
+const AmbientGlow = ({ color, size, x, y, delay }: { color: string; size: number; x: string; y: string; delay: number }) => (
   <motion.div
-    className="absolute rounded-full blur-3xl"
+    className="absolute rounded-full pointer-events-none"
     style={{
       width: size,
       height: size,
-      background: color,
+      background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
       left: x,
       top: y,
+      transform: "translate(-50%, -50%)",
+      filter: "blur(40px)",
     }}
-    animate={{
-      scale: [1, 1.2, 1],
-      opacity: [0.3, 0.5, 0.3],
-      x: [0, 20, 0],
-      y: [0, -20, 0],
-    }}
-    transition={{
-      duration,
-      delay,
-      repeat: Infinity,
-      ease: "easeInOut",
-    }}
+    animate={{ opacity: [0.25, 0.4, 0.25], scale: [1, 1.08, 1] }}
+    transition={{ duration: 8 + delay * 2, delay, repeat: Infinity, ease: "easeInOut" }}
   />
 );
 
-// Pulse ring animation
+// Pulse ring — concentric, quiet
 const PulseRing = ({ delay, size }: { delay: number; size: number }) => (
   <motion.div
-    className="absolute rounded-full border border-primary/20"
+    className="absolute rounded-full border border-primary/10"
     style={{ width: size, height: size }}
     initial={{ scale: 0.8, opacity: 0 }}
-    animate={{
-      scale: [0.8, 1.5],
-      opacity: [0.6, 0],
-    }}
-    transition={{
-      duration: 3,
-      delay,
-      repeat: Infinity,
-      ease: "easeOut",
-    }}
+    animate={{ scale: [0.8, 1.8], opacity: [0.4, 0] }}
+    transition={{ duration: 4, delay, repeat: Infinity, ease: "easeOut" }}
   />
 );
 
-// Animated counter component
+// Animated counter — physics-based number roll
 const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
-  const [displayValue, setDisplayValue] = useState(0);
+  const motionVal = useMotionValue(0);
+  const display = useTransform(motionVal, (v) => Math.round(v));
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    const duration = 1500;
-    const steps = 30;
-    const increment = value / steps;
-    let current = 0;
+    const controls = animate(motionVal, value, {
+      duration: 2,
+      ease: [0.25, 0.1, 0.25, 1],
+      onUpdate: (v) => setCurrent(Math.round(v)),
+    });
+    return controls.stop;
+  }, [value, motionVal]);
 
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setDisplayValue(value);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [value]);
-
-  return (
-    <span>{displayValue}{suffix}</span>
-  );
+  return <span>{current}{suffix}</span>;
 };
 
-// Mock data replaced by useEvents hook
+// Stagger animation orchestrator
+const stagger = {
+  container: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.045, delayChildren: 0.1 },
+    },
+  },
+  item: {
+    hidden: { opacity: 0, y: 18 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+    },
+  },
+  // Delayed variant for secondary sections
+  itemSlow: {
+    hidden: { opacity: 0, y: 12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+    },
+  },
+};
 
-// Tour steps configuration - simpler with arrow positioning
+// Tour steps configuration
 interface TourStep {
   id: string;
   title: string;
   description: string;
   icon: typeof Sparkles;
-  // Arrow points to this position
   arrowTo: { x: string; y: string };
-  // Tooltip card position
   cardPosition: { x: string; y: string };
-  // Arrow curve direction
   arrowCurve: "down-left" | "down-right" | "up-left" | "up-right";
 }
 
@@ -178,6 +161,7 @@ const HomePage = () => {
   const [greeting, setGreeting] = useState("");
   const [nudgePostponed, setNudgePostponed] = useState(false);
   const [showInvite, setShowInvite] = useState(true);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   // Tour state
   const [showTour, setShowTour] = useState(false);
@@ -261,8 +245,17 @@ const HomePage = () => {
   const displayName = storedProfile?.displayName || currentUser?.name || '';
   const firstName = displayName?.split(' ')[0] || 'there';
 
+  // Track scroll to hide indicator
+  useEffect(() => {
+    const onScroll = () => {
+      setHasScrolled(window.scrollY > 60);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="h-[100dvh] overflow-hidden bg-gradient-to-b from-background via-background to-muted/20 flex flex-col">
+    <div className="min-h-screen bg-background overflow-y-auto relative">
       {/* Tour Overlay */}
       <AnimatePresence>
         {showTour && (
@@ -272,10 +265,7 @@ const HomePage = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] pointer-events-none"
           >
-            {/* Subtle dark backdrop */}
             <div className="absolute inset-0 bg-black/40" />
-
-            {/* Curvy Arrow SVG */}
             <svg
               key={`arrow-${tourStep}`}
               className="absolute inset-0 w-full h-full overflow-visible"
@@ -284,19 +274,8 @@ const HomePage = () => {
               style={{ pointerEvents: "none" }}
             >
               <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="6"
-                  refY="4"
-                  orient="auto"
-                  markerUnits="strokeWidth"
-                >
-                  <path
-                    d="M 0 0 L 8 4 L 0 8 Z"
-                    fill="white"
-                  />
+                <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+                  <path d="M 0 0 L 8 4 L 0 8 Z" fill="white" />
                 </marker>
               </defs>
               <motion.path
@@ -305,32 +284,21 @@ const HomePage = () => {
                   const cardY = parseFloat(currentTourStep.cardPosition.y);
                   const arrowX = parseFloat(currentTourStep.arrowTo.x);
                   const arrowY = parseFloat(currentTourStep.arrowTo.y);
-
-                  // Start from edge of card
                   const startX = cardX;
                   const startY = currentTourStep.arrowCurve.startsWith("down") ? cardY + 8 : cardY - 8;
                   const endX = arrowX;
                   const endY = arrowY;
-
-                  // Control points for smooth bezier curve
                   const midY = (startY + endY) / 2;
                   const curveOffset = currentTourStep.arrowCurve.includes("left") ? -30 : 30;
-
                   return `M ${startX} ${startY} Q ${startX + curveOffset} ${midY + 10}, ${endX} ${endY}`;
                 })()}
-                stroke="white"
-                strokeWidth="0.4"
-                strokeDasharray="1.5 1"
-                strokeLinecap="round"
-                fill="none"
-                markerEnd="url(#arrowhead)"
+                stroke="white" strokeWidth="0.4" strokeDasharray="1.5 1" strokeLinecap="round"
+                fill="none" markerEnd="url(#arrowhead)"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               />
             </svg>
-
-            {/* Tooltip Card */}
             <motion.div
               key={`tooltip-${tourStep}`}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -338,10 +306,7 @@ const HomePage = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", duration: 0.5 }}
               className="absolute -translate-x-1/2 -translate-y-1/2 w-72 pointer-events-auto"
-              style={{
-                left: currentTourStep.cardPosition.x,
-                top: currentTourStep.cardPosition.y,
-              }}
+              style={{ left: currentTourStep.cardPosition.x, top: currentTourStep.cardPosition.y }}
             >
               <div className="bg-white rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center gap-3 mb-2">
@@ -354,29 +319,15 @@ const HomePage = () => {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">{currentTourStep.description}</p>
-
-                {/* Progress & Actions */}
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1">
                     {tourSteps.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`h-1 rounded-full transition-all ${i === tourStep ? "w-4 bg-primary" : "w-1 bg-muted"
-                          }`}
-                      />
+                      <div key={i} className={`h-1 rounded-full transition-all ${i === tourStep ? "w-4 bg-primary" : "w-1 bg-muted"}`} />
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={completeTour}
-                      className="text-[10px] text-muted-foreground hover:text-foreground"
-                    >
-                      Skip
-                    </button>
-                    <button
-                      onClick={nextStep}
-                      className="text-[10px] font-medium text-primary flex items-center gap-0.5"
-                    >
+                    <button onClick={completeTour} className="text-[10px] text-muted-foreground hover:text-foreground">Skip</button>
+                    <button onClick={nextStep} className="text-[10px] font-medium text-primary flex items-center gap-0.5">
                       {tourStep === tourSteps.length - 1 ? "Done" : "Next"}
                       <ChevronRight className="h-3 w-3" />
                     </button>
@@ -388,251 +339,316 @@ const HomePage = () => {
         )}
       </AnimatePresence>
 
-      {/* Ambient Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <FloatingOrb size={300} color="rgba(139, 92, 246, 0.15)" delay={0} duration={8} x="10%" y="5%" />
-        <FloatingOrb size={200} color="rgba(236, 72, 153, 0.12)" delay={2} duration={10} x="70%" y="15%" />
-        <FloatingOrb size={250} color="rgba(34, 197, 94, 0.1)" delay={4} duration={9} x="20%" y="60%" />
-        <FloatingOrb size={180} color="rgba(59, 130, 246, 0.1)" delay={3} duration={7} x="80%" y="70%" />
-      </div>
+      {/* ─── Page Content ─── */}
+      <motion.div
+        variants={stagger.container}
+        initial="hidden"
+        animate="visible"
+        className="max-w-[1280px] mx-auto px-16 pb-12"
+      >
 
-      {/* Header - Clean Greeting */}
-      <div className="relative px-6 pt-8 pb-4 flex-shrink-0">
-        <div className="flex items-start justify-between">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-0.5"
-          >
-            <p className="text-muted-foreground text-sm">{greeting}</p>
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+        {/* ═══ Header — quiet, receding ═══ */}
+        <motion.header variants={stagger.item} className="pt-10 pb-2 flex items-end justify-between">
+          <div>
+            <p className="text-muted-foreground/70 text-sm tracking-wide">{greeting}</p>
+            <h1 className="text-4xl font-semibold text-foreground tracking-tight mt-1 leading-[1.1]">
               {firstName}
             </h1>
-          </motion.div>
-
-          {/* Help button to restart tour */}
+          </div>
           <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
             onClick={startTour}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-muted/50 transition-colors group"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/40 transition-all duration-300"
             title="View tutorial"
           >
-            <span className="text-sm text-muted-foreground group-hover:text-amber-500 transition-colors">Guide</span>
-            <Lightbulb className="h-4 w-4 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+            <Lightbulb className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">Guide</span>
           </motion.button>
-        </div>
-      </div>
+        </motion.header>
 
-      {/* Hero - Animated Pulse Visualization */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative px-6 mb-4 flex-shrink-0"
-      >
-        <div className="relative bg-gradient-to-br from-primary/5 via-background to-sakura/5 rounded-2xl p-6 overflow-hidden border border-border/50">
-          {/* Pulse rings behind the number */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-            <PulseRing delay={0} size={150} />
-            <PulseRing delay={1} size={150} />
-            <PulseRing delay={2} size={150} />
+        {/* ═══ HERO — Atmospheric Presence (desktop-scaled) ═══ */}
+        <motion.section variants={stagger.item} className="relative py-16 mt-2 mb-4">
+          {/* Ambient depth — radial glows, wider spread for desktop */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <AmbientGlow color="hsla(16, 85%, 58%, 0.07)" size={700} x="50%" y="45%" delay={0} />
+            <AmbientGlow color="hsla(350, 75%, 60%, 0.04)" size={450} x="15%" y="50%" delay={1.5} />
+            <AmbientGlow color="hsla(155, 55%, 42%, 0.035)" size={400} x="85%" y="40%" delay={3} />
           </div>
 
-          {/* Central content */}
+          {/* Pulse rings — centered behind number */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+            <PulseRing delay={0} size={280} />
+            <PulseRing delay={1.3} size={280} />
+            <PulseRing delay={2.6} size={280} />
+          </div>
+
+          {/* Central number — dominant focal point */}
           <div className="relative z-10 text-center">
             <motion.div
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="mb-1"
+              animate={{ scale: [1, 1.015, 1] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span className="text-6xl font-light text-foreground tracking-tight">
+              <span className="text-[8.5rem] leading-none font-light text-foreground tracking-tighter font-serif select-none">
                 <AnimatedNumber value={totalPeopleActive} />
               </span>
             </motion.div>
-            <p className="text-muted-foreground text-sm mb-4">neighbours active right now</p>
+            <p className="text-muted-foreground text-lg mt-4 tracking-wide font-light">
+              neighbours active right now
+            </p>
 
-            {/* Quick stats row */}
-            <div className="flex items-center justify-center gap-6 mb-4">
+            {/* Meta — mood + location, spaced apart */}
+            <div className="flex items-center justify-center gap-14 mt-8">
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-2"
+                variants={stagger.item}
+                className="flex items-center gap-2.5"
               >
-                <div className="h-2 w-2 rounded-full bg-pandan animate-pulse" />
-                <span className="text-xs text-muted-foreground">
-                  {userNeighbourhoodMood ? userNeighbourhoodMood.avg_mood.toFixed(1) : "--"} avg mood
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pandan opacity-50" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-pandan" />
+                </span>
+                <span className="text-[15px] text-muted-foreground font-light">
+                  {userNeighbourhoodMood ? userNeighbourhoodMood.avg_mood.toFixed(1) : "—"} avg mood
                 </span>
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
+                variants={stagger.item}
                 className="flex items-center gap-2"
               >
-                <MapPin className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs text-muted-foreground">{neighbourhoodDisplayName}</span>
+                <MapPin className="h-4 w-4 text-primary/60" />
+                <span className="text-[15px] text-muted-foreground font-light">{neighbourhoodDisplayName}</span>
               </motion.div>
             </div>
 
-            {/* CTA Button */}
-            <button
-              onClick={() => navigate("/explore?tab=globe")}
-              className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white text-sm font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>Explore your community</span>
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+            {/* CTA — understated elegance */}
+            <motion.div variants={stagger.item} className="mt-10">
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/explore?tab=globe")}
+                className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-foreground text-background text-[15px] font-medium shadow-apple-lg hover:shadow-apple-xl transition-all duration-500"
+              >
+                <Sparkles className="h-4 w-4 opacity-70" />
+                <span className="tracking-wide">Explore your community</span>
+                <ArrowRight className="h-4 w-4 opacity-60 group-hover:translate-x-1 group-hover:opacity-100 transition-all duration-300" />
+              </motion.button>
+            </motion.div>
           </div>
-        </div>
-      </motion.div>
+        </motion.section>
 
-      {/* Invite Card - Compact */}
-      <AnimatePresence>
-        {showInvite && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -10, height: 0 }}
-            transition={{ duration: 0.4 }}
-            className="px-6 mb-4 flex-shrink-0"
-          >
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-border/50 shadow-soft">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Coffee className="h-4 w-4 text-amber-600" />
+        {/* ═══ INVITATION — gentle, inline ═══ */}
+        <AnimatePresence>
+          {showInvite && (
+            <motion.div
+              initial={{ opacity: 0, y: 16, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto", marginBottom: 40 }}
+              exit={{ opacity: 0, y: -8, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="relative rounded-2xl bg-gradient-to-r from-amber-50/80 via-background to-background px-6 py-5 overflow-hidden">
+                {/* Warm accent line */}
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full bg-gradient-to-b from-amber-400 to-amber-300" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-amber-100/80 flex items-center justify-center">
+                      <Coffee className="h-[18px] w-[18px] text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-medium text-foreground leading-snug">James invited you to coffee</p>
+                      <p className="text-sm text-muted-foreground/70 mt-0.5">Kopitiam @ Blk 123 · Now</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">James invited you to coffee</p>
-                    <p className="text-[11px] text-muted-foreground">Kopitiam @ Blk 123 · Now</p>
+                  <div className="flex items-center gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate({ pathname: "/chat", search: createSearchParams({ userId: "u002", draft: "I'm in!" }).toString() })}
+                      className="px-5 py-2 rounded-xl bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+                    >
+                      Join
+                    </motion.button>
+                    <button
+                      onClick={() => setShowInvite(false)}
+                      className="text-muted-foreground/40 hover:text-muted-foreground transition-colors p-1"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigate({ pathname: "/chat", search: createSearchParams({ userId: "u002", draft: "I'm in!" }).toString() })}
-                    className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors"
-                  >
-                    Join
-                  </button>
-                  <button
-                    onClick={() => setShowInvite(false)}
-                    className="text-muted-foreground hover:text-foreground p-1"
-                  >
-                    ×
-                  </button>
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ LOWER — Two-column desktop layout ═══ */}
+        <div className="grid grid-cols-12 gap-8">
+
+          {/* LEFT COLUMN — Events (dominant) */}
+          <motion.section variants={stagger.item} className="col-span-7">
+            <div className="flex items-baseline justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-foreground tracking-tight">What's happening</h2>
+              <button
+                onClick={() => navigate("/events")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+              >
+                See all
+                <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </button>
             </div>
+
+            {/* Featured event — large */}
+            {upcomingEvents.slice(0, 1).map((event) => (
+              <motion.div
+                key={event.id}
+                variants={stagger.item}
+                whileHover={{ y: -3 }}
+                onClick={() => navigate("/events")}
+                className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-sakura/[0.03] p-8 cursor-pointer transition-all duration-500 hover:shadow-apple group mb-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="h-4 w-4 text-primary/50" />
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                    {new Date(event.date).toLocaleDateString("en-SG", { weekday: "long" })}
+                  </span>
+                </div>
+                <h3 className="text-xl font-semibold text-foreground tracking-tight mb-2 group-hover:text-primary transition-colors duration-300">
+                  {event.title}
+                </h3>
+                <p className="text-[15px] text-muted-foreground font-light leading-relaxed">
+                  {new Date(event.date).toLocaleDateString("en-SG", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" })}
+                </p>
+                <div className="flex items-center gap-1.5 mt-5 text-muted-foreground/60">
+                  <Users className="h-3.5 w-3.5" />
+                  <span className="text-sm font-light">{event.attendees} going</span>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Secondary events — horizontal row */}
+            <div className="grid grid-cols-2 gap-4">
+              {upcomingEvents.slice(1, 3).map((event) => (
+                <motion.div
+                  key={event.id}
+                  variants={stagger.itemSlow}
+                  whileHover={{ y: -2 }}
+                  onClick={() => navigate("/events")}
+                  className="rounded-2xl bg-muted/30 p-5 cursor-pointer transition-all duration-500 hover:bg-muted/50 hover:shadow-apple-sm group"
+                >
+                  <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-wider mb-2">
+                    {new Date(event.date).toLocaleDateString("en-SG", { weekday: "short" })}
+                  </p>
+                  <h4 className="text-[15px] font-medium text-foreground leading-snug group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                    {event.title}
+                  </h4>
+                  <div className="flex items-center gap-1.5 mt-3 text-muted-foreground/50">
+                    <Users className="h-3 w-3" />
+                    <span className="text-xs font-light">{event.attendees}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+
+          {/* RIGHT COLUMN — Your day */}
+          <motion.section variants={stagger.item} className="col-span-5">
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-6">Your day</h2>
+
+            {/* Steps — primary card */}
+            <motion.div
+              variants={stagger.item}
+              whileHover={{ y: -3 }}
+              onClick={() => navigate("/wellness?tab=steps")}
+              className="rounded-2xl bg-gradient-to-br from-pandan/[0.06] to-background p-7 cursor-pointer transition-all duration-500 hover:shadow-apple group mb-5"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <motion.div
+                  animate={{ rotate: [0, 4, -4, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  className="h-10 w-10 rounded-xl bg-pandan/10 flex items-center justify-center"
+                >
+                  <Footprints className="h-5 w-5 text-pandan" />
+                </motion.div>
+                <span className="text-xs text-muted-foreground/50 font-medium uppercase tracking-wider">Steps</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-light text-foreground tracking-tight font-serif">
+                  {dailySteps >= 1000 ? `${(dailySteps / 1000).toFixed(1)}k` : dailySteps}
+                </span>
+                <span className="text-sm text-muted-foreground/40 font-light ml-1">/ 8k</span>
+              </div>
+              <div className="mt-4 h-1 rounded-full bg-pandan/10 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-pandan/40"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((dailySteps / 8000) * 100, 100)}%` }}
+                  transition={{ duration: 1.5, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+            </motion.div>
+
+            {/* Wellness + Messages — side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              <motion.div
+                variants={stagger.item}
+                whileHover={{ y: -3 }}
+                onClick={() => navigate("/wellness")}
+                className="rounded-2xl bg-gradient-to-br from-lavender/[0.05] to-background p-6 cursor-pointer transition-all duration-500 hover:shadow-apple group flex flex-col justify-between min-h-[140px]"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  className="h-10 w-10 rounded-xl bg-lavender/10 flex items-center justify-center"
+                >
+                  <Wind className="h-5 w-5 text-lavender" />
+                </motion.div>
+                <div className="mt-auto pt-5">
+                  <p className="text-xs text-muted-foreground/50 font-medium uppercase tracking-wider mb-1">Wellness</p>
+                  <p className="text-lg font-medium text-foreground tracking-tight group-hover:text-lavender transition-colors duration-300">Breathe</p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                variants={stagger.item}
+                whileHover={{ y: -3 }}
+                onClick={() => navigate("/chat")}
+                className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-background p-6 cursor-pointer transition-all duration-500 hover:shadow-apple group flex flex-col justify-between min-h-[140px]"
+              >
+                <div className="h-10 w-10 rounded-xl bg-primary/8 flex items-center justify-center">
+                  <MessageCircle className="h-5 w-5 text-primary/70" />
+                </div>
+                <div className="mt-auto pt-5">
+                  <p className="text-xs text-muted-foreground/50 font-medium uppercase tracking-wider mb-1">Messages</p>
+                  <p className="text-lg font-medium text-foreground tracking-tight group-hover:text-primary transition-colors duration-300">3 new</p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.section>
+
+        </div>
+
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <AnimatePresence>
+        {!hasScrolled && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, delay: 1.5 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center gap-1.5 cursor-pointer select-none"
+            onClick={() => window.scrollBy({ top: 400, behavior: "smooth" })}
+          >
+            <span className="text-[11px] text-muted-foreground/60 font-medium tracking-widest uppercase">Scroll</span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <ChevronDown className="h-5 w-5 text-muted-foreground/50" />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* What's Happening - Upcoming Events */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.35 }}
-        className="px-6 mb-4 flex-shrink-0"
-      >
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <Calendar className="h-3 w-3" />
-            What's happening
-          </p>
-          <button
-            onClick={() => navigate("/events")}
-            className="text-[10px] text-primary hover:underline"
-          >
-            See all
-          </button>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-          {upcomingEvents.slice(0, 3).map((event, i) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 + i * 0.1 }}
-              onClick={() => navigate("/events")}
-              className="flex-shrink-0 bg-white/70 backdrop-blur-sm rounded-lg p-2.5 border border-border/50 cursor-pointer hover:bg-white/90 transition-colors min-w-[140px]"
-            >
-              <p className="text-xs font-medium text-foreground truncate">{event.title}</p>
-              <p className="text-[10px] text-muted-foreground">
-                {new Date(event.date).toLocaleDateString("en-SG", { weekday: "short", hour: "numeric", minute: "2-digit" })}
-              </p>
-              <div className="flex items-center gap-1 mt-1">
-                <Users className="h-2.5 w-2.5 text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground">{event.attendees}</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* Quick Actions Grid */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="px-6 flex-1 flex flex-col justify-end pb-32"
-      >
-        <div className="grid grid-cols-3 gap-3">
-          {/* Step Challenge */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            onClick={() => navigate("/wellness?tab=steps")}
-            className="bg-gradient-to-br from-pandan/10 to-emerald-50/50 rounded-xl p-3 border border-pandan/10 cursor-pointer"
-          >
-            <motion.div
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="h-8 w-8 rounded-lg bg-white/80 flex items-center justify-center mb-2"
-            >
-              <Footprints className="h-4 w-4 text-pandan" />
-            </motion.div>
-            <p className="text-[10px] text-muted-foreground">Steps</p>
-            <div className="flex items-end gap-0.5">
-              <span className="text-lg font-semibold text-foreground">{dailySteps >= 1000 ? `${(dailySteps / 1000).toFixed(1)}k` : dailySteps}</span>
-              <span className="text-[10px] text-muted-foreground mb-0.5">/8k</span>
-            </div>
-          </motion.div>
-
-          {/* Breathing Exercise */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            onClick={() => navigate("/wellness")}
-            className="bg-gradient-to-br from-lavender/10 to-sakura/5 rounded-xl p-3 border border-lavender/10 cursor-pointer"
-          >
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="h-8 w-8 rounded-lg bg-white/80 flex items-center justify-center mb-2"
-            >
-              <Wind className="h-4 w-4 text-lavender" />
-            </motion.div>
-            <p className="text-[10px] text-muted-foreground">Wellness</p>
-            <p className="text-sm font-medium text-foreground">Breathe</p>
-          </motion.div>
-
-          {/* Chat Shortcut */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            onClick={() => navigate("/chat")}
-            className="bg-gradient-to-br from-primary/10 to-sky-50/50 rounded-xl p-3 border border-primary/10 cursor-pointer"
-          >
-            <div className="h-8 w-8 rounded-lg bg-white/80 flex items-center justify-center mb-2">
-              <MessageCircle className="h-4 w-4 text-primary" />
-            </div>
-            <p className="text-[10px] text-muted-foreground">Messages</p>
-            <p className="text-sm font-medium text-foreground">3 new</p>
-          </motion.div>
-        </div>
-      </motion.section>
     </div>
   );
 };
