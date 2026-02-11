@@ -15,6 +15,9 @@ import WellnessPage from "./pages/WellnessPageNew";
 import JournalPage from "./pages/JournalPage";
 import GoalsPage from "./pages/GoalsPage";
 import ChatPage from "./pages/ChatPage";
+
+
+import RewindPage from "./pages/RewindPage";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNavNew";
 import FloatingAIChat from "./components/FloatingAIChat";
@@ -41,6 +44,7 @@ const AppContent = () => {
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/rewind" element={<RewindPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

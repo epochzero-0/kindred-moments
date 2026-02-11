@@ -5,7 +5,7 @@ import {
   ChevronRight, Bell, Lock, Globe, LogOut, Shield, BarChart3,
   Calendar, MessageCircle, Star, Zap, Building, Waves, Dumbbell,
   Gift, Crown, Flag, Eye, EyeOff, Check, X, Edit2, Camera, Train,
-  Download, Trash2, Clock, Moon, Sun, CloudSun, Plus,
+  Download, Trash2, Clock, Moon, Sun, CloudSun, Plus, Rewind,
   // Interest icons
   Palette, CircleDot, Gamepad2, Coffee, Cat, UtensilsCrossed, Bike,
   Dog, Sunset, Soup, Flower2, Footprints, Film, Music, BookOpen,
@@ -80,7 +80,7 @@ const ProfilePage = () => {
   const displayComfortLevel = storedProfile?.comfortLevel || currentUser?.comfort_level || "ambivert";
   const displayFreeSlots = storedProfile?.freeSlots?.length ? storedProfile.freeSlots : currentUser?.free_slots || [];
 
-  const userClans = clans.filter(c => 
+  const userClans = clans.filter(c =>
     currentUser?.joined_clans?.includes(c.id) || c.members.includes(currentUser?.id || "")
   ).slice(0, 5);
 
@@ -88,10 +88,10 @@ const ProfilePage = () => {
   const connectionCount = allUsers.filter(u => u.neighbourhood === currentUser?.neighbourhood).length - 1;
 
   // Get user's neighbourhood name for leaderboard matching
-  const userNeighbourhoodName = displayNeighbourhoods[0] 
-    ? neighbourhoodLabels[displayNeighbourhoods[0]] || displayNeighbourhoods[0] 
+  const userNeighbourhoodName = displayNeighbourhoods[0]
+    ? neighbourhoodLabels[displayNeighbourhoods[0]] || displayNeighbourhoods[0]
     : currentUser?.neighbourhood;
-  
+
   // Calculate neighbourhood rank from pulseData (same as Explore > Areas)
   const sortedNeighbourhoods = [...pulseData].sort((a, b) => b.active_today - a.active_today);
   const userNeighbourhoodRank = sortedNeighbourhoods.findIndex(n => n.neighbourhood === userNeighbourhoodName) + 1 || null;
@@ -138,20 +138,20 @@ const ProfilePage = () => {
               <h1 className="text-xl font-semibold text-foreground truncate">
                 {displayName}
               </h1>
-              <button 
+              <button
                 onClick={() => setActiveTab("profile")}
                 className="h-6 w-6 rounded-full hover:bg-white/50 flex items-center justify-center"
               >
                 <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </div>
-            <div 
+            <div
               onClick={() => navigate("/profile/neighbourhoods")}
               className="flex items-center gap-2 mt-1 cursor-pointer hover:bg-white/30 rounded-lg px-2 py-1 -mx-2 transition-colors"
             >
               <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {displayNeighbourhoods.length > 0 
+                {displayNeighbourhoods.length > 0
                   ? displayNeighbourhoods.map(n => neighbourhoodLabels[n] || n).join(", ")
                   : currentUser?.neighbourhood || "..."}
               </span>
@@ -199,11 +199,10 @@ const ProfilePage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               {tab.label}
@@ -216,9 +215,9 @@ const ProfilePage = () => {
       <div className="px-6 py-5">
         <AnimatePresence mode="wait">
           {activeTab === "profile" && (
-            <ProfileTab 
-              key="profile" 
-              user={currentUser} 
+            <ProfileTab
+              key="profile"
+              user={currentUser}
               clans={userClans}
               displayBio={displayBio}
               displayLanguages={displayLanguages}
@@ -237,9 +236,9 @@ const ProfilePage = () => {
             <AchievementsTab key="achievements" achievements={userAchievements} perks={priorityPerks} />
           )}
           {activeTab === "admin" && isAdmin && (
-            <AdminTab 
-              key="admin" 
-              goals={communityGoals} 
+            <AdminTab
+              key="admin"
+              goals={communityGoals}
               flaggedContent={flaggedContent}
               onAddGoal={addGoal}
               onUpdateGoal={updateGoal}
@@ -328,7 +327,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
   const [editingInterests, setEditingInterests] = useState(false);
   const [editingComfort, setEditingComfort] = useState(false);
   const [editingFreeSlots, setEditingFreeSlots] = useState(false);
-  
+
   const [bioText, setBioText] = useState(displayBio);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(displayLanguages);
   const [selectedInterests, setSelectedInterests] = useState<string[]>(displayInterests);
@@ -361,30 +360,67 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
   };
 
   const toggleLanguage = (id: string) => {
-    setSelectedLanguages(prev => 
+    setSelectedLanguages(prev =>
       prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]
     );
   };
 
   const toggleInterest = (id: string) => {
-    setSelectedInterests(prev => 
+    setSelectedInterests(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
   const toggleFreeSlot = (id: string) => {
-    setSelectedFreeSlots(prev => 
+    setSelectedFreeSlots(prev =>
       prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
     );
   };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
+      {/* Rewind Card - Light Theme */}
+      <div className="bg-gradient-to-br from-orange-50 via-pink-50 to-indigo-50 rounded-2xl p-5 border border-orange-100/50 shadow-sm">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+            <Rewind className="h-5 w-5 text-orange-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-stone-900">Your 2025 Rewind</h3>
+            <p className="text-xs text-stone-500">Your specific community journey</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          <div className="text-center">
+            <p className="text-lg font-bold text-stone-900">24</p>
+            <p className="text-[10px] text-stone-500">Events</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold text-stone-900">156</p>
+            <p className="text-[10px] text-stone-500">Connections</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold text-stone-900">892K</p>
+            <p className="text-[10px] text-stone-500">Steps</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold text-stone-900">12</p>
+            <p className="text-[10px] text-stone-500">Goals</p>
+          </div>
+        </div>
+        <button
+          onClick={() => window.location.href = '/rewind'} // Using window.location to ensure full refresh if needed, or navigate via prop if available
+          className="w-full py-2.5 rounded-xl bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors shadow-sm"
+        >
+          Watch Your Rewind
+        </button>
+      </div>
+
       {/* Bio */}
       <div className="bg-white rounded-2xl shadow-soft p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-foreground text-sm">About</h3>
-          <button 
+          <button
             onClick={() => {
               setBioText(displayBio);
               setEditingBio(true);
@@ -406,7 +442,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
             <Languages className="h-4 w-4 text-muted-foreground" />
             <h3 className="font-semibold text-foreground text-sm">Languages</h3>
           </div>
-          <button 
+          <button
             onClick={() => {
               setSelectedLanguages(displayLanguages);
               setEditingLanguages(true);
@@ -434,7 +470,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
             <Heart className="h-4 w-4 text-muted-foreground" />
             <h3 className="font-semibold text-foreground text-sm">Interests</h3>
           </div>
-          <button 
+          <button
             onClick={() => {
               setSelectedInterests(displayInterests);
               setEditingInterests(true);
@@ -487,7 +523,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
             {displayComfortLevel === 'extrovert' && <Sun className="h-4 w-4 text-muted-foreground" />}
             <h3 className="font-semibold text-foreground text-sm">Comfort Level</h3>
           </div>
-          <button 
+          <button
             onClick={() => {
               setSelectedComfort(displayComfortLevel);
               setEditingComfort(true);
@@ -514,7 +550,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
             <Clock className="h-4 w-4 text-muted-foreground" />
             <h3 className="font-semibold text-foreground text-sm">Free Time</h3>
           </div>
-          <button 
+          <button
             onClick={() => {
               setSelectedFreeSlots(displayFreeSlots);
               setEditingFreeSlots(true);
@@ -622,11 +658,10 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
                     <button
                       key={lang.id}
                       onClick={() => toggleLanguage(lang.id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
-                        isSelected 
-                          ? "bg-primary/10 ring-2 ring-primary" 
-                          : "bg-muted hover:bg-muted/80"
-                      }`}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isSelected
+                        ? "bg-primary/10 ring-2 ring-primary"
+                        : "bg-muted hover:bg-muted/80"
+                        }`}
                     >
                       <span className={`font-medium text-sm ${isSelected ? "text-primary" : "text-foreground"}`}>
                         {lang.label}
@@ -682,11 +717,10 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
                     <button
                       key={interest.id}
                       onClick={() => toggleInterest(interest.id)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                        isSelected
-                          ? "bg-sakura text-white"
-                          : "bg-muted text-foreground hover:bg-muted/80"
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all ${isSelected
+                        ? "bg-sakura text-white"
+                        : "bg-muted text-foreground hover:bg-muted/80"
+                        }`}
                     >
                       <interest.icon className="h-4 w-4" />
                       <span>{interest.label}</span>
@@ -743,15 +777,13 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
                     <button
                       key={level.id}
                       onClick={() => setSelectedComfort(level.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                        isSelected
-                          ? "bg-lavender/20 border-2 border-lavender"
-                          : "bg-muted hover:bg-muted/80 border-2 border-transparent"
-                      }`}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${isSelected
+                        ? "bg-lavender/20 border-2 border-lavender"
+                        : "bg-muted hover:bg-muted/80 border-2 border-transparent"
+                        }`}
                     >
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                        isSelected ? "bg-lavender text-white" : "bg-white text-muted-foreground"
-                      }`}>
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${isSelected ? "bg-lavender text-white" : "bg-white text-muted-foreground"
+                        }`}>
                         <level.icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
@@ -810,11 +842,10 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
                     <button
                       key={slot.id}
                       onClick={() => toggleFreeSlot(slot.id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all ${
-                        isSelected
-                          ? "bg-amber-50 border-2 border-amber-400"
-                          : "bg-muted hover:bg-muted/80 border-2 border-transparent"
-                      }`}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all ${isSelected
+                        ? "bg-amber-50 border-2 border-amber-400"
+                        : "bg-muted hover:bg-muted/80 border-2 border-transparent"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Clock className={`h-4 w-4 ${isSelected ? "text-amber-600" : "text-muted-foreground"}`} />
@@ -984,9 +1015,8 @@ const AchievementsTab = ({ achievements, perks }: AchievementsTabProps) => (
         {perks.map((perk) => (
           <div
             key={perk.id}
-            className={`rounded-2xl p-4 ${
-              perk.unlocked ? "bg-white shadow-soft" : "bg-muted/50"
-            }`}
+            className={`rounded-2xl p-4 ${perk.unlocked ? "bg-white shadow-soft" : "bg-muted/50"
+              }`}
           >
             <div className="flex items-center justify-between mb-2">
               <div className={`h-10 w-10 rounded-xl ${perk.unlocked ? "bg-pandan/10" : "bg-muted"} flex items-center justify-center`}>
@@ -1048,7 +1078,7 @@ const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, o
   const [showCreateGoal, setShowCreateGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<CommunityGoal | null>(null);
   const [reviewingItem, setReviewingItem] = useState<{ id: string; preview: string } | null>(null);
-  
+
   // Form state for new/edit goal
   const [goalForm, setGoalForm] = useState({ title: "", target: "", unit: "" });
 
@@ -1131,13 +1161,13 @@ const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, o
                   />
                 </div>
                 <div className="flex gap-2 mt-3">
-                  <button 
+                  <button
                     onClick={() => openEditModal(goal)}
                     className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
                   >
                     Edit
                   </button>
-                  <button 
+                  <button
                     onClick={() => onEndGoal(goal.id)}
                     className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
                   >
@@ -1195,7 +1225,7 @@ const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, o
               <p className="text-[10px] text-muted-foreground">Engagement</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => onNavigate("/goals")}
             className="w-full py-2 rounded-lg bg-muted text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center justify-center gap-2 transition-colors"
           >
@@ -1223,12 +1253,10 @@ const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, o
             {flaggedContent.map((item) => (
               <div key={item.id} className="bg-white rounded-xl p-3 shadow-soft">
                 <div className="flex items-start gap-3">
-                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
-                    item.severity === "high" ? "bg-rose-100" : item.severity === "medium" ? "bg-amber-100" : "bg-muted"
-                  }`}>
-                    <Flag className={`h-4 w-4 ${
-                      item.severity === "high" ? "text-rose-500" : item.severity === "medium" ? "text-amber-500" : "text-muted-foreground"
-                    }`} />
+                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${item.severity === "high" ? "bg-rose-100" : item.severity === "medium" ? "bg-amber-100" : "bg-muted"
+                    }`}>
+                    <Flag className={`h-4 w-4 ${item.severity === "high" ? "text-rose-500" : item.severity === "medium" ? "text-amber-500" : "text-muted-foreground"
+                      }`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{item.preview}</p>
@@ -1236,20 +1264,20 @@ const AdminTab = ({ goals, flaggedContent, onAddGoal, onUpdateGoal, onEndGoal, o
                   </div>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button 
+                  <button
                     onClick={() => setReviewingItem({ id: item.id, preview: item.preview })}
                     className="flex-1 py-1.5 rounded-lg bg-muted text-xs font-medium text-muted-foreground flex items-center justify-center gap-1 hover:text-foreground hover:bg-muted/80 transition-colors"
                   >
                     <Eye className="h-3 w-3" /> Review
                   </button>
-                  <button 
+                  <button
                     onClick={() => onApproveFlag(item.id)}
                     className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs font-medium hover:bg-pandan/20 transition-colors"
                     title="Approve (no action needed)"
                   >
                     <Check className="h-3 w-3" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => onRejectFlag(item.id)}
                     className="py-1.5 px-3 rounded-lg bg-rose-100 text-rose-500 text-xs font-medium hover:bg-rose-200 transition-colors"
                     title="Remove content"
@@ -1486,9 +1514,8 @@ const SettingsTab = () => {
               <div
                 key={item.id}
                 onClick={item.link ? item.onClick : undefined}
-                className={`flex items-center justify-between p-4 ${
-                  i < group.items.length - 1 ? "border-b border-border/40" : ""
-                } ${item.link ? "cursor-pointer hover:bg-muted/30 transition-colors" : ""}`}
+                className={`flex items-center justify-between p-4 ${i < group.items.length - 1 ? "border-b border-border/40" : ""
+                  } ${item.link ? "cursor-pointer hover:bg-muted/30 transition-colors" : ""}`}
               >
                 <div>
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
@@ -1497,9 +1524,8 @@ const SettingsTab = () => {
                 {item.toggle ? (
                   <button
                     onClick={() => item.onChange?.(!item.value)}
-                    className={`h-6 w-11 rounded-full transition-colors ${
-                      item.value ? "bg-primary" : "bg-muted"
-                    }`}
+                    className={`h-6 w-11 rounded-full transition-colors ${item.value ? "bg-primary" : "bg-muted"
+                      }`}
                   >
                     <motion.div
                       animate={{ x: item.value ? 20 : 2 }}
@@ -1558,11 +1584,10 @@ const SettingsTab = () => {
                       setProfileVisibility(option.value);
                       setShowVisibilityModal(false);
                     }}
-                    className={`w-full p-3 rounded-xl text-left transition-colors ${
-                      profileVisibility === option.value
-                        ? 'bg-primary/10 border-2 border-primary'
-                        : 'bg-muted/30 border-2 border-transparent hover:bg-muted/50'
-                    }`}
+                    className={`w-full p-3 rounded-xl text-left transition-colors ${profileVisibility === option.value
+                      ? 'bg-primary/10 border-2 border-primary'
+                      : 'bg-muted/30 border-2 border-transparent hover:bg-muted/50'
+                      }`}
                   >
                     <p className="font-medium text-sm">{option.label}</p>
                     <p className="text-xs text-muted-foreground">{option.desc}</p>

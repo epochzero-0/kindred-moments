@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { 
-  Wind, Heart, Moon, Sun, Play, Pause, X, Timer, Flame, Clock, Sparkles, 
+import {
+  Wind, Heart, Moon, Sun, Play, Pause, X, Timer, Flame, Clock, Sparkles,
   Sunrise, Target, Footprints, BookHeart, Phone, AlertCircle, ChevronRight,
-  TrendingUp, Calendar, Smile, Meh, Frown, Brain, Rewind, Award
+  TrendingUp, Calendar, Smile, Meh, Frown, Brain, Award
 } from "lucide-react";
 
 // Types
@@ -108,6 +108,7 @@ type WellnessTab = "breathe" | "steps" | "journal" | "resources";
 
 const WellnessPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialTab = (searchParams.get("tab") as WellnessTab) || "breathe";
   const [activeTab, setActiveTab] = useState<WellnessTab>(initialTab);
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
@@ -202,7 +203,7 @@ const WellnessPage = () => {
     if (activeExercise && isPlaying && exerciseSeconds !== null) {
       const phases = parsePattern(activeExercise.pattern);
       const hasParsedPhases = phases.length > 0;
-      
+
       t = setInterval(() => {
         setExerciseSeconds((s) => {
           if (!s || s <= 1) {
@@ -212,7 +213,7 @@ const WellnessPage = () => {
             toast({ title: "Well done!", description: `${activeExercise.name} complete.` });
             return null;
           }
-          
+
           // Decrement phase timer for all exercises
           setPhaseSeconds((ps) => {
             if (ps === null) return null;
@@ -228,7 +229,7 @@ const WellnessPage = () => {
             }
             return nextPs;
           });
-          
+
           return s - 1;
         });
       }, 1000);
@@ -241,14 +242,14 @@ const WellnessPage = () => {
   const startExercise = (exercise: Exercise) => {
     const phases = parsePattern(exercise.pattern);
     let totalSeconds = 0;
-    
+
     if (phases.length > 0) {
       totalSeconds = phases.reduce((a, b) => a + b, 0) * 4; // 4 rounds
     } else {
       // For non-numeric patterns, use duration field as fallback (in minutes)
       totalSeconds = exercise.duration * 60;
     }
-    
+
     setActiveExercise(exercise);
     setIsPlaying(true);
     setExerciseSeconds(totalSeconds);
@@ -310,11 +311,10 @@ const WellnessPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
+                ? "bg-white text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               <span className="hidden sm:inline">{tab.label}</span>
@@ -340,48 +340,7 @@ const WellnessPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* Rewind Preview - only show on Breathe tab */}
-      {activeTab === "breathe" && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="px-6 mt-6"
-        >
-          <div className="bg-gradient-to-br from-primary/10 via-sakura/10 to-lavender/10 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-white/60 flex items-center justify-center">
-              <Rewind className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-medium text-foreground">Your 2025 Rewind</h3>
-              <p className="text-xs text-muted-foreground">Your community journey in review</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">24</p>
-              <p className="text-[10px] text-muted-foreground">Events</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">156</p>
-              <p className="text-[10px] text-muted-foreground">Connections</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">892K</p>
-              <p className="text-[10px] text-muted-foreground">Steps</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">12</p>
-              <p className="text-[10px] text-muted-foreground">Goals</p>
-            </div>
-          </div>
-          <button className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors">
-            Watch Your Rewind
-          </button>
-        </div>
-      </motion.div>
-      )}
+
 
       {/* Breathing Exercise Modal */}
       <AnimatePresence>
@@ -435,7 +394,7 @@ const WellnessPage = () => {
                       middle: prevType === "expand" ? 1.15 : 0.8,
                       inner: prevType === "expand" ? 1 : 0.6,
                     };
-                    
+
                     return (
                       <>
                         <motion.div
@@ -538,127 +497,128 @@ const BreatheTab = ({ exercises, meditations, onStartExercise }: BreatheTabProps
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       {/* Breathing Exercises */}
       <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold text-foreground">Breathing exercises</h2>
-        <span className="text-xs text-muted-foreground">Tap to start</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {exercises.map((exercise, i) => (
-          <motion.button
-            key={exercise.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            onClick={() => onStartExercise(exercise)}
-            className="bg-white rounded-2xl shadow-soft p-4 text-left hover:shadow-elevated transition-shadow"
-          >
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-              <exercise.icon className="h-5 w-5 text-primary" />
-            </div>
-            <h3 className="font-medium text-foreground text-sm mb-1">{exercise.name}</h3>
-            <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{exercise.description}</p>
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Timer className="h-3 w-3" />
-              <span>{exercise.duration} min · {exercise.pattern}</span>
-            </div>
-          </motion.button>
-        ))}
-      </div>
-    </div>
-
-    {/* Guided Meditations */}
-    <div className="mb-6">
-      <h2 className="font-semibold text-foreground mb-3">Guided meditations</h2>
-      <div className="grid grid-cols-2 gap-3">
-        {meditations.map((meditation, i) => (
-          <motion.button
-            key={meditation.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 + i * 0.05 }}
-            onClick={() => startMeditation(meditation)}
-            className="group bg-white rounded-2xl shadow-soft p-4 hover:shadow-elevated transition-shadow"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 rounded-xl bg-lavender/10 flex items-center justify-center">
-                <meditation.icon className="h-5 w-5 text-lavender" />
-              </div>
-              <div className="h-8 w-8 rounded-full bg-lavender/10 text-lavender flex items-center justify-center opacity-100 transition-opacity">
-                <Play className="h-3.5 w-3.5 ml-0.5" />
-              </div>
-            </div>
-            <h3 className="font-medium text-foreground text-sm mb-1">{meditation.name}</h3>
-            <p className="text-xs text-muted-foreground mb-1">{meditation.desc}</p>
-            <p className="text-[10px] text-muted-foreground">{meditation.duration} min</p>
-          </motion.button>
-        ))}
-
-        {/* Meditation Modal */}
-        <AnimatePresence>
-          {activeMeditation && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-8"
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-foreground">Breathing exercises</h2>
+          <span className="text-xs text-muted-foreground">Tap to start</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {exercises.map((exercise, i) => (
+            <motion.button
+              key={exercise.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              onClick={() => onStartExercise(exercise)}
+              className="bg-white rounded-2xl shadow-soft p-4 text-left hover:shadow-elevated transition-shadow"
             >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white rounded-2xl shadow-elevated max-w-sm w-full p-6 relative"
-              >
-                <button
-                  onClick={() => { setActiveMeditation(null); setIsMedPlaying(false); setMedSeconds(null); }}
-                  className="absolute top-4 right-4 h-8 w-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                <exercise.icon className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="font-medium text-foreground text-sm mb-1">{exercise.name}</h3>
+              <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{exercise.description}</p>
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Timer className="h-3 w-3" />
+                <span>{exercise.duration} min · {exercise.pattern}</span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
 
-                <div className="text-center">
-                  <div className="h-14 w-14 rounded-2xl bg-lavender/10 flex items-center justify-center mx-auto mb-4">
-                    <activeMeditation.icon className="h-7 w-7 text-lavender" />
-                  </div>
-                  <h2 className="text-xl font-medium text-foreground mb-1">{activeMeditation.name}</h2>
-                  <p className="text-sm text-muted-foreground mb-6">{activeMeditation.desc}</p>
-
-                  <div className="relative h-24 w-24 mx-auto mb-6 flex items-center justify-center">
-                    <div className="text-foreground font-medium text-lg">
-                      {isMedPlaying && medSeconds !== null ? `${Math.floor(medSeconds / 60)}:${String(medSeconds % 60).padStart(2, "0")}` : (isMedPlaying ? "..." : `${activeMeditation.duration}:00`)}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setIsMedPlaying(!isMedPlaying)}
-                    className="h-12 w-12 rounded-full bg-lavender flex items-center justify-center mx-auto shadow-soft transition-transform hover:scale-105"
-                  >
-                    {isMedPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white ml-0.5" />}
-                  </button>
+      {/* Guided Meditations */}
+      <div className="mb-6">
+        <h2 className="font-semibold text-foreground mb-3">Guided meditations</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {meditations.map((meditation, i) => (
+            <motion.button
+              key={meditation.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
+              onClick={() => startMeditation(meditation)}
+              className="group bg-white rounded-2xl shadow-soft p-4 hover:shadow-elevated transition-shadow"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-xl bg-lavender/10 flex items-center justify-center">
+                  <meditation.icon className="h-5 w-5 text-lavender" />
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
+                <div className="h-8 w-8 rounded-full bg-lavender/10 text-lavender flex items-center justify-center opacity-100 transition-opacity">
+                  <Play className="h-3.5 w-3.5 ml-0.5" />
+                </div>
+              </div>
+              <h3 className="font-medium text-foreground text-sm mb-1">{meditation.name}</h3>
+              <p className="text-xs text-muted-foreground mb-1">{meditation.desc}</p>
+              <p className="text-[10px] text-muted-foreground">{meditation.duration} min</p>
+            </motion.button>
+          ))}
 
-    {/* Daily tip */}
-    <div className="bg-lavender/10 rounded-2xl p-4">
-      <div className="flex items-start gap-3">
-        <div className="h-10 w-10 rounded-xl bg-lavender/20 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="h-5 w-5 text-lavender" />
-        </div>
-        <div>
-          <h3 className="font-medium text-foreground text-sm mb-1">Daily mindfulness tip</h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Take three deep breaths before checking your phone in the morning. This simple practice
-            helps you start the day with intention rather than reaction.
-          </p>
+          {/* Meditation Modal */}
+          <AnimatePresence>
+            {activeMeditation && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-8"
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="bg-white rounded-2xl shadow-elevated max-w-sm w-full p-6 relative"
+                >
+                  <button
+                    onClick={() => { setActiveMeditation(null); setIsMedPlaying(false); setMedSeconds(null); }}
+                    className="absolute top-4 right-4 h-8 w-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+
+                  <div className="text-center">
+                    <div className="h-14 w-14 rounded-2xl bg-lavender/10 flex items-center justify-center mx-auto mb-4">
+                      <activeMeditation.icon className="h-7 w-7 text-lavender" />
+                    </div>
+                    <h2 className="text-xl font-medium text-foreground mb-1">{activeMeditation.name}</h2>
+                    <p className="text-sm text-muted-foreground mb-6">{activeMeditation.desc}</p>
+
+                    <div className="relative h-24 w-24 mx-auto mb-6 flex items-center justify-center">
+                      <div className="text-foreground font-medium text-lg">
+                        {isMedPlaying && medSeconds !== null ? `${Math.floor(medSeconds / 60)}:${String(medSeconds % 60).padStart(2, "0")}` : (isMedPlaying ? "..." : `${activeMeditation.duration}:00`)}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setIsMedPlaying(!isMedPlaying)}
+                      className="h-12 w-12 rounded-full bg-lavender flex items-center justify-center mx-auto shadow-soft transition-transform hover:scale-105"
+                    >
+                      {isMedPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white ml-0.5" />}
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
-  </motion.div>
-);};
+
+      {/* Daily tip */}
+      <div className="bg-lavender/10 rounded-2xl p-4">
+        <div className="flex items-start gap-3">
+          <div className="h-10 w-10 rounded-xl bg-lavender/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="h-5 w-5 text-lavender" />
+          </div>
+          <div>
+            <h3 className="font-medium text-foreground text-sm mb-1">Daily mindfulness tip</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Take three deep breaths before checking your phone in the morning. This simple practice
+              helps you start the day with intention rather than reaction.
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 // Steps Tab
 const StepsTab = () => {
   const dailyGoal = 8000;
@@ -668,7 +628,7 @@ const StepsTab = () => {
     try {
       const raw = localStorage.getItem("km_daily_steps");
       if (raw) return Number(raw);
-    } catch (e) {}
+    } catch (e) { }
     return 6847;
   });
 
@@ -676,7 +636,7 @@ const StepsTab = () => {
     try {
       const raw = localStorage.getItem("km_weekly_steps");
       if (raw) return JSON.parse(raw);
-    } catch (e) {}
+    } catch (e) { }
     return [4200, 7500, 6100, 8200, 5400, 7800, 6847];
   });
 
@@ -685,13 +645,13 @@ const StepsTab = () => {
   const logSteps = (amount: number) => {
     setDailySteps((d) => {
       const nextDaily = d + amount;
-      try { localStorage.setItem("km_daily_steps", String(nextDaily)); } catch (e) {}
+      try { localStorage.setItem("km_daily_steps", String(nextDaily)); } catch (e) { }
       return nextDaily;
     });
     setWeeklySteps((w) => {
       const next = [...w];
       next[next.length - 1] = (next[next.length - 1] || 0) + amount;
-      try { localStorage.setItem("km_weekly_steps", JSON.stringify(next)); } catch (e) {}
+      try { localStorage.setItem("km_weekly_steps", JSON.stringify(next)); } catch (e) { }
       return next;
     });
     toast({ title: "Great!", description: `Added ${amount.toLocaleString()} steps.` });
@@ -748,7 +708,7 @@ const StepsTab = () => {
         <div className="flex items-center gap-2 mt-4">
           <button onClick={() => logSteps(500)} className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs">Log +500</button>
           <button onClick={() => logSteps(1000)} className="py-1.5 px-3 rounded-lg bg-pandan/10 text-pandan text-xs">Log +1000</button>
-          <button onClick={() => { localStorage.removeItem('km_daily_steps'); localStorage.removeItem('km_weekly_steps'); setDailySteps(0); setWeeklySteps([0,0,0,0,0,0,0]); toast({ title: 'Reset', description: 'Steps cleared.' }); }} className="py-1.5 px-3 rounded-lg bg-muted text-xs">Reset</button>
+          <button onClick={() => { localStorage.removeItem('km_daily_steps'); localStorage.removeItem('km_weekly_steps'); setDailySteps(0); setWeeklySteps([0, 0, 0, 0, 0, 0, 0]); toast({ title: 'Reset', description: 'Steps cleared.' }); }} className="py-1.5 px-3 rounded-lg bg-muted text-xs">Reset</button>
         </div>
       </div>
 
@@ -770,9 +730,8 @@ const StepsTab = () => {
                   initial={{ height: 0 }}
                   animate={{ height: `${Math.min(height, 100)}%` }}
                   transition={{ duration: 0.5, delay: i * 0.05 }}
-                  className={`w-full rounded-t-lg ${
-                    isToday ? "bg-pandan" : weeklySteps[i] >= dailyGoal ? "bg-pandan/60" : "bg-muted"
-                  }`}
+                  className={`w-full rounded-t-lg ${isToday ? "bg-pandan" : weeklySteps[i] >= dailyGoal ? "bg-pandan/60" : "bg-muted"
+                    }`}
                 />
                 <span className={`text-[10px] ${isToday ? "text-pandan font-medium" : "text-muted-foreground"}`}>
                   {day}
@@ -919,9 +878,8 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
             return (
               <div key={i} className="flex flex-col items-center gap-1">
                 <div
-                  className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                    mood ? "bg-muted/50" : "bg-muted/20 border-2 border-dashed border-muted"
-                  }`}
+                  className={`h-8 w-8 rounded-full flex items-center justify-center ${mood ? "bg-muted/50" : "bg-muted/20 border-2 border-dashed border-muted"
+                    }`}
                 >
                   {mood ? (
                     <Smile className={`h-4 w-4 ${getMoodColor(mood)}`} />
@@ -993,14 +951,12 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
                     <button
                       key={mood.value}
                       onClick={() => setSelectedMood(mood.value)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                        selectedMood === mood.value ? "bg-primary/10" : "hover:bg-muted/50"
-                      }`}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${selectedMood === mood.value ? "bg-primary/10" : "hover:bg-muted/50"
+                        }`}
                     >
                       <mood.icon
-                        className={`h-6 w-6 ${
-                          selectedMood === mood.value ? getMoodColor(mood.value) : "text-muted-foreground"
-                        }`}
+                        className={`h-6 w-6 ${selectedMood === mood.value ? getMoodColor(mood.value) : "text-muted-foreground"
+                          }`}
                       />
                       <span className="text-[10px] text-muted-foreground">{mood.label}</span>
                     </button>
