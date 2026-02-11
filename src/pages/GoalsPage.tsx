@@ -308,33 +308,6 @@ const GoalsPage = () => {
               ))}
             </div>
           </motion.div>
-
-          {/* Event */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="bg-lavender/10 rounded-2xl p-5"
-          >
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Upcoming event</p>
-            <h3 className="font-medium text-foreground text-sm mb-1">Inter-Clan Sports Day</h3>
-            <p className="text-xs text-muted-foreground mb-3">
-              Badminton, table tennis and more!
-            </p>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Feb 15, 2026</span>
-              <button
-                onClick={handleRegister}
-                disabled={isRegistered}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isRegistered
-                  ? "bg-pandan/20 text-pandan cursor-default"
-                  : "bg-lavender/20 text-lavender hover:bg-lavender/30"
-                  }`}
-              >
-                {isRegistered ? "Registered ✓" : "Register"}
-              </button>
-            </div>
-          </motion.div>
         </div>
 
         {/* Right - Your Stats */}
