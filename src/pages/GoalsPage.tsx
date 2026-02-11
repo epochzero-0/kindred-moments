@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, ChevronRight, Footprints, Brain, Handshake, Medal, Dumbbell, Waves, Coffee, Flame, Target, Users, Award, Check, Crown, type LucideIcon } from "lucide-react";
-import { usePulseData } from "@/hooks/use-data";
+import { usePulseData, useCurrentUser, useUsers } from "@/hooks/use-data";
 import { useCommunityGoals } from "@/hooks/use-community-goals";
+import { useChatConnections } from "@/hooks/use-chat-connections";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 // Icon mapping for goal types
 const getGoalIcon = (title: string): LucideIcon => {
@@ -15,13 +17,66 @@ const getGoalIcon = (title: string): LucideIcon => {
   return Target;
 };
 
-const leaderboard = [
-  { rank: 1, name: "Jurong Foodies", points: 2450, trend: "up" },
-  { rank: 2, name: "Bedok Buddies", points: 2180, trend: "up" },
-  { rank: 3, name: "Tampines Clan", points: 1920, trend: "down" },
-  { rank: 4, name: "Bishan Kakis", points: 1750, trend: "up" },
-  { rank: 5, name: "Yishun Squad", points: 1680, trend: "same" },
-];
+// Map interest IDs to their clan names (matching Explore > Clans catalog)
+const interestToClanName: Record<string, string> = {
+  art: "Art & Creativity Corner",
+  badminton: "Badminton SG",
+  "board games": "Board Game Nights",
+  "bubble tea": "Bubble Tea Hunters 🧋",
+  cats: "Cat Parents SG 🐱",
+  cooking: "Home Cooks United",
+  cycling: "Cycling Routes SG",
+  dogs: "Dog Lovers SG 🐕",
+  "evening walks": "Sunset Walkers",
+  "food hunt": "Hawker & Hidden Gems",
+  gardening: "Green Thumbs SG",
+  "gym light": "Gym Buddies",
+  jogging: "Jogging Kakis",
+  kopi: "Kopi & Conversations ☕",
+  movies: "Movie Buffs SG",
+  music: "Music Makers & Listeners",
+  photography: "Shutterbugs SG 📸",
+  study: "Study Buddies SG",
+  tech: "Tech & Code SG",
+  volunteering: "Volunteer Hearts 💛",
+  // Exploratory groups
+  wellness: "Mindfulness & Wellness",
+  nature: "Nature Explorers SG",
+  kindness: "Random Acts of Kindness",
+  neighbourhood: "Neighbourhood Watch",
+};
+
+// Deterministic pseudo-random points based on group name (stable across renders)
+const getClanPoints = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  return 1200 + Math.abs(hash % 1500); // Range: 1200–2699
+};
+
+const trendOptions: ("up" | "down" | "same")[] = ["up", "down", "same"];
+const getClanTrend = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 3) + name.charCodeAt(i)) | 0;
+  return trendOptions[Math.abs(hash) % 3];
+};
+
+// Emoji for each clan based on its interest
+const clanEmoji: Record<string, string> = {
+  art: "🎨", badminton: "🏸", "board games": "🎲", "bubble tea": "🧋",
+  cats: "🐱", cooking: "🍳", cycling: "🚴", dogs: "🐶",
+  "evening walks": "🌅", "food hunt": "🍜", gardening: "🌻", "gym light": "💪",
+  jogging: "🏃", kopi: "☕", movies: "🎬", music: "🎵",
+  photography: "📸", study: "📚", tech: "💻", volunteering: "💛",
+  wellness: "🧘", nature: "🌿", kindness: "🤗", neighbourhood: "🏠",
+};
+
+const getClanEmoji = (name: string) => {
+  // Find the interest ID whose clan name matches
+  for (const [id, clanName] of Object.entries(interestToClanName)) {
+    if (clanName === name) return clanEmoji[id] || "⭐";
+  }
+  return "⭐";
+};
 
 interface Reward {
   title: string;
@@ -38,11 +93,53 @@ const rewards: Reward[] = [
 
 const GoalsPage = () => {
   const pulseData = usePulseData();
+  const currentUser = useCurrentUser();
+  const users = useUsers();
+  const { profile: storedProfile } = useUserProfile();
+  const { joinedGroups } = useChatConnections();
   const { activeGoals, goals } = useCommunityGoals();
   const endedGoals = goals.filter(g => !g.active);
   const totalActive = pulseData.reduce((a, p) => a + p.active_today, 0);
 
   const [isRegistered, setIsRegistered] = useState(false);
+
+  // Build leaderboard from user's interests + joined groups
+  const leaderboard = useMemo(() => {
+    const userInterests = storedProfile?.interests?.length
+      ? storedProfile.interests
+      : currentUser?.interests || [];
+
+    // Collect unique clan IDs: user interests + any groups they joined
+    const clanIds = new Set<string>(userInterests);
+    joinedGroups.forEach(g => clanIds.add(g.id));
+
+    // Map to leaderboard entries
+    const entries = Array.from(clanIds)
+      .map(id => {
+        const name = interestToClanName[id] || id;
+        return { name, points: getClanPoints(name), trend: getClanTrend(name) };
+      })
+      .sort((a, b) => b.points - a.points)
+      .map((entry, i) => ({ ...entry, rank: i + 1 }));
+
+    // Ensure at least 5 entries for a good-looking leaderboard
+    if (entries.length < 5) {
+      const defaults = ["Jogging Kakis", "Board Game Nights", "Home Cooks United", "Cycling Routes SG", "Badminton SG"];
+      const existing = new Set(entries.map(e => e.name));
+      for (const name of defaults) {
+        if (entries.length >= 5) break;
+        if (!existing.has(name)) {
+          entries.push({ rank: entries.length + 1, name, points: getClanPoints(name), trend: getClanTrend(name) });
+          existing.add(name);
+        }
+      }
+      // Re-sort and re-rank
+      entries.sort((a, b) => b.points - a.points);
+      entries.forEach((e, i) => e.rank = i + 1);
+    }
+
+    return entries;
+  }, [currentUser, storedProfile, joinedGroups]);
 
   const handleRegister = () => {
     setIsRegistered(true);
@@ -85,7 +182,7 @@ const GoalsPage = () => {
           <div className="h-7 w-7 rounded-lg bg-lavender/10 flex items-center justify-center">
             <Users className="h-4 w-4 text-lavender" />
           </div>
-          <span className="text-muted-foreground">8 clans competing</span>
+          <span className="text-muted-foreground">{leaderboard.length} clans competing</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-sakura/10 flex items-center justify-center">
@@ -225,7 +322,7 @@ const GoalsPage = () => {
                 <div className="flex flex-col items-center gap-2 w-1/3">
                   <div className="relative">
                     <div className="h-14 w-14 rounded-full border-4 border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shadow-lg transform translate-y-2">
-                      <span className="text-2xl">🥪</span>
+                      <span className="text-2xl">{getClanEmoji(leaderboard[1].name)}</span>
                     </div>
                     <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-slate-400 flex items-center justify-center text-xs font-bold text-white shadow-md ring-2 ring-white z-10">2</div>
                   </div>
@@ -245,7 +342,7 @@ const GoalsPage = () => {
                       <Crown className="h-6 w-6 text-yellow-500 fill-yellow-500" />
                     </div>
                     <div className="h-20 w-20 rounded-full border-4 border-yellow-300 overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center shadow-xl ring-4 ring-white/50">
-                      <span className="text-4xl">🍜</span>
+                      <span className="text-4xl">{getClanEmoji(leaderboard[0].name)}</span>
                     </div>
                     <div className="absolute -bottom-2 -right-0 h-7 w-7 rounded-full bg-yellow-500 flex items-center justify-center text-sm font-bold text-white shadow-md ring-2 ring-white z-10">1</div>
                   </div>
@@ -263,7 +360,7 @@ const GoalsPage = () => {
                 <div className="flex flex-col items-center gap-2 w-1/3">
                   <div className="relative">
                     <div className="h-14 w-14 rounded-full border-4 border-amber-700/20 overflow-hidden bg-amber-50 flex items-center justify-center shadow-lg transform translate-y-2">
-                      <span className="text-2xl">🏃</span>
+                      <span className="text-2xl">{getClanEmoji(leaderboard[2].name)}</span>
                     </div>
                     <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold text-white shadow-md ring-2 ring-white z-10">3</div>
                   </div>
@@ -290,7 +387,7 @@ const GoalsPage = () => {
                 >
                   <span className="mobile-touch-target font-medium text-muted-foreground text-xs w-6 text-center">#{clan.rank}</span>
                   <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-sm text-sm border border-muted">
-                    {i === 0 ? "🏸" : "🧘"}
+                    {getClanEmoji(clan.name)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{clan.name}</p>

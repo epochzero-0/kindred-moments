@@ -666,6 +666,11 @@ const InterestGroupDirectory = ({ allUsers, currentUserInterests, initialSearch 
                               `kindred-group-chat-${selectedGroup.id}`,
                               JSON.stringify(messagesForChat)
                             );
+                            // Also save member count so ChatPage can use it for exploratory groups
+                            sessionStorage.setItem(
+                              `kindred-group-members-${selectedGroup.id}`,
+                              String(selectedGroup.memberCount)
+                            );
                           } catch { /* ignore */ }
                           closeModal();
                           navigate(`/chat?roomId=group-${selectedGroup.id}&roomName=${encodeURIComponent(selectedGroup.name)}`);

@@ -74,7 +74,7 @@ const ExplorePage = () => {
 
   const tabs = [
     { id: "members" as const, label: "Members", icon: Users },
-    { id: "groups" as const, label: "Groups", icon: Sparkles },
+    { id: "groups" as const, label: "Clans", icon: Sparkles },
     { id: "neighbourhoods" as const, label: "Areas", icon: MapPin },
     { id: "globe" as const, label: "Globe", icon: Globe },
   ];

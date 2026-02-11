@@ -129,6 +129,18 @@ const getSenderColor = (senderId: string) => {
   return senderColors[senderId] || { bg: "bg-slate-100", text: "text-slate-700" };
 };
 
+// Get member count for a group, falling back to sessionStorage for exploratory groups
+const getGroupMemberCount = (groupId: string, users: { interests: string[] }[]) => {
+  const fromInterests = users.filter(u => u.interests.includes(groupId)).length;
+  if (fromInterests > 0) return fromInterests;
+  // Fallback: check stored member count (for exploratory groups like Neighbourhood Watch)
+  try {
+    const stored = sessionStorage.getItem(`kindred-group-members-${groupId}`);
+    if (stored) return parseInt(stored, 10) || 1;
+  } catch { /* ignore */ }
+  return 1;
+};
+
 // Generic neighborhood messages (shared across all neighborhoods)
 const neighborhoodMessages: Message[] = [
   { id: "nb-1", senderId: "u098", senderName: "Auntie Rose", content: "Good morning neighbours! The wet market fish is very fresh today.", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), isMe: false },
@@ -409,7 +421,7 @@ const ChatPage = () => {
         lastMessage: lastMsg ? lastMsg.content : "Tap to view conversation",
         lastMessageTime: lastMsg ? lastMsg.timestamp : new Date(g.joinedAt),
         unread: msgs ? Math.min(msgs.length, 3) : 0,
-        members: users.filter(u => u.interests.includes(g.id)).length,
+        members: getGroupMemberCount(g.id, users),
       };
     }),
     // Contacted users
@@ -463,7 +475,7 @@ const ChatPage = () => {
           setSelectedRoom(room);
         } else {
           // Room not yet in allRooms (timing) — create it inline
-          const memberCount = users.filter(u => u.interests.includes(groupId)).length;
+          const memberCount = getGroupMemberCount(groupId, users);
           const newRoom: ChatRoom = {
             id: `group-${groupId}`,
             name: groupName,
@@ -556,7 +568,7 @@ const ChatPage = () => {
         lastMessage: lastMsg ? lastMsg.content : "Welcome! Start the conversation.",
         lastMessageTime: lastMsg ? lastMsg.timestamp : new Date(),
         unread: 0,
-        members: users.filter(u => u.interests.includes(pendingGroup.id)).length,
+        members: getGroupMemberCount(pendingGroup.id, users),
       };
       setSelectedRoom(newRoom);
       setPendingGroup(null);
@@ -804,7 +816,7 @@ const ChatPage = () => {
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">{pendingGroup.name}</h3>
               <p className="text-sm text-muted-foreground mb-1">
-                {users.filter(u => u.interests.includes(pendingGroup.id)).length} members in this group
+                {getGroupMemberCount(pendingGroup.id, users)} members in this group
               </p>
               <p className="text-sm text-muted-foreground mb-6">
                 Join this amazing community and connect with like-minded neighbours!
