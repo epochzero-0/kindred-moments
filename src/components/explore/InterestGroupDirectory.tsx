@@ -28,7 +28,7 @@ const chatMembers = [
 // Generate group chat messages based on theme
 const generateGroupMessages = (theme: string, groupName: string) => {
   const shuffledMembers = [...chatMembers].sort(() => Math.random() - 0.5);
-  
+
   const messageTemplates: Record<string, string[]> = {
     fitness: [
       "Just finished a 5K run this morning! 🏃‍♂️ Anyone want to join tomorrow?",
@@ -96,13 +96,13 @@ const generateGroupMessages = (theme: string, groupName: string) => {
     ],
   };
 
-  const themeKey = Object.keys(messageTemplates).find(key => 
+  const themeKey = Object.keys(messageTemplates).find(key =>
     theme.toLowerCase().includes(key) || key.includes(theme.toLowerCase())
   ) || "default";
 
   const messages = messageTemplates[themeKey];
   const now = new Date();
-  
+
   return messages.map((text, i) => ({
     id: `msg-${i}`,
     sender: shuffledMembers[i % shuffledMembers.length],
@@ -115,7 +115,7 @@ const generateGroupMessages = (theme: string, groupName: string) => {
 // Generate auto-replies when user sends a message
 const generateAutoReplies = (userMessage: string, theme: string) => {
   const shuffledMembers = [...chatMembers].sort(() => Math.random() - 0.5);
-  
+
   const replyTemplates: Record<string, string[][]> = {
     fitness: [
       ["Nice! See you at the next session! 💪", "That's awesome, welcome aboard!", "Great to have you! Let's crush it together 🔥"],
@@ -141,7 +141,7 @@ const generateAutoReplies = (userMessage: string, theme: string) => {
 
   const templates = replyTemplates[themeKey];
   const selected = templates[Math.floor(Math.random() * templates.length)];
-  
+
   return selected.map((text, i) => ({
     id: `reply-${Date.now()}-${i}`,
     sender: shuffledMembers[i],
@@ -251,8 +251,8 @@ const InterestGroupDirectory = ({ allUsers, currentUserInterests, initialSearch 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Get user interests from stored profile or props
-  const userInterests = storedProfile?.interests?.length 
-    ? storedProfile.interests 
+  const userInterests = storedProfile?.interests?.length
+    ? storedProfile.interests
     : currentUserInterests;
 
   // Build groups with real member counts from users.json
@@ -289,7 +289,7 @@ const InterestGroupDirectory = ({ allUsers, currentUserInterests, initialSearch 
 
     // "Based on your interests" — groups whose interestId matches any of the user's interests
     const recommended = allGroups
-      .filter(g => userInterests.some(ui => 
+      .filter(g => userInterests.some(ui =>
         ui.toLowerCase() === g.id.toLowerCase() ||
         g.tags.some(tag => tag.toLowerCase() === ui.toLowerCase())
       ))
@@ -297,7 +297,7 @@ const InterestGroupDirectory = ({ allUsers, currentUserInterests, initialSearch 
 
     // "Groups you might explore" — everything else + the exploratory groups
     const nonMatched = allGroups
-      .filter(g => !userInterests.some(ui => 
+      .filter(g => !userInterests.some(ui =>
         ui.toLowerCase() === g.id.toLowerCase() ||
         g.tags.some(tag => tag.toLowerCase() === ui.toLowerCase())
       ));
@@ -323,7 +323,7 @@ const InterestGroupDirectory = ({ allUsers, currentUserInterests, initialSearch 
   const filterBySearch = (groups: InterestGroup[]) => {
     if (!searchQuery) return groups;
     const q = searchQuery.toLowerCase();
-    return groups.filter(g => 
+    return groups.filter(g =>
       g.name.toLowerCase().includes(q) ||
       g.id.toLowerCase().includes(q) ||
       g.description.toLowerCase().includes(q) ||
@@ -440,7 +440,7 @@ const InterestGroupDirectory = ({ allUsers, currentUserInterests, initialSearch 
             </span>
           ) : (
             <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-              isRec 
+              isRec
                 ? "bg-pandan/10 text-pandan group-hover:bg-pandan group-hover:text-white"
                 : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
             }`}>
