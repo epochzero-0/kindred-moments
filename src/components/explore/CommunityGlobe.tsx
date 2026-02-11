@@ -13,48 +13,57 @@ export interface CommunityGlobeProps {
   clans: Clan[];
 }
 
-// Calculate 3D position on sphere based on theme clustering and user relevance
+// Calculate 3D position on sphere dynamically based on user interests
 const calculateCommunityPosition = (
   theme: string,
   index: number,
   total: number,
+  userInterests: string[],
   isUserMember: boolean,
   matchesUserInterests: boolean
 ): [number, number, number] => {
-  const themeAngles: Record<string, { theta: number; phi: number }> = {
-    fitness: { theta: 0, phi: Math.PI / 4 },
-    tech: { theta: Math.PI / 2, phi: Math.PI / 4 },
-    art: { theta: Math.PI, phi: Math.PI / 4 },
-    food: { theta: -Math.PI / 2, phi: Math.PI / 4 },
-    study: { theta: Math.PI / 4, phi: Math.PI / 3 },
-    gaming: { theta: 3 * Math.PI / 4, phi: Math.PI / 3 },
-    music: { theta: -3 * Math.PI / 4, phi: Math.PI / 3 },
-    pets: { theta: -Math.PI / 4, phi: Math.PI / 3 },
-    books: { theta: Math.PI / 6, phi: 2 * Math.PI / 3 },
-    travel: { theta: -Math.PI / 6, phi: 2 * Math.PI / 3 },
-    dogs: { theta: -Math.PI / 4, phi: Math.PI / 3 }, // Map dogs to pets area
-    "food hunt": { theta: -Math.PI / 2, phi: Math.PI / 4 }, // Map to food area
-    "evening walks": { theta: 0, phi: Math.PI / 4 }, // Map to fitness area
-    cooking: { theta: -Math.PI / 2, phi: Math.PI / 4 }, // Map to food area
-    movies: { theta: Math.PI, phi: Math.PI / 4 }, // Map to art/entertainment
-    "board games": { theta: 3 * Math.PI / 4, phi: Math.PI / 3 } // Map to gaming
-  };
+  let theta: number;
+  let phi: number;
 
-  const baseAngle = themeAngles[theme] || { theta: (index / total) * Math.PI * 2, phi: Math.PI / 2 };
+  // Find if this community's theme matches any of the user's specific interests
+  const matchedInterestIndex = userInterests.findIndex(interest => 
+    theme.toLowerCase().includes(interest.toLowerCase()) || 
+    interest.toLowerCase().includes(theme.toLowerCase())
+  );
 
-  // Communities user is part of or match interests are positioned MUCH closer
+  if (matchedInterestIndex !== -1) {
+    // RELEVANT CLUSTERS:
+    // If it matches an interest, we give that interest a specific "slice" (sector) of the globe.
+    const sectorSize = (Math.PI * 2) / Math.max(1, userInterests.length);
+    theta = matchedInterestIndex * sectorSize;
+    phi = Math.PI / 4; // Upper hemisphere
+  } else {
+    // BACKGROUND CLUSTERS:
+    theta = (index / total) * Math.PI * 2;
+    phi = Math.PI / 1.8; // Lower hemisphere
+  }
+
+  // Determine radius based on relevance
+  // 1. User is a MEMBER: Closest (Inner circle)
+  // 2. Matches INTEREST: Middle (Discovery circle)
+  // 3. Irrelevant: Furthest (Background)
   const radius = isUserMember ? 0.8 : matchesUserInterests ? 1.4 : 2.2;
 
-  // Add slight variation to avoid overlap, less variation for user communities
-  const variation = isUserMember ? (Math.random() - 0.5) * 0.2 : (Math.random() - 0.5) * 0.4;
+  // Add randomness
+  const variation = (Math.random() - 0.5) * 0.5;
+  const phiVariation = (Math.random() - 0.5) * 0.2;
 
-  const x = radius * Math.sin(baseAngle.phi) * Math.cos(baseAngle.theta + variation);
-  const y = radius * Math.sin(baseAngle.phi) * Math.sin(baseAngle.theta + variation);
-  const z = radius * Math.cos(baseAngle.phi);
+  const finalTheta = theta + variation;
+  const finalPhi = phi + phiVariation;
+
+  const x = radius * Math.sin(finalPhi) * Math.cos(finalTheta);
+  const y = radius * Math.sin(finalPhi) * Math.sin(finalTheta);
+  const z = radius * Math.cos(finalPhi);
 
   return [x, y, z];
 };
 
+// ... [CommunityNode, UserDot, ConnectionLine, CentralUserNode components remain unchanged] ...
 // Community node component
 function CommunityNode({
   clan,
@@ -306,23 +315,30 @@ function CommunityGlobeScene({
   // Calculate community positions
   const communityPositions = useMemo(() => {
     const positions = new Map<string, [number, number, number]>();
-    const userInterests = new Set(currentUser?.interests || []);
+    const userInterests = currentUser?.interests || [];
     const userCommunities = new Set(currentUser?.joined_clans || []);
 
     clans.forEach((clan, idx) => {
-      // Check BOTH directions: user's joined_clans AND if user is in clan.members
-      const isUserMember = userCommunities.has(clan.id) ||
-        (currentUser && clan.members.includes(currentUser.id));
+      // Determine if user is a member based strictly on the passed 'currentUser' state
+      // We do NOT check clan.members here to avoid picking up hardcoded relationships
+      // from the mock data that contradict the current session state.
+      const isUserMember = userCommunities.has(clan.id);
 
-      const matchesUserInterests = userInterests.has(clan.theme) ||
-        currentUser?.interests.some(interest =>
+      const matchesUserInterests = userInterests.some(interest =>
           clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
           interest.toLowerCase().includes(clan.theme.toLowerCase())
         );
 
       positions.set(
         clan.id,
-        calculateCommunityPosition(clan.theme, idx, clans.length, isUserMember, matchesUserInterests || false)
+        calculateCommunityPosition(
+          clan.theme, 
+          idx, 
+          clans.length, 
+          userInterests, 
+          isUserMember || false, 
+          matchesUserInterests || false
+        )
       );
     });
     return positions;
@@ -366,37 +382,24 @@ function CommunityGlobeScene({
     return positions;
   }, [allUsers, communityPositions, currentUser]);
 
-  // Find related communities (share members with user's communities)
+  // Find related communities
   const relatedCommunities = useMemo(() => {
     if (!currentUser) return new Set<string>();
 
-    // Get all clans the user is actually in (check both directions)
-    const userCommunityIds = new Set([
-      ...currentUser.joined_clans,
-      ...clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id)
-    ]);
-
+    const userCommunityIds = new Set(currentUser.joined_clans);
     const related = new Set<string>();
 
     clans.forEach(clan => {
-      // Skip if user is already a member
       if (userCommunityIds.has(clan.id)) return;
 
-      // Check if any members are in user's communities OR share interests
       const hasSharedMembers = clan.members.some(memberId => {
         const member = allUsers.find(u => u.id === memberId);
         if (!member) return false;
-
-        // Check if member is in any of user's communities
-        const memberCommunities = new Set([
-          ...member.joined_clans,
-          ...clans.filter(c => c.members.includes(memberId)).map(c => c.id)
-        ]);
-
-        return Array.from(userCommunityIds).some(ucId => memberCommunities.has(ucId));
+        
+        // Only check strictly against user's current clans
+        return member.joined_clans.some(c => userCommunityIds.has(c));
       });
 
-      // Also consider related if theme matches user interests
       const matchesInterests = currentUser.interests.some(interest =>
         clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
         interest.toLowerCase().includes(clan.theme.toLowerCase())
@@ -426,9 +429,7 @@ function CommunityGlobeScene({
         const position = communityPositions.get(clan.id);
         if (!position) return null;
 
-        // Check BOTH directions for membership
-        const isUserMember = (currentUser?.joined_clans.includes(clan.id)) ||
-          (currentUser && clan.members.includes(currentUser.id)) || false;
+        const isUserMember = currentUser?.joined_clans.includes(clan.id) || false;
         const isRelated = relatedCommunities.has(clan.id);
         const size = 0.06 + (clan.members.length / 20) * 0.03;
 
@@ -446,7 +447,7 @@ function CommunityGlobeScene({
         );
       })}
 
-      {/* Users - show all users */}
+      {/* Users */}
       {allUsers.map(user => {
         const position = userPositions.get(user.id);
         if (!position || user.id === currentUser?.id) return null;
@@ -462,9 +463,9 @@ function CommunityGlobeScene({
         );
       })}
 
-      {/* Connections from current user to their communities */}
+      {/* Connections */}
       {currentUser && clans
-        .filter(clan => currentUser.joined_clans.includes(clan.id) || clan.members.includes(currentUser.id))
+        .filter(clan => currentUser.joined_clans.includes(clan.id))
         .map(clan => {
           const position = communityPositions.get(clan.id);
           if (!position) return null;
@@ -479,7 +480,6 @@ function CommunityGlobeScene({
         })
       }
 
-      {/* Camera controls */}
       <OrbitControls
         enableZoom={true}
         enablePan={true}
@@ -499,48 +499,31 @@ const CommunityGlobe = ({ currentUser, allUsers, clans }: CommunityGlobeProps) =
 
   const selectedClan = clans.find(c => c.id === selectedCommunity);
 
-  // Count user communities (check both directions) - updates when user joins new communities
   const userCommunities = useMemo(() => {
     if (!currentUser) return 0;
-    return new Set([
-      ...currentUser.joined_clans,
-      ...clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id)
-    ]).size;
-  }, [currentUser, clans]);
+    return new Set(currentUser.joined_clans).size;
+  }, [currentUser]);
 
-  // Calculate discovery communities - updates based on current user's interests and communities
   const discoveryCommunities = useMemo(() => {
     if (!currentUser) return [];
 
-    const userCommunityIds = new Set([
-      ...currentUser.joined_clans,
-      ...clans.filter(c => c.members.includes(currentUser.id)).map(c => c.id)
-    ]);
-
+    const userCommunityIds = new Set(currentUser.joined_clans);
     const userInterests = new Set(currentUser.interests);
 
     return clans.filter(clan => {
-      // Skip if user is already a member
       if (userCommunityIds.has(clan.id)) return false;
 
-      // Check if theme matches user interests
       const matchesInterests = userInterests.has(clan.theme) ||
         currentUser.interests.some(interest =>
           clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
           interest.toLowerCase().includes(clan.theme.toLowerCase())
         );
 
-      // Check if members overlap with user's communities
+      // Only check shared members relative to user's known clans
       const hasSharedMembers = clan.members.some(memberId => {
         const member = allUsers.find(u => u.id === memberId);
         if (!member) return false;
-
-        const memberCommunities = new Set([
-          ...member.joined_clans,
-          ...clans.filter(c => c.members.includes(memberId)).map(c => c.id)
-        ]);
-
-        return Array.from(userCommunityIds).some(ucId => memberCommunities.has(ucId));
+        return member.joined_clans.some(c => userCommunityIds.has(c));
       });
 
       return matchesInterests || hasSharedMembers;

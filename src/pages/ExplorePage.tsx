@@ -55,11 +55,15 @@ const ExplorePage = () => {
   // Get user interests from stored profile or current user
   const userInterests = storedProfile?.interests || currentUser?.interests || [];
 
-  // Create a merged user object with profile interests (for passing to components)
+  // Create a merged user object
+  // If we have a storedProfile (from onboarding), we treat this as a "Session User"
+  // and mask the ID so we don't accidentally inherit u001's hardcoded clan memberships.
   const effectiveUser = currentUser ? {
     ...currentUser,
+    id: storedProfile ? "session-user" : currentUser.id,
     interests: userInterests, // Override with profile interests
-    neighbourhood: neighbourhoodDisplayName
+    neighbourhood: neighbourhoodDisplayName,
+    joined_clans: storedProfile ? [] : currentUser.joined_clans // Start fresh if new profile
   } : null;
 
   // Filter users by same neighborhood (matching display name)
