@@ -89,6 +89,19 @@ export interface NeighborhoodGoal {
 
 export type EventType = "neighbourhood" | "clan" | "competition" | "wellness";
 
+export type RecurringPattern = "daily" | "weekly" | "monthly" | null;
+
+export interface EventReminder {
+  minutesBefore: number;
+  enabled: boolean;
+}
+
+export interface EventRSVPs {
+  going: string[];
+  interested: string[];
+  notGoing: string[];
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -106,6 +119,15 @@ export interface Event {
   description?: string;
   hasChat: boolean;
   expenses?: { total: number; perPerson: number };
-  openToAll?: boolean; // Added from CreateEventModal form data
+  openToAll?: boolean;
   isUserAttending?: boolean;
+
+  // Enhanced features
+  rsvps?: EventRSVPs;
+  reminders?: EventReminder[];
+  recurringPattern?: RecurringPattern;
+  recurringDays?: number[]; // For weekly pattern (0 = Sunday, 6 = Saturday)
+  recurringEndDate?: Date;
+  aiSuggestionScore?: number; // AI confidence score for recommendations
+  tags?: string[];
 }
