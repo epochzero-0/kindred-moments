@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Settings, Award, Trophy, Users, MapPin, Languages, Heart,
@@ -15,7 +15,9 @@ import { useCurrentUser, useClans, usePulseData, useUsers } from "@/hooks/use-da
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { useCommunityGoals, CommunityGoal } from "@/hooks/use-community-goals";
 import { useFlaggedContent } from "@/hooks/use-flagged-content";
+import { useChatConnections } from "@/hooks/use-chat-connections";
 import { Link, useNavigate } from "react-router-dom";
+import type { Clan } from "@/types";
 
 type ProfileTab = "profile" | "groups" | "achievements" | "admin" | "settings";
 
@@ -55,8 +57,6 @@ const priorityPerks = [
   { id: "partner", name: "Partner Perks", icon: Gift, unlocked: true, description: "Discounts at local businesses" },
 ];
 
-
-
 const ProfilePage = () => {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
@@ -66,6 +66,7 @@ const ProfilePage = () => {
   const allUsers = useUsers();
   const { goals: communityGoals, addGoal, updateGoal, endGoal } = useCommunityGoals();
   const { pendingItems: flaggedContent, approveItem, rejectItem } = useFlaggedContent();
+  const { joinedGroups } = useChatConnections();
   const [activeTab, setActiveTab] = useState<ProfileTab>("profile");
   const [isAdmin] = useState(true); // Mock admin status
 
@@ -80,9 +81,47 @@ const ProfilePage = () => {
   const displayComfortLevel = storedProfile?.comfortLevel || currentUser?.comfort_level || "ambivert";
   const displayFreeSlots = storedProfile?.freeSlots?.length ? storedProfile.freeSlots : currentUser?.free_slots || [];
 
-  const userClans = clans.filter(c =>
-    currentUser?.joined_clans?.includes(c.id) || c.members.includes(currentUser?.id || "")
-  ).slice(0, 5);
+  // Calculate user's effective clans by merging static data + dynamic session joins
+  const userClans = useMemo(() => {
+    // 1. Start with clans from static data (users.json)
+    // FIX: If we have a storedProfile (onboarding done), do NOT use the hardcoded user's clans.
+    // This gives a clean slate for the new user profile so you only see groups YOU joined.
+    const staticClanIds = storedProfile
+      ? new Set<string>()
+      : new Set([
+        ...(currentUser?.joined_clans || []),
+        ...clans.filter(c => c.members.includes(currentUser?.id || "")).map(c => c.id)
+      ]);
+
+    // 2. Identify real clans that match joined groups
+    const realClans = clans.filter(c =>
+      staticClanIds.has(c.id) || joinedGroups.some(g => g.id === c.id)
+    );
+
+    const realClanIds = new Set(realClans.map(c => c.id));
+
+    // 3. Create synthetic clans for "topic" groups (e.g. "badminton") that aren't in clans.json
+    const topicGroups = joinedGroups
+      .filter(g => !realClanIds.has(g.id))
+      .map(g => {
+        // Calculate synthetic members based on users who have this interest
+        const interestedUserIds = allUsers
+          .filter(u => u.interests.includes(g.id))
+          .map(u => u.id);
+
+        return {
+          id: g.id,
+          name: g.name,
+          neighbourhood: "",
+          theme: g.id,
+          members: interestedUserIds.length > 0 ? interestedUserIds : [currentUser?.id || "user"],
+          weekly_goal: "Stay active!",
+          events_planned: 0,
+        } satisfies Clan;
+      });
+
+    return [...realClans, ...topicGroups];
+  }, [clans, currentUser, joinedGroups, allUsers, storedProfile]);
 
   const userNeighbourhood = pulseData.find(p => p.neighbourhood === currentUser?.neighbourhood);
   const connectionCount = allUsers.filter(u => u.neighbourhood === currentUser?.neighbourhood).length - 1;
@@ -260,7 +299,7 @@ const ProfilePage = () => {
 // Profile Tab
 interface ProfileTabProps {
   user: ReturnType<typeof useCurrentUser>;
-  clans: ReturnType<typeof useClans>;
+  clans: Clan[];
   displayBio: string;
   displayLanguages: string[];
   displayInterests: string[];
@@ -882,7 +921,7 @@ const ProfileTab = ({ user, clans, displayBio, displayLanguages, displayInterest
 
 // Groups Tab
 interface GroupsTabProps {
-  clans: ReturnType<typeof useClans>;
+  clans: Clan[];
   neighbourhood?: string;
 }
 
