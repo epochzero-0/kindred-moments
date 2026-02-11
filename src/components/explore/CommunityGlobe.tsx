@@ -16,6 +16,7 @@ export interface CommunityGlobeProps {
 
 // Calculate 3D position on sphere dynamically based on user interests
 const calculateCommunityPosition = (
+  clanId: string,
   theme: string,
   index: number,
   total: number,
@@ -27,6 +28,7 @@ const calculateCommunityPosition = (
   let phi: number;
 
   const matchedInterestIndex = userInterests.findIndex(interest => 
+    clanId.toLowerCase() === interest.toLowerCase() ||
     theme.toLowerCase().includes(interest.toLowerCase()) || 
     interest.toLowerCase().includes(theme.toLowerCase())
   );
@@ -308,14 +310,18 @@ function CommunityGlobeScene({
       // Check joined status by ID OR by theme (since chat groups often use theme as ID)
       const isUserMember = joinedGroupIds.has(clan.id) || joinedGroupIds.has(clan.theme);
 
+      // Check if clan matches user interests (by ID, Name, or Theme)
       const matchesUserInterests = userInterests.some(interest =>
+          clan.id.toLowerCase() === interest.toLowerCase() ||
           clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
-          interest.toLowerCase().includes(clan.theme.toLowerCase())
+          interest.toLowerCase().includes(clan.theme.toLowerCase()) ||
+          clan.name.toLowerCase().includes(interest.toLowerCase())
         );
 
       positions.set(
         clan.id,
         calculateCommunityPosition(
+          clan.id,
           clan.theme, 
           idx, 
           clans.length, 
@@ -384,8 +390,10 @@ function CommunityGlobeScene({
       });
 
       const matchesInterests = currentUser.interests.some(interest =>
+        clan.id.toLowerCase() === interest.toLowerCase() ||
         clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
-        interest.toLowerCase().includes(clan.theme.toLowerCase())
+        interest.toLowerCase().includes(clan.theme.toLowerCase()) ||
+        clan.name.toLowerCase().includes(interest.toLowerCase())
       );
 
       if (hasSharedMembers || matchesInterests) {
@@ -503,6 +511,7 @@ const CommunityGlobe = ({ currentUser, allUsers, clans }: CommunityGlobeProps) =
 
       const matchesInterests = userInterests.has(clan.theme) ||
         currentUser.interests.some(interest =>
+          clan.id.toLowerCase() === interest.toLowerCase() ||
           clan.theme.toLowerCase().includes(interest.toLowerCase()) ||
           interest.toLowerCase().includes(clan.theme.toLowerCase())
         );

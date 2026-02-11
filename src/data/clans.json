@@ -1,323 +1,400 @@
 [
   {
-    "id": "c00-new",
-    "name": "Punggol Pumas",
+    "id": "art",
+    "name": "Art & Creativity Corner",
+    "neighbourhood": "Bras Basah",
+    "theme": "creative",
+    "members": [
+      "u005",
+      "u012",
+      "u023",
+      "u045",
+      "u018",
+      "u032"
+    ],
+    "weekly_goal": "Sketch a local landmark",
+    "events_planned": 2
+  },
+  {
+    "id": "badminton",
+    "name": "Badminton SG",
+    "neighbourhood": "Tampines",
+    "theme": "fitness",
+    "members": [
+      "u002",
+      "u008",
+      "u015",
+      "u033",
+      "u041",
+      "u048",
+      "u011",
+      "u029"
+    ],
+    "weekly_goal": "Doubles tournament",
+    "events_planned": 3
+  },
+  {
+    "id": "board games",
+    "name": "Board Game Nights",
+    "neighbourhood": "Toa Payoh",
+    "theme": "games",
+    "members": [
+      "u004",
+      "u014",
+      "u022",
+      "u035",
+      "u042",
+      "u049",
+      "u001"
+    ],
+    "weekly_goal": "Learn a new strategy game",
+    "events_planned": 4
+  },
+  {
+    "id": "bubble tea",
+    "name": "Bubble Tea Hunters 🧋",
+    "neighbourhood": "Bedok",
+    "theme": "food",
+    "members": [
+      "u003",
+      "u010",
+      "u025",
+      "u036",
+      "u044",
+      "u050",
+      "u016",
+      "u028"
+    ],
+    "weekly_goal": "Find the best pearls in the east",
+    "events_planned": 1
+  },
+  {
+    "id": "cats",
+    "name": "Cat Parents SG 🐱",
+    "neighbourhood": "Yishun",
+    "theme": "pets",
+    "members": [
+      "u006",
+      "u017",
+      "u026",
+      "u037",
+      "u013"
+    ],
+    "weekly_goal": "Share grooming tips",
+    "events_planned": 2
+  },
+  {
+    "id": "cooking",
+    "name": "Home Cooks United",
+    "neighbourhood": "Sengkang",
+    "theme": "food",
+    "members": [
+      "u007",
+      "u019",
+      "u027",
+      "u038",
+      "u002",
+      "u046"
+    ],
+    "weekly_goal": "Master a hawker dish",
+    "events_planned": 3
+  },
+  {
+    "id": "cycling",
+    "name": "Cycling Routes SG",
     "neighbourhood": "Punggol",
     "theme": "fitness",
     "members": [
-      "u001",
-      "u003",
+      "u009",
+      "u020",
+      "u030",
+      "u039",
+      "u047",
+      "u005",
       "u011"
     ],
-    "weekly_goal": "Running 10km",
+    "weekly_goal": "Complete the Coast-to-Coast trail",
     "events_planned": 1
   },
   {
-    "id": "c01",
-    "name": "Bedok Buddies",
-    "neighbourhood": "Tampines",
-    "theme": "tech",
-    "members": [
-      "u034",
-      "u023",
-      "u027",
-      "u047",
-      "u011",
-      "u018"
-    ],
-    "weekly_goal": "Two focus sessions",
-    "events_planned": 4
-  },
-  {
-    "id": "c02",
-    "name": "Bishan Clan",
-    "neighbourhood": "Sengkang",
-    "theme": "study",
-    "members": [
-      "u022",
-      "u017",
-      "u032",
-      "u043",
-      "u024",
-      "u002"
-    ],
-    "weekly_goal": "One meet together",
-    "events_planned": 3
-  },
-  {
-    "id": "c03",
-    "name": "Bedok Kakis",
-    "neighbourhood": "Sengkang",
-    "theme": "study",
-    "members": [
-      "u039",
-      "u032",
-      "u042",
-      "u001",
-      "u011",
-      "u050"
-    ],
-    "weekly_goal": "Two focus sessions",
-    "events_planned": 1
-  },
-  {
-    "id": "c04",
-    "name": "Tampines Clan",
-    "neighbourhood": "Clementi",
-    "theme": "food",
-    "members": [
-      "u044",
-      "u009",
-      "u003",
-      "u027",
-      "u028",
-      "u012"
-    ],
-    "weekly_goal": "One meet together",
-    "events_planned": 2
-  },
-  {
-    "id": "c05",
-    "name": "Bedok Buddies",
-    "neighbourhood": "Clementi",
-    "theme": "art",
-    "members": [
-      "u050",
-      "u038",
-      "u044",
-      "u048",
-      "u020",
-      "u024"
-    ],
-    "weekly_goal": "Try a new hawker",
-    "events_planned": 4
-  },
-  {
-    "id": "c06",
-    "name": "Bishan Kakis",
-    "neighbourhood": "Yishun",
-    "theme": "tech",
-    "members": [
-      "u028",
-      "u024",
-      "u002",
-      "u009",
-      "u044",
-      "u048"
-    ],
-    "weekly_goal": "Two focus sessions",
-    "events_planned": 4
-  },
-  {
-    "id": "c07",
-    "name": "Yishun Clan",
-    "neighbourhood": "Jurong East",
-    "theme": "art",
-    "members": [
-      "u021",
-      "u046",
-      "u042",
-      "u038",
-      "u002",
-      "u014"
-    ],
-    "weekly_goal": "Two focus sessions",
-    "events_planned": 2
-  },
-  {
-    "id": "c08",
-    "name": "Bedok Buddies",
-    "neighbourhood": "Yishun",
-    "theme": "food",
-    "members": [
-      "u048",
-      "u018",
-      "u003",
-      "u028",
-      "u041",
-      "u020"
-    ],
-    "weekly_goal": "Two focus sessions",
-    "events_planned": 3
-  },
-  {
-    "id": "c09",
-    "name": "Dog Lovers Club",
-    "neighbourhood": "Punggol",
-    "theme": "dogs",
-    "members": [
-      "u003",
-      "u011",
-      "u020",
-      "u034",
-      "u012"
-    ],
-    "weekly_goal": "Weekend dog park meetup",
-    "events_planned": 2
-  },
-  {
-    "id": "c10",
-    "name": "Pet Parents",
-    "neighbourhood": "Sengkang",
+    "id": "dogs",
+    "name": "Dog Lovers SG 🐕",
+    "neighbourhood": "Bishan",
     "theme": "pets",
     "members": [
-      "u003",
-      "u011",
-      "u020",
-      "u027",
-      "u038"
+      "u001",
+      "u021",
+      "u031",
+      "u040",
+      "u043",
+      "u015",
+      "u029"
     ],
-    "weekly_goal": "Share pet care tips",
-    "events_planned": 3
+    "weekly_goal": "Weekend dog run meetup",
+    "events_planned": 2
   },
   {
-    "id": "c11",
-    "name": "Tech Innovators",
-    "neighbourhood": "Tampines",
-    "theme": "tech",
+    "id": "evening walks",
+    "name": "Sunset Walkers",
+    "neighbourhood": "Jurong East",
+    "theme": "fitness",
     "members": [
-      "u023",
-      "u027",
-      "u047",
+      "u008",
+      "u018",
       "u024",
-      "u009"
+      "u034",
+      "u006"
     ],
-    "weekly_goal": "Build a project together",
+    "weekly_goal": "Discover a new park connector",
     "events_planned": 5
   },
   {
-    "id": "c12",
-    "name": "Foodie Explorers",
-    "neighbourhood": "Bedok",
-    "theme": "food hunt",
+    "id": "food hunt",
+    "name": "Hawker & Hidden Gems",
+    "neighbourhood": "Chinatown",
+    "theme": "food",
     "members": [
-      "u009",
       "u003",
-      "u028",
-      "u044",
-      "u018"
+      "u012",
+      "u022",
+      "u033",
+      "u045",
+      "u049",
+      "u010",
+      "u025"
     ],
-    "weekly_goal": "Discover new eateries",
+    "weekly_goal": "Try a Michelin Bib Gourmand stall",
     "events_planned": 4
   },
   {
-    "id": "c13",
-    "name": "Gaming Squad",
-    "neighbourhood": "Punggol",
-    "theme": "gaming",
+    "id": "gardening",
+    "name": "Green Thumbs SG",
+    "neighbourhood": "Bukit Batok",
+    "theme": "default",
     "members": [
-      "u011",
-      "u024",
-      "u032",
-      "u043",
-      "u047"
+      "u004",
+      "u016",
+      "u028",
+      "u036",
+      "u042"
     ],
-    "weekly_goal": "Weekly gaming session",
+    "weekly_goal": "Community garden harvest",
+    "events_planned": 2
+  },
+  {
+    "id": "gym light",
+    "name": "Gym Buddies",
+    "neighbourhood": "Clementi",
+    "theme": "fitness",
+    "members": [
+      "u002",
+      "u013",
+      "u026",
+      "u035",
+      "u048",
+      "u019"
+    ],
+    "weekly_goal": "Personal best attempt",
     "events_planned": 6
   },
   {
-    "id": "c14",
-    "name": "Book Club",
-    "neighbourhood": "Bishan",
-    "theme": "books",
+    "id": "jogging",
+    "name": "Jogging Kakis",
+    "neighbourhood": "Marine Parade",
+    "theme": "fitness",
     "members": [
-      "u002",
-      "u017",
-      "u022",
-      "u032",
-      "u042"
-    ],
-    "weekly_goal": "Read and discuss",
-    "events_planned": 2
-  },
-  {
-    "id": "c15",
-    "name": "Music Makers",
-    "neighbourhood": "Clementi",
-    "theme": "music",
-    "members": [
-      "u020",
-      "u024",
-      "u038",
+      "u005",
+      "u014",
+      "u023",
+      "u037",
       "u044",
-      "u050"
+      "u009",
+      "u030",
+      "u041"
     ],
-    "weekly_goal": "Jam session",
+    "weekly_goal": "10km monthly challenge",
     "events_planned": 3
   },
   {
-    "id": "c16",
-    "name": "Travel Buddies",
-    "neighbourhood": "Tampines",
-    "theme": "travel",
+    "id": "kopi",
+    "name": "Kopi & Conversations ☕",
+    "neighbourhood": "Tiong Bahru",
+    "theme": "food",
     "members": [
-      "u012",
-      "u018",
+      "u007",
+      "u017",
       "u027",
-      "u034",
-      "u041"
+      "u038",
+      "u050",
+      "u004"
     ],
-    "weekly_goal": "Plan next adventure",
+    "weekly_goal": "Rate the best Kopi C",
+    "events_planned": 7
+  },
+  {
+    "id": "movies",
+    "name": "Movie Buffs SG",
+    "neighbourhood": "Orchard",
+    "theme": "default",
+    "members": [
+      "u001",
+      "u015",
+      "u029",
+      "u039",
+      "u046",
+      "u012"
+    ],
+    "weekly_goal": "Watch an indie film",
     "events_planned": 2
   },
   {
-    "id": "c17",
-    "name": "Study Group Central",
-    "neighbourhood": "Punggol",
+    "id": "music",
+    "name": "Music Makers & Listeners",
+    "neighbourhood": "Bugis",
+    "theme": "default",
+    "members": [
+      "u006",
+      "u020",
+      "u032",
+      "u043",
+      "u018",
+      "u025"
+    ],
+    "weekly_goal": "Jam session at the park",
+    "events_planned": 3
+  },
+  {
+    "id": "photography",
+    "name": "Shutterbugs SG 📸",
+    "neighbourhood": "Marina Bay",
+    "theme": "creative",
+    "members": [
+      "u010",
+      "u021",
+      "u031",
+      "u040",
+      "u047",
+      "u008",
+      "u024"
+    ],
+    "weekly_goal": "Golden hour photo walk",
+    "events_planned": 2
+  },
+  {
+    "id": "study",
+    "name": "Study Buddies SG",
+    "neighbourhood": "Dover",
     "theme": "study",
     "members": [
-      "u001",
-      "u017",
+      "u011",
       "u022",
-      "u032",
-      "u039"
+      "u033",
+      "u044",
+      "u003",
+      "u016",
+      "u028",
+      "u035"
     ],
-    "weekly_goal": "Collaborative learning",
+    "weekly_goal": "Focus group session",
     "events_planned": 5
   },
   {
-    "id": "c18",
-    "name": "Cooking Circle",
-    "neighbourhood": "Yishun",
-    "theme": "cooking",
+    "id": "tech",
+    "name": "Tech & Code SG",
+    "neighbourhood": "One-North",
+    "theme": "tech",
     "members": [
-      "u002",
       "u009",
-      "u020",
-      "u028",
-      "u048"
-    ],
-    "weekly_goal": "Try new recipes",
-    "events_planned": 3
-  },
-  {
-    "id": "c19",
-    "name": "Board Game Nights",
-    "neighbourhood": "Sengkang",
-    "theme": "board games",
-    "members": [
+      "u023",
+      "u034",
+      "u045",
       "u002",
-      "u024",
-      "u032",
-      "u043",
-      "u050"
+      "u013",
+      "u026",
+      "u037",
+      "u049"
     ],
-    "weekly_goal": "Play new games",
+    "weekly_goal": "Hackathon participation",
     "events_planned": 4
   },
   {
-    "id": "c20",
-    "name": "Movie Buffs",
-    "neighbourhood": "Bedok",
-    "theme": "movies",
+    "id": "volunteering",
+    "name": "Volunteer Hearts 💛",
+    "neighbourhood": "Redhill",
+    "theme": "default",
     "members": [
-      "u002",
-      "u018",
-      "u038",
-      "u042",
-      "u046"
+      "u004",
+      "u019",
+      "u030",
+      "u041",
+      "u048",
+      "u007",
+      "u017"
     ],
-    "weekly_goal": "Watch and discuss films",
+    "weekly_goal": "Food bank distribution",
+    "events_planned": 1
+  },
+  {
+    "id": "wellness",
+    "name": "Mindfulness & Wellness",
+    "neighbourhood": "Tanglin",
+    "theme": "default",
+    "members": [
+      "u005",
+      "u018",
+      "u029",
+      "u039",
+      "u001",
+      "u014"
+    ],
+    "weekly_goal": "Morning yoga session",
+    "events_planned": 3
+  },
+  {
+    "id": "nature",
+    "name": "Nature Explorers SG",
+    "neighbourhood": "Bukit Timah",
+    "theme": "default",
+    "members": [
+      "u008",
+      "u021",
+      "u032",
+      "u042",
+      "u050",
+      "u006"
+    ],
+    "weekly_goal": "Hike the Rail Corridor",
+    "events_planned": 2
+  },
+  {
+    "id": "kindness",
+    "name": "Random Acts of Kindness",
+    "neighbourhood": "Ang Mo Kio",
+    "theme": "default",
+    "members": [
+      "u010",
+      "u024",
+      "u036",
+      "u046",
+      "u011"
+    ],
+    "weekly_goal": "Pay it forward challenge",
+    "events_planned": 1
+  },
+  {
+    "id": "neighbourhood",
+    "name": "Neighbourhood Watch",
+    "neighbourhood": "Woodlands",
+    "theme": "default",
+    "members": [
+      "u015",
+      "u027",
+      "u040",
+      "u003",
+      "u025",
+      "u031"
+    ],
+    "weekly_goal": "Community patrol",
     "events_planned": 2
   }
 ]
