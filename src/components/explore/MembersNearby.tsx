@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "framer-motion";
 import {
   Users, MapPin, Heart, X, MessageCircle, Sparkles, Languages, Clock, Star,
-  Moon, Sun, CloudSun, PartyPopper, Wand2, Send, RotateCcw, LucideIcon
+  Moon, Sun, CloudSun, PartyPopper, Wand2, Send, RotateCcw, LucideIcon,
+  ChevronDown, Flame, ArrowRight, Zap
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-data";
 import { useChatConnections } from "@/hooks/use-chat-connections";
@@ -15,10 +16,10 @@ export interface MembersNearbyProps {
   neighbourhood: string;
 }
 
-// Generate consistent avatar URL from user id
-const getAvatarUrl = (userId: string) => {
-  const num = parseInt(userId.replace(/\D/g, ''), 10) || 1;
-  return `https://i.pravatar.cc/200?img=${(num % 70) + 1}`;
+// Generate consistent avatar URL from user name using DiceBear
+const getAvatarUrl = (userId: string, userName: string) => {
+  const seed = encodeURIComponent(userName || userId);
+  return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=e8e0db,d1ebe6,dce5f5,f5e6d0,f0d9e3`;
 };
 
 // Get comfort level icon
@@ -57,9 +58,15 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
   const [likedUsers, setLikedUsers] = useState<User[]>(() => persistedState?.likedUsers || []);
   const [generatingMessage, setGeneratingMessage] = useState<string | null>(null);
   const [aiMessages, setAiMessages] = useState<Record<string, string>>(() => persistedState?.aiMessages || {});
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
   const navigate = useNavigate();
   const { contactUser } = useChatConnections();
   const currentUser = useCurrentUser();
+
+  const dragX = useMotionValue(0);
+  const rotateCard = useTransform(dragX, [-200, 0, 200], [-15, 0, 15]);
+  const likeOpacity = useTransform(dragX, [0, 100], [0, 1]);
+  const passOpacity = useTransform(dragX, [-100, 0], [1, 0]);
 
   // Sort users by number of shared interests (descending)
   const allSortedUsers = [...users].sort((a, b) => {
@@ -94,7 +101,13 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
     }
   }, [hasCompletedSwipe, sortedUsers.length]);
 
+  // Hide swipe hint after first swipe
+  useEffect(() => {
+    if (currentIndex > 0) setShowSwipeHint(false);
+  }, [currentIndex]);
+
   const currentProfile = sortedUsers[currentIndex];
+  const nextProfile = sortedUsers[currentIndex + 1];
 
   // Calculate match percentage
   const getMatchPercentage = (userInterests: string[]) => {
@@ -119,6 +132,7 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       setDirection(null);
+      dragX.set(0);
       // Mark as completed when last card is swiped
       if (nextIndex >= sortedUsers.length) {
         setHasCompletedSwipe(true);
@@ -227,171 +241,259 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
         animate={{ opacity: 1 }}
         className="pb-8"
       >
-        {/* Header with stats */}
-        <div className="text-center mb-6">
-          <div className="h-14 w-14 rounded-full bg-pandan/10 flex items-center justify-center mb-3 mx-auto">
-            <Heart className="h-7 w-7 text-pandan" />
-          </div>
-          <h3 className="text-lg font-medium text-foreground mb-1">
-            {showAll ? `You've seen everyone in ${neighbourhood}!` : "You've seen your top matches!"}
-          </h3>
-          
-          {/* Like/Dislike stats */}
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <div className="flex items-center gap-1.5 text-sm">
-              <Heart className="h-4 w-4 text-pandan" />
-              <span className="text-pandan font-medium">{likeCount} liked</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm">
-              <X className="h-4 w-4 text-rose-400" />
-              <span className="text-rose-400 font-medium">{dislikeCount} passed</span>
-            </div>
+        {/* Confetti-style celebration header */}
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="text-center mb-8 relative"
+        >
+          {/* Animated background glow */}
+          <div className="absolute inset-0 -top-8 flex items-center justify-center pointer-events-none">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="w-48 h-48 rounded-full bg-gradient-to-br from-pandan/20 via-primary/10 to-sakura/20 blur-3xl"
+            />
           </div>
 
-          {matches.length > 0 && (
-            <p className="text-sm text-pandan font-medium flex items-center justify-center gap-1.5">
-              <PartyPopper className="h-4 w-4" />
-              {matches.length} mutual connection{matches.length > 1 ? 's' : ''}!
-            </p>
-          )}
-        </div>
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="relative"
+          >
+            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-pandan via-emerald-400 to-pandan flex items-center justify-center mb-4 mx-auto shadow-lg">
+              <PartyPopper className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              {showAll ? `All caught up!` : "Top matches reviewed!"}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">Here's your session in {neighbourhood}</p>
+          </motion.div>
+
+          {/* Stats cards */}
+          <div className="grid grid-cols-3 gap-3 mb-2">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="bg-gradient-to-br from-pandan/10 to-emerald-50 dark:to-emerald-950/30 rounded-2xl p-4 border border-pandan/10"
+            >
+              <Heart className="h-5 w-5 text-pandan mx-auto mb-1" />
+              <p className="text-2xl font-bold text-pandan">{likeCount}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Liked</p>
+            </motion.div>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 rounded-2xl p-4 border border-rose-100 dark:border-rose-900/30"
+            >
+              <X className="h-5 w-5 text-rose-400 mx-auto mb-1" />
+              <p className="text-2xl font-bold text-rose-400">{dislikeCount}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Passed</p>
+            </motion.div>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="bg-gradient-to-br from-primary/10 to-amber-50 dark:to-amber-950/30 rounded-2xl p-4 border border-primary/10"
+            >
+              <Sparkles className="h-5 w-5 text-primary mx-auto mb-1" />
+              <p className="text-2xl font-bold text-primary">{matches.length}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Matches</p>
+            </motion.div>
+          </div>
+        </motion.div>
 
         {/* Liked users list */}
         {likedUsers.length > 0 ? (
-          <div className="space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
             <div className="flex items-center gap-2 mb-4">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              <h4 className="font-medium text-foreground">Say hello to your likes</h4>
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <MessageCircle className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground text-sm">Start a conversation</h4>
+                <p className="text-[10px] text-muted-foreground">Reach out to people you liked</p>
+              </div>
             </div>
 
-            {likedUsers.map((user, index) => {
-              const sharedInterests = user.interests.filter(i => currentUserInterests.includes(i));
-              const isMatch = matches.includes(user.id);
-              
-              return (
-                <motion.div
-                  key={user.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-2xl p-4 shadow-soft"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="relative">
-                      <img 
-                        src={getAvatarUrl(user.id)} 
-                        alt={user.name}
-                        className="h-12 w-12 rounded-xl object-cover"
-                      />
-                      {isMatch && (
-                        <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-pandan flex items-center justify-center">
-                          <Sparkles className="h-3 w-3 text-white" />
+            <div className="space-y-3">
+              {likedUsers.map((user, index) => {
+                const sharedInterests = user.interests.filter(i => currentUserInterests.includes(i));
+                const isMatch = matches.includes(user.id);
+                const matchPct = getMatchPercentage(user.interests);
+                
+                return (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 + index * 0.08 }}
+                    className={`rounded-2xl overflow-hidden border transition-all ${
+                      isMatch 
+                        ? "border-pandan/30 bg-gradient-to-r from-pandan/5 to-emerald-50/50 dark:to-emerald-950/20 shadow-sm" 
+                        : "border-border/50 bg-card shadow-soft"
+                    }`}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="relative">
+                          <img 
+                            src={getAvatarUrl(user.id, user.name)} 
+                            alt={user.name}
+                            className="h-14 w-14 rounded-2xl object-cover ring-2 ring-background shadow-sm"
+                          />
+                          {isMatch && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", delay: 0.8 + index * 0.08 }}
+                              className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-gradient-to-br from-pandan to-emerald-400 flex items-center justify-center shadow-md"
+                            >
+                              <Zap className="h-3 w-3 text-white" />
+                            </motion.div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h5 className="font-medium text-foreground">{user.name}</h5>
-                        {isMatch && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pandan/10 text-pandan font-medium">
-                            Match!
-                          </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h5 className="font-semibold text-foreground">{user.name}</h5>
+                            {isMatch && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-pandan/15 text-pandan font-semibold">
+                                Matched!
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <MapPin className="h-3 w-3" />
+                            {user.neighbourhood}
+                            {matchPct > 0 && (
+                              <span className="ml-1 text-pandan">· {matchPct}% match</span>
+                            )}
+                          </p>
+                          {sharedInterests.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {sharedInterests.slice(0, 3).map(interest => (
+                                <span key={interest} className="text-[10px] px-1.5 py-0.5 rounded-md bg-pandan/10 text-pandan">
+                                  {interest}
+                                </span>
+                              ))}
+                              {sharedInterests.length > 3 && (
+                                <span className="text-[10px] text-muted-foreground">+{sharedInterests.length - 3}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            contactUser(user.id, user.name);
+                            navigate({
+                              pathname: "/chat",
+                              search: createSearchParams({ userId: user.id }).toString()
+                            });
+                          }}
+                          className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white hover:shadow-md transition-all hover:scale-105 active:scale-95"
+                        >
+                          <Send className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {/* AI Message Suggestion */}
+                      <div className="bg-muted/40 rounded-xl p-3 border border-border/30">
+                        {!aiMessages[user.id] && generatingMessage !== user.id ? (
+                          <button
+                            onClick={() => generateAiMessage(user)}
+                            className="w-full flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors py-1 group"
+                          >
+                            <Wand2 className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                            <span>Generate conversation starter</span>
+                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        ) : generatingMessage === user.id ? (
+                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-1">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            >
+                              <Wand2 className="h-4 w-4" />
+                            </motion.div>
+                            <span>Crafting the perfect message...</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-sm text-foreground leading-relaxed italic">"{aiMessages[user.id]}"</p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleSendAiMessage(user, aiMessages[user.id])}
+                                className="flex-1 py-2 rounded-lg bg-gradient-to-r from-primary to-primary/80 text-white text-xs font-medium hover:shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                              >
+                                <Send className="h-3 w-3" />
+                                Use this message
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setAiMessages(prev => {
+                                    const newMessages = { ...prev };
+                                    delete newMessages[user.id];
+                                    return newMessages;
+                                  });
+                                  setTimeout(() => generateAiMessage(user), 100);
+                                }}
+                                className="py-2 px-3 rounded-lg bg-card border border-border/50 text-muted-foreground text-xs font-medium hover:bg-muted transition-colors"
+                              >
+                                <RotateCcw className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {sharedInterests.length > 0 
-                          ? `${sharedInterests.slice(0, 3).join(", ")}${sharedInterests.length > 3 ? ` +${sharedInterests.length - 3}` : ""}`
-                          : "Neighbour"
-                        }
-                      </p>
                     </div>
-                    <button
-                      onClick={() => {
-                        contactUser(user.id, user.name);
-                        navigate({
-                          pathname: "/chat",
-                          search: createSearchParams({ userId: user.id }).toString()
-                        });
-                      }}
-                      className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-white hover:opacity-90 transition-opacity"
-                    >
-                      <Send className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {/* AI Message Suggestion */}
-                  <div className="bg-muted/50 rounded-xl p-3">
-                    {!aiMessages[user.id] && generatingMessage !== user.id ? (
-                      <button
-                        onClick={() => generateAiMessage(user)}
-                        className="w-full flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors py-1"
-                      >
-                        <Wand2 className="h-4 w-4" />
-                        <span>Generate conversation starter</span>
-                      </button>
-                    ) : generatingMessage === user.id ? (
-                      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-1">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Wand2 className="h-4 w-4" />
-                        </motion.div>
-                        <span>Crafting the perfect message...</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm text-foreground leading-relaxed">"{aiMessages[user.id]}"</p>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleSendAiMessage(user, aiMessages[user.id])}
-                            className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
-                          >
-                            <Send className="h-3 w-3" />
-                            Use this message
-                          </button>
-                          <button
-                            onClick={() => {
-                              setAiMessages(prev => {
-                                const newMessages = { ...prev };
-                                delete newMessages[user.id];
-                                return newMessages;
-                              });
-                              setTimeout(() => generateAiMessage(user), 100);
-                            }}
-                            className="py-2 px-3 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/80 transition-colors"
-                          >
-                            <RotateCcw className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground mb-4">You haven't liked anyone yet. Try swiping right on profiles you're interested in!</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center py-8 bg-muted/30 rounded-2xl border border-border/30"
+          >
+            <Heart className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground mb-1">You haven't liked anyone yet</p>
+            <p className="text-xs text-muted-foreground/70">Try swiping right on profiles you're interested in!</p>
+          </motion.div>
         )}
 
         {/* Action buttons */}
         <div className="flex gap-3 mt-6">
           {!showAll && hasMoreUsers && (
-            <button
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
               onClick={() => {
                 setShowAll(true);
                 setCurrentIndex(5);
                 setHasCompletedSwipe(false);
               }}
-              className="flex-1 py-3 rounded-xl bg-pandan text-white text-sm font-medium"
+              className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-pandan to-emerald-400 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              See {allSortedUsers.length - 5} more
-            </button>
+              <Users className="h-4 w-4" />
+              See {allSortedUsers.length - 5} more neighbors
+            </motion.button>
           )}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
             onClick={() => {
               setCurrentIndex(0);
               setShowAll(false);
@@ -403,11 +505,11 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
               setHasCompletedSwipe(false);
               sessionStorage.removeItem("swipe-state");
             }}
-            className={`${!showAll && hasMoreUsers ? 'flex-1' : 'w-full'} py-3 rounded-xl bg-muted text-muted-foreground text-sm font-medium flex items-center justify-center gap-2`}
+            className={`${!showAll && hasMoreUsers ? 'flex-1' : 'w-full'} py-3.5 rounded-2xl bg-muted/60 text-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-muted transition-colors active:scale-[0.98]`}
           >
             <RotateCcw className="h-4 w-4" />
             Start over
-          </button>
+          </motion.button>
         </div>
       </motion.div>
     );
@@ -415,17 +517,18 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
 
   const sharedInterests = getSharedInterests(currentProfile?.interests || []);
   const matchPercent = currentProfile ? getMatchPercentage(currentProfile.interests) : 0;
+  const ComfortIcon = currentProfile ? getComfortIcon(currentProfile.comfort_level) : Sparkles;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-16">
       {/* Header info */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-sm text-muted-foreground">
             {showAll ? (
-              <><span className="font-medium text-foreground">{allSortedUsers.length}</span> neighbours in {neighbourhood}</>
+              <><span className="font-semibold text-foreground">{allSortedUsers.length}</span> neighbours in {neighbourhood}</>
             ) : (
-              <>Top <span className="font-medium text-foreground">5</span> matches{hasMoreUsers && ` of ${allSortedUsers.length}`}</>
+              <>Top <span className="font-semibold text-foreground">5</span> matches{hasMoreUsers && ` of ${allSortedUsers.length}`}</>
             )}
           </p>
           {/* Like/Dislike counter */}
@@ -440,86 +543,153 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
             </div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          {currentIndex + 1} / {sortedUsers.length}
-        </p>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">{currentIndex + 1}</span>
+          <span>/</span>
+          <span>{sortedUsers.length}</span>
+        </div>
       </div>
 
-      <div className="relative h-[22rem] flex items-center justify-center">
-        {/* Decorative background elements */}
+      {/* Card stack area */}
+      <div className="relative h-[26rem] flex items-center justify-center mb-4">
+        {/* Ambient glow behind card */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="absolute w-72 h-72 rounded-full bg-gradient-to-br from-sakura/10 to-lavender/10 blur-3xl" />
-          <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-pandan/5 blur-2xl" />
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-primary/5 blur-2xl" />
+          <motion.div 
+            animate={{ 
+              background: [
+                "radial-gradient(circle, rgba(var(--pandan-rgb, 72,187,120), 0.08) 0%, transparent 70%)",
+                "radial-gradient(circle, rgba(var(--sakura-rgb, 237,100,166), 0.08) 0%, transparent 70%)",
+                "radial-gradient(circle, rgba(var(--pandan-rgb, 72,187,120), 0.08) 0%, transparent 70%)",
+              ],
+            }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="absolute w-80 h-80 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(72,187,120,0.08) 0%, transparent 70%)" }}
+          />
         </div>
+
+        {/* Background card (next profile preview) */}
+        {nextProfile && (
+          <div className="absolute w-[calc(100%-2rem)] max-w-[calc(24rem-1rem)] h-[24rem]">
+            <div className="w-full h-full bg-card rounded-3xl shadow-sm border border-border/30 overflow-hidden opacity-50 scale-[0.94] translate-y-3">
+              <div className="h-44 bg-gradient-to-br from-muted to-muted/50">
+                <img 
+                  src={getAvatarUrl(nextProfile.id, nextProfile.name)}
+                  alt=""
+                  className="w-full h-full object-cover opacity-60"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main swipeable card */}
         <AnimatePresence>
           {currentProfile && (
             <motion.div
               key={currentProfile.id}
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{
                 scale: 1,
                 opacity: 1,
-                x: direction === "left" ? -300 : direction === "right" ? 300 : 0,
-                rotate: direction === "left" ? -20 : direction === "right" ? 20 : 0,
+                y: 0,
+                x: direction === "left" ? -400 : direction === "right" ? 400 : 0,
               }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 300, 
+                damping: 25,
+                ...(direction && { duration: 0.3, type: "tween" })
+              }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               onDragEnd={handleDragEnd}
-              className="absolute w-full max-w-sm bg-white rounded-3xl shadow-elevated overflow-hidden cursor-grab active:cursor-grabbing"
+              style={{ x: dragX, rotate: rotateCard }}
+              className="absolute w-full max-w-sm bg-card rounded-3xl shadow-elevated overflow-hidden cursor-grab active:cursor-grabbing border border-border/20"
             >
-              {/* Match percentage badge */}
-              {matchPercent > 0 && (
-                <div className="absolute top-4 right-4 z-10 px-3 py-1.5 rounded-full bg-pandan text-white text-sm font-semibold flex items-center gap-1 shadow-md">
-                  <Star className="h-3.5 w-3.5" />
-                  {matchPercent}% match
+              {/* Like/Pass overlay indicators */}
+              <motion.div
+                style={{ opacity: likeOpacity }}
+                className="absolute inset-0 z-20 bg-gradient-to-br from-pandan/20 to-transparent pointer-events-none flex items-center justify-center rounded-3xl"
+              >
+                <div className="absolute top-6 left-6 px-4 py-2 rounded-xl bg-pandan text-white font-bold text-lg rotate-[-12deg] border-2 border-white/30">
+                  LIKE
                 </div>
+              </motion.div>
+              <motion.div
+                style={{ opacity: passOpacity }}
+                className="absolute inset-0 z-20 bg-gradient-to-bl from-rose-500/20 to-transparent pointer-events-none flex items-center justify-center rounded-3xl"
+              >
+                <div className="absolute top-6 right-6 px-4 py-2 rounded-xl bg-rose-500 text-white font-bold text-lg rotate-[12deg] border-2 border-white/30">
+                  PASS
+                </div>
+              </motion.div>
+
+              {/* Match badge - floating */}
+              {matchPercent > 0 && (
+                <motion.div
+                  initial={{ scale: 0, y: -10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                  className="absolute top-4 right-4 z-10"
+                >
+                  <div className={`px-3 py-1.5 rounded-full text-white text-sm font-bold flex items-center gap-1.5 shadow-lg ${
+                    matchPercent >= 50 
+                      ? "bg-gradient-to-r from-pandan to-emerald-400" 
+                      : "bg-gradient-to-r from-primary to-amber-500"
+                  }`}>
+                    {matchPercent >= 50 ? <Flame className="h-3.5 w-3.5" /> : <Star className="h-3.5 w-3.5" />}
+                    {matchPercent}% match
+                  </div>
+                </motion.div>
               )}
 
-              {/* Profile header with avatar */}
-              <div className="relative h-40 bg-gradient-to-br from-primary/20 via-sakura/20 to-lavender/20">
+              {/* Profile image */}
+              <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={getAvatarUrl(currentProfile.id)}
+                  src={getAvatarUrl(currentProfile.id, currentProfile.name)}
                   alt={currentProfile.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                
+                {/* Name + location overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-5">
                   <div className="flex items-end justify-between">
                     <div>
-                      <h3 className="text-2xl font-bold text-white drop-shadow-lg">
-                        {currentProfile.name.split(' ')[0]}, {currentProfile.age}
+                      <h3 className="text-2xl font-bold text-white tracking-tight">
+                        {currentProfile.name.split(' ')[0]}<span className="font-normal text-white/80">, {currentProfile.age}</span>
                       </h3>
-                      <p className="text-sm text-white/90 flex items-center gap-1 drop-shadow">
+                      <p className="text-sm text-white/80 flex items-center gap-1.5 mt-0.5">
                         <MapPin className="h-3.5 w-3.5" />
                         {currentProfile.neighbourhood}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs">
-                      {(() => { const ComfortIcon = getComfortIcon(currentProfile.comfort_level); return <ComfortIcon className="h-3 w-3" />; })()}
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-white text-xs border border-white/10">
+                      <ComfortIcon className="h-3.5 w-3.5" />
                       {currentProfile.comfort_level}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Profile info */}
-              <div className="p-4">
+              {/* Profile details */}
+              <div className="p-5 space-y-4">
                 {/* Languages & Free time */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Languages className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex gap-1">
+                    <div className="flex gap-1.5">
                       {currentProfile.languages.map((lang) => (
-                        <span key={lang} className="px-2 py-0.5 rounded-full bg-muted text-xs text-muted-foreground">
+                        <span key={lang} className="px-2 py-0.5 rounded-md bg-muted/80 text-xs text-muted-foreground font-medium">
                           {lang.toUpperCase()}
                         </span>
                       ))}
                     </div>
                   </div>
                   {currentProfile.free_slots?.[0] && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-md">
                       <Clock className="h-3.5 w-3.5" />
                       Free {currentProfile.free_slots[0]}
                     </div>
@@ -528,16 +698,16 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
 
                 {/* Shared interests */}
                 {sharedInterests.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs text-pandan font-medium mb-1.5 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3" />
+                  <div>
+                    <p className="text-xs text-pandan font-semibold mb-2 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
                       {sharedInterests.length} shared interest{sharedInterests.length > 1 ? "s" : ""}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {sharedInterests.map((interest) => (
                         <span
                           key={interest}
-                          className="px-2.5 py-1 rounded-full bg-pandan/10 text-pandan text-xs font-medium"
+                          className="px-3 py-1 rounded-full bg-pandan/10 text-pandan text-xs font-medium border border-pandan/15"
                         >
                           {interest}
                         </span>
@@ -547,56 +717,79 @@ const MembersNearby = ({ users, currentUserInterests, neighbourhood }: MembersNe
                 )}
 
                 {/* Other interests */}
-                <div className="flex flex-wrap gap-1.5">
-                  {currentProfile.interests
-                    .filter((i) => !sharedInterests.includes(i))
-                    .map((interest) => (
-                      <span
-                        key={interest}
-                        className="px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                </div>
+                {currentProfile.interests.filter(i => !sharedInterests.includes(i)).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentProfile.interests
+                      .filter((i) => !sharedInterests.includes(i))
+                      .map((interest) => (
+                        <span
+                          key={interest}
+                          className="px-3 py-1 rounded-full bg-muted/60 text-muted-foreground text-xs border border-border/30"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Swipe hint */}
+        {showSwipeHint && currentIndex === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 1.5 }}
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-xs text-muted-foreground/60 flex items-center gap-1"
+          >
+            <motion.div animate={{ x: [-8, 8, -8] }} transition={{ duration: 2, repeat: Infinity }}>
+              ← swipe →
+            </motion.div>
+          </motion.div>
+        )}
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center justify-center gap-6 mt-4">
-        <button
+      <div className="flex items-center justify-center gap-5">
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => handleSwipe("left")}
-          className="h-12 w-12 rounded-full bg-white shadow-soft flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:shadow-elevated transition-all"
+          className="h-14 w-14 rounded-2xl bg-card shadow-soft border border-border/30 flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:border-rose-200 hover:shadow-md transition-all"
         >
-          <X className="h-5 w-5" />
-        </button>
-        <button
+          <X className="h-6 w-6" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => handleSwipe("right")}
-          className="h-14 w-14 rounded-full bg-gradient-to-br from-pandan to-emerald-400 shadow-elevated flex items-center justify-center text-white hover:scale-105 transition-transform"
+          className="h-16 w-16 rounded-2xl bg-gradient-to-br from-pandan to-emerald-400 shadow-lg flex items-center justify-center text-white hover:shadow-xl transition-all"
         >
-          <Heart className="h-6 w-6" />
-        </button>
-        <button
+          <Heart className="h-7 w-7" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           onClick={handleChat}
-          className="h-12 w-12 rounded-full bg-white shadow-soft flex items-center justify-center text-muted-foreground hover:text-primary hover:shadow-elevated transition-all"
+          className="h-14 w-14 rounded-2xl bg-card shadow-soft border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/20 hover:shadow-md transition-all"
         >
-          <MessageCircle className="h-5 w-5" />
-        </button>
+          <MessageCircle className="h-6 w-6" />
+        </motion.button>
       </div>
 
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center gap-1 mt-3">
-        {sortedUsers.slice(0, 10).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 rounded-full transition-all ${i === currentIndex ? "w-6 bg-primary" : i < currentIndex ? "w-1.5 bg-pandan" : "w-1.5 bg-muted"
-              }`}
+      {/* Progress bar */}
+      <div className="mt-5 px-4">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${((currentIndex) / sortedUsers.length) * 100}%` }}
+            className="h-full bg-gradient-to-r from-primary via-pandan to-emerald-400 rounded-full"
+            transition={{ duration: 0.3 }}
           />
-        ))}
-        {sortedUsers.length > 10 && <span className="text-xs text-muted-foreground ml-1">+{sortedUsers.length - 10}</span>}
+        </div>
       </div>
     </motion.div>
   );
