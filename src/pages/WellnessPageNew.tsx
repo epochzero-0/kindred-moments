@@ -340,14 +340,15 @@ const WellnessPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* Rewind Preview */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
-        className="px-6 mt-6"
-      >
-        <div className="bg-gradient-to-br from-primary/10 via-sakura/10 to-lavender/10 rounded-2xl p-5">
+      {/* Rewind Preview - only show on Breathe tab */}
+      {activeTab === "breathe" && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="px-6 mt-6"
+        >
+          <div className="bg-gradient-to-br from-primary/10 via-sakura/10 to-lavender/10 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="h-10 w-10 rounded-xl bg-white/60 flex items-center justify-center">
               <Rewind className="h-5 w-5 text-primary" />
@@ -380,6 +381,7 @@ const WellnessPage = () => {
           </button>
         </div>
       </motion.div>
+      )}
 
       {/* Breathing Exercise Modal */}
       <AnimatePresence>
@@ -971,17 +973,16 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 pb-24"
             onClick={() => setShowNewEntry(false)}
           >
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-t-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6"
+              className="bg-card rounded-2xl w-full max-w-lg max-h-[70vh] overflow-y-auto p-6 shadow-elevated"
             >
-              <div className="w-12 h-1 rounded-full bg-muted mx-auto mb-4" />
               <h2 className="text-lg font-semibold text-foreground mb-4">New Journal Entry</h2>
 
               {/* Mood Selection */}
@@ -1022,12 +1023,16 @@ const JournalTab = ({ entries, prompts }: JournalTabProps) => {
               />
 
               <button
+                type="button"
                 onClick={saveEntry}
                 disabled={!selectedMood || !journalText.trim()}
-                className={`w-full mt-4 py-3 rounded-xl text-white font-medium ${!selectedMood || !journalText.trim() ? "bg-muted/40 cursor-not-allowed" : "bg-primary hover:bg-primary/90"}`}
+                className={`w-full mt-4 py-3 rounded-xl font-medium transition-colors ${!selectedMood || !journalText.trim() ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-white hover:bg-primary/90"}`}
               >
                 Save Entry
               </button>
+              {(!selectedMood && journalText.trim()) && (
+                <p className="text-xs text-muted-foreground text-center mt-2">Please select a mood above to save</p>
+              )}
             </motion.div>
           </motion.div>
         )}
