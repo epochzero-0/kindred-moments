@@ -168,21 +168,21 @@ const HomePage = () => {
         variants={stagger.container}
         initial="hidden"
         animate="visible"
-        className="max-w-[1280px] mx-auto px-16 pb-12"
+        className="max-w-[1280px] mx-auto px-5 sm:px-8 lg:px-16 pb-12"
       >
 
         {/* ═══ Header — quiet, receding ═══ */}
-        <motion.header variants={stagger.item} className="pt-10 pb-2 flex items-end justify-between">
+        <motion.header variants={stagger.item} className="pt-6 sm:pt-10 pb-2 flex items-end justify-between">
           <div>
             <p className="text-muted-foreground/70 text-sm tracking-wide">{greeting}</p>
-            <h1 className="text-4xl font-semibold text-foreground tracking-tight mt-1 leading-[1.1]">
+            <h1 className="text-2xl sm:text-4xl font-semibold text-foreground tracking-tight mt-1 leading-[1.1]">
               {firstName}
             </h1>
           </div>
         </motion.header>
 
         {/* ═══ HERO — Atmospheric Presence (desktop-scaled) ═══ */}
-        <motion.section variants={stagger.item} className="relative py-16 mt-2 mb-4">
+        <motion.section variants={stagger.item} className="relative py-10 sm:py-16 mt-2 mb-4">
           {/* Ambient depth — radial glows, wider spread for desktop */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <AmbientGlow color="hsla(16, 85%, 58%, 0.07)" size={700} x="50%" y="45%" delay={0} />
@@ -203,16 +203,16 @@ const HomePage = () => {
               animate={{ scale: [1, 1.015, 1] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span className="text-[8.5rem] leading-none font-light text-foreground tracking-tighter font-serif select-none">
+              <span className="text-6xl sm:text-[8.5rem] leading-none font-light text-foreground tracking-tighter font-serif select-none">
                 <AnimatedNumber value={totalPeopleActive} />
               </span>
             </motion.div>
-            <p className="text-muted-foreground text-lg mt-4 tracking-wide font-light">
+            <p className="text-muted-foreground text-sm sm:text-lg mt-3 sm:mt-4 tracking-wide font-light">
               neighbours active right now
             </p>
 
             {/* Meta — mood + location, spaced apart */}
-            <div className="flex items-center justify-center gap-14 mt-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-14 mt-5 sm:mt-8">
               <motion.div
                 variants={stagger.item}
                 className="flex items-center gap-2.5"
@@ -235,12 +235,12 @@ const HomePage = () => {
             </div>
 
             {/* CTA — understated elegance */}
-            <motion.div variants={stagger.item} className="mt-10">
+            <motion.div variants={stagger.item} className="mt-6 sm:mt-10">
               <motion.button
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/explore?tab=globe")}
-                className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-foreground text-background text-[15px] font-medium shadow-apple-lg hover:shadow-apple-xl transition-all duration-500"
+                className="group inline-flex items-center gap-2 sm:gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-foreground text-background text-sm sm:text-[15px] font-medium shadow-apple-lg hover:shadow-apple-xl transition-all duration-500"
               >
                 <Sparkles className="h-4 w-4 opacity-70" />
                 <span className="tracking-wide">Explore your community</span>
@@ -259,20 +259,20 @@ const HomePage = () => {
               exit={{ opacity: 0, y: -8, height: 0, marginBottom: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="relative rounded-2xl bg-gradient-to-r from-amber-50/80 via-background to-background px-6 py-5 overflow-hidden">
+              <div className="relative rounded-2xl bg-gradient-to-r from-amber-50/80 via-background to-background px-4 sm:px-6 py-4 sm:py-5 overflow-hidden">
                 {/* Warm accent line */}
                 <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full bg-gradient-to-b from-amber-400 to-amber-300" />
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-amber-100/80 flex items-center justify-center">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="h-10 w-10 shrink-0 rounded-xl bg-amber-100/80 flex items-center justify-center">
                       <Coffee className="h-[18px] w-[18px] text-amber-600" />
                     </div>
-                    <div>
-                      <p className="text-[15px] font-medium text-foreground leading-snug">James invited you to coffee</p>
-                      <p className="text-sm text-muted-foreground/70 mt-0.5">Kopitiam @ Blk 123 · Now</p>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-[15px] font-medium text-foreground leading-snug truncate">James invited you to coffee</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground/70 mt-0.5">Kopitiam @ Blk 123 · Now</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <motion.button
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
@@ -295,12 +295,12 @@ const HomePage = () => {
         </AnimatePresence>
 
         {/* ═══ LOWER — Two-column desktop layout ═══ */}
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
           {/* LEFT COLUMN — Events (dominant) */}
-          <motion.section variants={stagger.item} className="col-span-7">
-            <div className="flex items-baseline justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-foreground tracking-tight">What's happening</h2>
+          <motion.section variants={stagger.item} className="lg:col-span-7">
+            <div className="flex items-baseline justify-between mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">What's happening</h2>
               <button
                 onClick={() => navigate("/events")}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
@@ -317,7 +317,7 @@ const HomePage = () => {
                 variants={stagger.item}
                 whileHover={{ y: -3 }}
                 onClick={() => navigate("/events")}
-                className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-sakura/[0.03] p-8 cursor-pointer transition-all duration-500 hover:shadow-apple group mb-5"
+                className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-sakura/[0.03] p-5 sm:p-8 cursor-pointer transition-all duration-500 hover:shadow-apple group mb-5"
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Calendar className="h-4 w-4 text-primary/50" />
@@ -364,15 +364,15 @@ const HomePage = () => {
           </motion.section>
 
           {/* RIGHT COLUMN — Your day */}
-          <motion.section variants={stagger.item} className="col-span-5">
-            <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-6">Your day</h2>
+          <motion.section variants={stagger.item} className="lg:col-span-5">
+            <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight mb-4 sm:mb-6">Your day</h2>
 
             {/* Steps — primary card */}
             <motion.div
               variants={stagger.item}
               whileHover={{ y: -3 }}
               onClick={() => navigate("/wellness?tab=steps")}
-              className="rounded-2xl bg-gradient-to-br from-pandan/[0.06] to-background p-7 cursor-pointer transition-all duration-500 hover:shadow-apple group mb-5"
+              className="rounded-2xl bg-gradient-to-br from-pandan/[0.06] to-background p-5 sm:p-7 cursor-pointer transition-all duration-500 hover:shadow-apple group mb-5"
             >
               <div className="flex items-center justify-between mb-5">
                 <motion.div
@@ -406,7 +406,7 @@ const HomePage = () => {
                 variants={stagger.item}
                 whileHover={{ y: -3 }}
                 onClick={() => navigate("/wellness")}
-                className="rounded-2xl bg-gradient-to-br from-lavender/[0.05] to-background p-6 cursor-pointer transition-all duration-500 hover:shadow-apple group flex flex-col justify-between min-h-[140px]"
+                className="rounded-2xl bg-gradient-to-br from-lavender/[0.05] to-background p-4 sm:p-6 cursor-pointer transition-all duration-500 hover:shadow-apple group flex flex-col justify-between min-h-[120px] sm:min-h-[140px]"
               >
                 <motion.div
                   animate={{ scale: [1, 1.08, 1] }}
@@ -425,7 +425,7 @@ const HomePage = () => {
                 variants={stagger.item}
                 whileHover={{ y: -3 }}
                 onClick={() => navigate("/chat")}
-                className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-background p-6 cursor-pointer transition-all duration-500 hover:shadow-apple group flex flex-col justify-between min-h-[140px]"
+                className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-background p-4 sm:p-6 cursor-pointer transition-all duration-500 hover:shadow-apple group flex flex-col justify-between min-h-[120px] sm:min-h-[140px]"
               >
                 <div className="h-10 w-10 rounded-xl bg-primary/8 flex items-center justify-center">
                   <MessageCircle className="h-5 w-5 text-primary/70" />
